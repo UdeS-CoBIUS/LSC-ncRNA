@@ -1,0 +1,3 @@
+C:/Users/ibra/OneDrive - USherbrooke/Project/MotifsExtractionSelection/cmake-build-debug/CMakeFiles/MotifsExtractionSelection.dir
+C:/Users/ibra/OneDrive - USherbrooke/Project/MotifsExtractionSelection/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/ibra/OneDrive - USherbrooke/Project/MotifsExtractionSelection/cmake-build-debug/CMakeFiles/rebuild_cache.dir
