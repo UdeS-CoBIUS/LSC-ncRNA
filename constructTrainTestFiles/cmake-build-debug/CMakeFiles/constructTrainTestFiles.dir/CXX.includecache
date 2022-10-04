@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/ibra/OneDrive - USherbrooke/Project/constructTrainTestFiles/FastaFilesReader.h
+vector
+-
+string
+-
+sys/types.h
+-
+sys/stat.h
+-
+unistd.h
+-
+
+C:/Users/ibra/OneDrive - USherbrooke/Project/constructTrainTestFiles/main.cpp
+iostream
+-
+FastaFilesReader.h
+C:/Users/ibra/OneDrive - USherbrooke/Project/constructTrainTestFiles/FastaFilesReader.h
+

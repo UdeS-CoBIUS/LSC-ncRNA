@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated>
+      <config projectName="constructTrainTestFiles" targetName="constructTrainTestFiles" />
+    </generated>
+  </component>
+  <component name="CMakeSettings" AUTO_RELOAD="true">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a58aadbc-39b9-495a-a938-398a30364f82" name="Default Changelist" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="ProjectId" id="1d2W3NyzSJAKkJURyngbruXmPe4" />
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ibra\OneDrive - USherbrooke\Project\constructTrainTestFiles" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="constructTrainTestFiles" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="input output 11 22 33 66" PASS_PARENT_ENVS_2="true" PROJECT_NAME="constructTrainTestFiles" TARGET_NAME="constructTrainTestFiles" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="constructTrainTestFiles" RUN_TARGET_NAME="constructTrainTestFiles">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a58aadbc-39b9-495a-a938-398a30364f82" name="Default Changelist" comment="" />
+      <created>1591623469005</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1591623469005</updated>
+      <workItem from="1591623471736" duration="4487000" />
+      <workItem from="1591891614541" duration="1102000" />
+      <workItem from="1592309136458" duration="4968000" />
+      <workItem from="1593528512266" duration="7515000" />
+      <workItem from="1596465853492" duration="2729000" />
+      <workItem from="1597775389966" duration="4889000" />
+      <workItem from="1599651113117" duration="2856000" />
+      <workItem from="1600087657653" duration="936000" />
+      <workItem from="1601388607358" duration="2367000" />
+      <workItem from="1631630961457" duration="1907000" />
+      <workItem from="1649943997097" duration="769000" />
+      <workItem from="1649958205142" duration="3491000" />
+      <workItem from="1651860555962" duration="710000" />
+      <workItem from="1652899332196" duration="2395000" />
+      <workItem from="1653664937370" duration="771000" />
+      <workItem from="1654806782656" duration="32000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+</project>
