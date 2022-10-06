@@ -1,0 +1,3 @@
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/cmake-build-debug/CMakeFiles/ParseResultInfernal.dir
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/cmake-build-debug/CMakeFiles/rebuild_cache.dir

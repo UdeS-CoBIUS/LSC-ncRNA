@@ -1,0 +1,48 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/FastaFilesReader.h
+vector
+-
+string
+-
+sys/types.h
+-
+sys/stat.h
+-
+unistd.h
+-
+
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/Utile.h
+string
+-
+vector
+-
+iostream
+-
+sstream
+-
+
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/main.cpp
+iostream
+-
+fstream
+-
+string
+-
+filesystem
+-
+iterator
+-
+FastaFilesReader.h
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/FastaFilesReader.h
+Utile.h
+C:/Users/ibra/OneDrive - USherbrooke/Project/ParseResultInfernal/Utile.h
+cmath
+-
+
