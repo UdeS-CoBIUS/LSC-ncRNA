@@ -59,6 +59,17 @@ python3 Main.py EXT "/data/chei2402/ibra/SCode_MatrixCmsNbOccs/del_No_nbF_Clans_
 
 
 ## 5) Blast based classification (blastn(av-s)):
+Blast is search tool for the best hits. We use it and at to it some post processing to produce classification. We use a script to do the folloing steps:
+- a) FRom the Train folder: gather all sequences in all files in fasta file X.
+- b) use balst to creat a database on this one single file X (that contains all Train seqs)
+- c) Gather all sequnces in Test folder in one single file Y.
+- d) use blast to search sequnces in Y against database for X.
+- e) Process balst result best hit to generate the classification.
+
+To lunch the script `blast_classification.py`, we need to give as argument the path for Train and Test foder, and the test (experment) name as shown in the follwing example:
+```shell
+nohup python blast_classification.py "/data/chei2402/ibra/test_infernal/Clans_family_train_test/Train/" "/data/chei2402/ibra/test_infernal/Clans_family_train_test/Test/" Clans > res_blast_class_Clans_time_acc &
+```
 
 
 ## 6) Infernal based classification:
