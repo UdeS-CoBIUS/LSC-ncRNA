@@ -96,7 +96,7 @@ def remove_extension(in_str):
 
 
 # 1) NNCM : Naif Naif Calss Method =>
-# seq query goes with family wich is nb of seqs majoritaire , donc > total nb seqs /2
+# seq query goes with family which is nb of seqs majoritaire , donc > total nb seqs /2
 # dans notre cas, on test seulement cette condition pour notre query , si elle est bien classer ou pas
 # nb_res_same_family : calculer le nombre des seqs res de la meme family que seq query
 # si (nb_res_same_family) est majoritaire, donc  il est > (total number /2), on dit que la prediction est correct
@@ -627,8 +627,7 @@ def experiment_secondary_and_no_secondary_three_families():
 
 
 def experiment_secondary_and_no_secondary_one_family(experiment_path):
-
-    data_set_name = experiment_path.split("/")[-1] # get the last name of the path
+    data_set_name = experiment_path.split("/")[-1]  # get the last name of the path
 
     blast_search_result_name = "res_wz7_query_db_" + data_set_name + "_train.xml"
 
@@ -655,14 +654,64 @@ def experiment_secondary_and_no_secondary_one_family(experiment_path):
     print(" dir {} Parsing for classification in : {} sec ..................".format(data_set_name, end - start))
 
 
-def main():
-    #exprement_deep_ncrna_bn()
+def change_seq_ids():
+    in_filepath = R"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_family_train_test_name\Test\CL00001_test.fasta"
+    ou_filepath = R"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_family_train_test_name\Test\CL00001_test_2.fasta"
+    new_base_name = "CL00001"
+    seq_id = 0
+    with open(in_filepath, "r") as file_input:
+        with open(ou_filepath, "w") as output:
+            for line in file_input:
+                if line.startswith('>'):
+                    line = ">{}.seq_id_{}\n".format(new_base_name, seq_id)
+                    seq_id += 1
+                output.write(line)
 
-    experiment_secondary_and_no_secondary_three_families()
+
+def experiments(path_train_folder, path_test_folder, data_set_name):
+    """
+    :param path_train_folder: the path to the directory that contains Train families, each family in separate file.
+    :param path_test_folder:  the path to the directory that contains Test  families, each family in separate file.
+    :param data_set_name:     the data ste name, or the experiment name
+    :return: None
+    """
+
+    blast_search_result_name = "res_wz7_query_db_" + data_set_name + "_train.xml"
+
+    name_db = "db_" + data_set_name + "_train"
+
+    # 1) create blast db
+    start = time.time()
+    create_blast_db(path_train_folder, name_db)
+    end = time.time()
+    print(" dir {} Creating in : {} sec ..................".format(data_set_name, end - start))
+
+    # 2) search blast db
+    start = time.time()
+    search_blast_db(path_test_folder, name_db)
+    end = time.time()
+    print(" dir {} Searching in : {} sec ..................".format(data_set_name, end - start))
+
+    # 3) parse classification
+    start = time.time()
+    parse_result_classification_NCM_Score_average(blast_search_result_name)
+    end = time.time()
+    print(" dir {} Parsing for classification in : {} sec ..................".format(data_set_name, end - start))
+
+
+def main():
+    # exprement_deep_ncrna_bn()
+    # experiment_secondary_and_no_secondary_three_families()
+
+    path_train_folder = sys.argv[1] # path train dolder: .../Train
+    path_test_folder = sys.argv[2] # test folder as : ..../Test
+    data_set_name = sys.argv[3] # for example: Clan, secondary, allRfam ... etc
+
+    experiments(path_train_folder, path_test_folder, data_set_name)
 
     # just for debug
-    #blast_xml_result = "res_5.xml"
-    #parse_result_classification_NCM_Evalue(blast_xml_result)
+    # blast_xml_result = "res_5.xml"
+    # parse_result_classification_NCM_Evalue(blast_xml_result)
 
 
 def test_code():
@@ -695,3 +744,4 @@ def test_code():
 if __name__ == '__main__':
     main()
     # test_code()
+    #change_seq_ids()

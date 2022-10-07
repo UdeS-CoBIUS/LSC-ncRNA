@@ -61,6 +61,7 @@ python3 Main.py EXT "/data/chei2402/ibra/SCode_MatrixCmsNbOccs/del_No_nbF_Clans_
 ## 5) Blast based classification (blastn(av-s)):
 
 
+## 6) Infernal based classification:
 
 
 ### supplementary sub-folder: 
