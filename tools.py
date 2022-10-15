@@ -59,10 +59,38 @@ def rename_all_files_in_directory_prefix(directory, prefix="red_"):
             # rename the file to the new_file_name
             os.rename(f, new_file_name)
 
+# get all RFam classes from a given Clan, by its html link.
+# urls: https://rfam.xfam.org/clan/CL00003
+# we have an html tag like this:
+#<span class="listItem">
+#      <a title="RF00017" href="https://rfam.xfam.org/family/RF00017">
+#        Metazoa_SRP</a>
+#    </span>
+# we need to get items from class="listItem", get the title "RF00017"
+# we need to get all items from class="listItem".
+def get_clan_Rfam_classes():
+    import requests
+    from bs4 import BeautifulSoup
+
+    r = requests.get("https://rfam.xfam.org/clan/CL00003")
+    soup = BeautifulSoup(r.text, "html.parser")
+    list_item = soup.find_all(class_="listItem")
+    fisrt_elem = list_item[0]
+    print("rrrrrrrrrrrrrrrrrrrrrrrrr")
+    print(type(fisrt_elem))
+    print(fisrt_elem.a)
+    
+
+    #clan_Rfam_classes_name = []
+    
+    
+
 def main():
-    directory = (r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_01-51-69_families\Train")
+    #directory = (r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_01-51-69_families\Train")
     #rename_all_files_in_directory(directory, "txt")
-    rename_all_files_in_directory_prefix(directory, "red_")
+    #rename_all_files_in_directory_prefix(directory, "red_")
+    print("hello word families")
+    get_clan_Rfam_classes()
 
 if __name__ == "__main__":
     main()
