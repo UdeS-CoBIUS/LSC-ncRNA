@@ -96,7 +96,7 @@ def get_download_clan_Rfam_classes(url_clan, directory):
 
     # check if folder exists, stop the program and return.
     if os.path.exists(dir_clan):
-        print("The folder does exist.")
+        print("The folder {} does exist... Exiting...".format(dir_clan))
         return
 
     print(" creating folder: " + dir_clan)
@@ -120,12 +120,7 @@ def get_download_clan_Rfam_classes(url_clan, directory):
         print(" finished download_file----------------------")
 
 
-
-def main():
-    # directory = (r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_01-51-69_families\Train")
-    # rename_all_files_in_directory(directory, "txt")
-    # rename_all_files_in_directory_prefix(directory, "red_")
-
+def clans_family_download():
     directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
     base_url_clan = "https://rfam.xfam.org/clan/"
     list_clan_names = ["CL00051",
@@ -153,6 +148,13 @@ def main():
         url_clan = base_url_clan + clan_name
         get_download_clan_Rfam_classes(url_clan, directory)
 
+
+def main():
+    # directory = (r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_01-51-69_families\Train")
+    # rename_all_files_in_directory(directory, "txt")
+    # rename_all_files_in_directory_prefix(directory, "red_")
+    clans_family_download()
+    
 
 if __name__ == "__main__":
     main()
