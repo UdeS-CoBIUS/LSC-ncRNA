@@ -4,13 +4,9 @@ this file is only to use some script to faciltate some processing of my files
 
 # 1) Rename all files in the directory
 
-import os
-import sys
-import shutil
-import glob
-import argparse
-import subprocess
-import time
+import requests
+from bs4 import BeautifulSoup
+
 
 # get all files path that begin with some prefix
 def get_all_files_path(directory, prefix):
@@ -69,19 +65,16 @@ def rename_all_files_in_directory_prefix(directory, prefix="red_"):
 # we need to get items from class="listItem", get the title "RF00017"
 # we need to get all items from class="listItem".
 def get_clan_Rfam_classes():
-    import requests
-    from bs4 import BeautifulSoup
+
+    list_rfam = []
 
     r = requests.get("https://rfam.xfam.org/clan/CL00003")
     soup = BeautifulSoup(r.text, "html.parser")
     list_item = soup.find_all(class_="listItem")
-    fisrt_elem = list_item[0]
-    print("rrrrrrrrrrrrrrrrrrrrrrrrr")
-    print(type(fisrt_elem))
-    print(fisrt_elem.a)
-    
+    for item in list_item:
+        list_rfam.append(item.find("a").get("title"))
 
-    #clan_Rfam_classes_name = []
+    return list_rfam
     
     
 
@@ -90,7 +83,8 @@ def main():
     #rename_all_files_in_directory(directory, "txt")
     #rename_all_files_in_directory_prefix(directory, "red_")
     print("hello word families")
-    get_clan_Rfam_classes()
+    list_rfam = get_clan_Rfam_classes()
+    print(list_rfam)
 
 if __name__ == "__main__":
     main()
