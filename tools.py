@@ -145,7 +145,8 @@ def clans_family_download():
                        "CL00005",
                        "CL00027"
                        ]
-    for clan_name in list_clan_names:
+    #for clan_name in list_clan_names:
+    for clan_name in ["CL00003"]:
         url_clan = base_url_clan + clan_name
         get_download_clan_Rfam_classes(url_clan, directory)
 
@@ -164,14 +165,6 @@ def sequences_count(fasta_file):
 def reduce_nb_sequences(fasta_file_in, fasta_file_out, max_nb_sequences):
     print("fasta_file_in: ", fasta_file_in)
     print("fasta_file_out: ", fasta_file_out)
-
-    nb_seqs = sequences_count(fasta_file_in)
-    print("file : {} , have count : {}".format(fasta_file_in, nb_seqs))
-    if nb_seqs <= max_nb_sequences:
-        print(" nb is less than {}, skipping".format(max_nb_sequences))
-        return
-
-    print(" nb seqs {} > nb_max {} ... continue".format(nb_seqs, max_nb_sequences))
 
     idx = 0
     with open(fasta_file_in, 'r') as fasta_in:
@@ -229,8 +222,8 @@ def clans_family_reducer():
 
     directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
     base_url_clan = "https://rfam.xfam.org/clan/"
-    """
-    list_clan_names = ["CL00003",
+
+    list_clan_names = [
                        "CL00106",
                        "CL00038",
                        "CL00054",
@@ -248,8 +241,8 @@ def clans_family_reducer():
                        "CL00005",
                        "CL00027"
                        ]
-    """
-    list_clan_names = ["CL00003"]
+    #list_clan_names = ["CL00003"]
+
     for clan_name in list_clan_names:
         url_clan = directory + clan_name
         print(" Reduce clan : " + clan_name)
