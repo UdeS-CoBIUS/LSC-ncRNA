@@ -8,6 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
+from Bio import SeqIO
+
 
 # get all files path that begin with some prefix
 def get_all_files_path(directory, prefix):
@@ -145,7 +147,7 @@ def clans_family_download():
                        "CL00005",
                        "CL00027"
                        ]
-    #for clan_name in list_clan_names:
+    # for clan_name in list_clan_names:
     for clan_name in ["CL00003"]:
         url_clan = base_url_clan + clan_name
         get_download_clan_Rfam_classes(url_clan, directory)
@@ -177,7 +179,7 @@ def reduce_nb_sequences(fasta_file_in, fasta_file_out, max_nb_sequences):
                         fasta_out.write(line)
                         idx += 1
                     else:
-                        break # finish the writing.
+                        break  # finish the writing.
                 else:
                     fasta_out.write(line)
     print(" finished writing")
@@ -190,7 +192,7 @@ def reduce_nb_sequences_folder(folder, nb_sequences):
 
     for fasta_file in fasta_files:
         fasta_file_name = os.path.basename(fasta_file)
-        red_fasta_file_name = os.path.join( os.path.dirname(fasta_file), "red_" + fasta_file_name)
+        red_fasta_file_name = os.path.join(os.path.dirname(fasta_file), "red_" + fasta_file_name)
         print(" red_fasta_file_name: ", red_fasta_file_name)
         reduce_nb_sequences(fasta_file, red_fasta_file_name, nb_sequences)
 
@@ -215,8 +217,6 @@ def rename_files_remove_prefix_from_name(folder, prefix):
             os.rename(filename, path_new_name)
 
 
-
-
 def clans_family_reducer():
     print(" In clans_family_reducer ................")
 
@@ -224,24 +224,24 @@ def clans_family_reducer():
     base_url_clan = "https://rfam.xfam.org/clan/"
 
     list_clan_names = [
-                       "CL00106",
-                       "CL00038",
-                       "CL00054",
-                       "CL00002",
-                       "CL00014",
-                       "CL00102",
-                       "CL00117",
-                       "CL00021",
-                       "CL00111",
-                       "CL00118",
-                       "CL00066",
-                       "CL00112",
-                       "CL00116",
-                       "CL00010",
-                       "CL00005",
-                       "CL00027"
-                       ]
-    #list_clan_names = ["CL00003"]
+        "CL00106",
+        "CL00038",
+        "CL00054",
+        "CL00002",
+        "CL00014",
+        "CL00102",
+        "CL00117",
+        "CL00021",
+        "CL00111",
+        "CL00118",
+        "CL00066",
+        "CL00112",
+        "CL00116",
+        "CL00010",
+        "CL00005",
+        "CL00027"
+    ]
+    # list_clan_names = ["CL00003"]
 
     for clan_name in list_clan_names:
         url_clan = directory + clan_name
@@ -250,12 +250,92 @@ def clans_family_reducer():
         remove_files_bigin_prefix(url_clan, "RF")
         rename_files_remove_prefix_from_name(url_clan, "red_")
 
+
+def generate_train_test_files(folder):
+    # 1) create directory for train test
+    folder_name = os.path.basename(folder)
+    folder_dir = os.path.dirname(folder)
+    train_test_folder = os.path.join(folder_dir, folder_name + "_train_test")
+    if not os.path.exists(train_test_folder):
+        os.makedirs(train_test_folder)
+
+    # 2) lunch
+    percentage_nb_seqs_train = 70
+    construct_train_test_files(folder, train_test_folder, percentage_nb_seqs_train)
+
+def construct_train_test_files(path_dir_in, path_dir_out, percentage_nb_seqs_train):
+    # 1) create Train and Test folder
+    train_folder = os.path.join(path_dir_out, "Train")
+    test_folder = os.path.join(path_dir_out, "Test")
+    res_folder = os.path.join(path_dir_out, "res")  # we need this folder during experiment
+
+    if not os.path.exists(train_folder):
+        os.makedirs(train_folder)
+    if not os.path.exists(test_folder):
+        os.makedirs(test_folder)
+    if not os.path.exists(res_folder):
+        os.makedirs(res_folder)
+
+    # get all fasta files in path_dir
+    fasta_files = get_files_path(path_dir_in, "fasta")
+    print(" nb fasta files: ", len(fasta_files))
+
+    for fasta_file in fasta_files:
+        fasta_file_name = os.path.basename(fasta_file)
+        file_train = os.path.join(train_folder, fasta_file_name)
+        file_test = os.path.join(test_folder, fasta_file_name)
+        nb_seqs_file = sequences_count(fasta_file)
+        nb_seqs_train = (nb_seqs_file * percentage_nb_seqs_train) / 100
+        idx = 0
+        train_records = []
+        test_records = []
+
+        for record in SeqIO.parse(fasta_file, "fasta"):
+            if idx < nb_seqs_train:
+                train_records.append(record)
+                idx += 1
+            else:
+                test_records.append(record)
+
+        SeqIO.write(train_records, file_train, "fasta")
+        SeqIO.write(test_records, file_test, "fasta")
+
+
+def clans_train_test():
+    directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
+
+    list_clan_names = [
+        "CL00106",
+        "CL00038",
+        "CL00054",
+        "CL00002",
+        "CL00014",
+        "CL00102",
+        "CL00117",
+        "CL00021",
+        "CL00111",
+        "CL00118",
+        "CL00066",
+        "CL00112",
+        "CL00116",
+        "CL00010",
+        "CL00005",
+        "CL00027"
+    ]
+    #list_clan_names = ["CL00003"]
+
+    for clan_name in list_clan_names:
+        url_clan = directory + clan_name
+        generate_train_test_files(url_clan)
+
+
 def main():
     # directory = (r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_01-51-69_families\Train")
     # rename_all_files_in_directory(directory, "txt")
     # rename_all_files_in_directory_prefix(directory, "red_")
-    #clans_family_download()
-    clans_family_reducer()
+    # clans_family_download()
+    # clans_family_reducer()
+    clans_train_test()
 
 
 if __name__ == "__main__":
