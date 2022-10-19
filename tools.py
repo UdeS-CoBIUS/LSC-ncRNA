@@ -113,7 +113,8 @@ def get_download_clan_Rfam_classes(url_clan, directory):
     # download all RFam classes
     for rfam in list_rfam:
         file_path_name = os.path.join(dir_clan, rfam + ".fasta")
-        url_rfam_align_ungped = "https://rfam.xfam.org/family/{}/alignment?acc={}&format=fastau&download=1".format(rfam, rfam)
+        url_rfam_align_ungped = "https://rfam.xfam.org/family/{}/alignment?acc={}&format=fastau&download=1".format(rfam,
+                                                                                                                   rfam)
         print("file_path_name={}".format(file_path_name))
         print("url_rfam_align_ungped={}".format(url_rfam_align_ungped))
         download_file(url_rfam_align_ungped, file_path_name)
@@ -149,12 +150,120 @@ def clans_family_download():
         get_download_clan_Rfam_classes(url_clan, directory)
 
 
+def sequences_count(fasta_file):
+    nb_seqs = 0
+    with open(fasta_file, 'r') as f:
+        for line in f:
+            if line.startswith('>'):
+                nb_seqs += 1
+    return nb_seqs
+
+
+# for each family in the folder, count the number of fasta sequences
+# if there are more than 12 sequences, save only the 12 sequences, and remove the others.
+def reduce_nb_sequences(fasta_file_in, fasta_file_out, max_nb_sequences):
+    print("fasta_file_in: ", fasta_file_in)
+    print("fasta_file_out: ", fasta_file_out)
+
+    nb_seqs = sequences_count(fasta_file_in)
+    print("file : {} , have count : {}".format(fasta_file_in, nb_seqs))
+    if nb_seqs <= max_nb_sequences:
+        print(" nb is less than {}, skipping".format(max_nb_sequences))
+        return
+
+    print(" nb seqs {} > nb_max {} ... continue".format(nb_seqs, max_nb_sequences))
+
+    idx = 0
+    with open(fasta_file_in, 'r') as fasta_in:
+        with open(fasta_file_out, 'w') as fasta_out:
+            for line in fasta_in:
+                if line.startswith('>'):
+                    print(" seq : {}".format(idx))
+                    if idx <= max_nb_sequences:
+                        print(" write seq in file ")
+                        fasta_out.write(line)
+                        idx += 1
+                    else:
+                        break # finish the writing.
+                else:
+                    fasta_out.write(line)
+    print(" finished writing")
+
+
+def reduce_nb_sequences_folder(folder, nb_sequences):
+    # get all fasta file in the directory
+    fasta_files = get_files_path(folder, "fasta")
+    print(" nb fasta files: ", len(fasta_files))
+
+    for fasta_file in fasta_files:
+        fasta_file_name = os.path.basename(fasta_file)
+        red_fasta_file_name = os.path.join( os.path.dirname(fasta_file), "red_" + fasta_file_name)
+        print(" red_fasta_file_name: ", red_fasta_file_name)
+        reduce_nb_sequences(fasta_file, red_fasta_file_name, nb_sequences)
+
+
+def remove_files_bigin_prefix(folder, prefix):
+    # get all fasta file in the directory
+    fasta_files = get_files_path(folder, "fasta")
+    for filename in fasta_files:
+        fasta_file_name = os.path.basename(filename)
+        if fasta_file_name.startswith(prefix):
+            os.remove(filename)
+
+
+def rename_files_remove_prefix_from_name(folder, prefix):
+    # get all fasta file in the directory
+    fasta_files = get_files_path(folder, "fasta")
+    for filename in fasta_files:
+        fasta_file_name = os.path.basename(filename)
+        new_name = fasta_file_name[len(prefix):]
+        if fasta_file_name.startswith(prefix):
+            path_new_name = os.path.join(folder, new_name)
+            os.rename(filename, path_new_name)
+
+
+
+
+def clans_family_reducer():
+    print(" In clans_family_reducer ................")
+
+    directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
+    base_url_clan = "https://rfam.xfam.org/clan/"
+    """
+    list_clan_names = ["CL00003",
+                       "CL00106",
+                       "CL00038",
+                       "CL00054",
+                       "CL00002",
+                       "CL00014",
+                       "CL00102",
+                       "CL00117",
+                       "CL00021",
+                       "CL00111",
+                       "CL00118",
+                       "CL00066",
+                       "CL00112",
+                       "CL00116",
+                       "CL00010",
+                       "CL00005",
+                       "CL00027"
+                       ]
+    """
+    list_clan_names = ["CL00003"]
+    for clan_name in list_clan_names:
+        url_clan = directory + clan_name
+        print(" Reduce clan : " + clan_name)
+        reduce_nb_sequences_folder(url_clan, 12)
+        remove_files_bigin_prefix(url_clan, "RF")
+        rename_files_remove_prefix_from_name(url_clan, "red_")
+
 def main():
     # directory = (r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_01-51-69_families\Train")
     # rename_all_files_in_directory(directory, "txt")
     # rename_all_files_in_directory_prefix(directory, "red_")
-    clans_family_download()
-    
+    #clans_family_download()
+    clans_family_reducer()
+
 
 if __name__ == "__main__":
     main()
