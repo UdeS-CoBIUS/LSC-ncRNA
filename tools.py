@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import os
 
 from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
 
 
 # get all files path that begin with some prefix
@@ -123,32 +124,9 @@ def get_download_clan_Rfam_classes(url_clan, directory):
         print(" finished download_file----------------------")
 
 
-def clans_family_download():
-    directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
-    base_url_clan = "https://rfam.xfam.org/clan/"
-    list_clan_names = ["CL00051",
-                       "CL00003",
-                       "CL00069",
-                       "CL00106",
-                       "CL00038",
-                       "CL00054",
-                       "CL00002",
-                       "CL00014",
-                       "CL00102",
-                       "CL00001",
-                       "CL00117",
-                       "CL00021",
-                       "CL00111",
-                       "CL00118",
-                       "CL00066",
-                       "CL00112",
-                       "CL00116",
-                       "CL00010",
-                       "CL00005",
-                       "CL00027"
-                       ]
-    # for clan_name in list_clan_names:
-    for clan_name in ["CL00003"]:
+def clans_family_download(directory, base_url_clan, list_clan_names):
+
+    for clan_name in list_clan_names:
         url_clan = base_url_clan + clan_name
         get_download_clan_Rfam_classes(url_clan, directory)
 
@@ -217,31 +195,8 @@ def rename_files_remove_prefix_from_name(folder, prefix):
             os.rename(filename, path_new_name)
 
 
-def clans_family_reducer():
+def clans_family_reducer(directory, list_clan_names):
     print(" In clans_family_reducer ................")
-
-    directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
-    base_url_clan = "https://rfam.xfam.org/clan/"
-
-    list_clan_names = [
-        "CL00106",
-        "CL00038",
-        "CL00054",
-        "CL00002",
-        "CL00014",
-        "CL00102",
-        "CL00117",
-        "CL00021",
-        "CL00111",
-        "CL00118",
-        "CL00066",
-        "CL00112",
-        "CL00116",
-        "CL00010",
-        "CL00005",
-        "CL00027"
-    ]
-    # list_clan_names = ["CL00003"]
 
     for clan_name in list_clan_names:
         url_clan = directory + clan_name
@@ -301,41 +256,85 @@ def construct_train_test_files(path_dir_in, path_dir_out, percentage_nb_seqs_tra
         SeqIO.write(test_records, file_test, "fasta")
 
 
-def clans_train_test():
-    directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
-
-    list_clan_names = [
-        "CL00106",
-        "CL00038",
-        "CL00054",
-        "CL00002",
-        "CL00014",
-        "CL00102",
-        "CL00117",
-        "CL00021",
-        "CL00111",
-        "CL00118",
-        "CL00066",
-        "CL00112",
-        "CL00116",
-        "CL00010",
-        "CL00005",
-        "CL00027"
-    ]
-    #list_clan_names = ["CL00003"]
-
+def clans_train_test(directory, list_clan_names):
     for clan_name in list_clan_names:
         url_clan = directory + clan_name
         generate_train_test_files(url_clan)
 
 
+def gather_sequences_multiples_files_into_one_file(dir_clan_name, dir_files_in, path_file_out):
+    # get all fasta files in path_dir
+    list_fasta_files = get_files_path(dir_files_in, "fasta")
+    print(" nb fasta files: ", len(list_fasta_files))
+
+    clan_records = []
+
+    idx = 0
+
+    for fasta_file in list_fasta_files:
+        rfam_file_name = os.path.basename(fasta_file)
+        for record in SeqIO.parse(fasta_file, "fasta"):
+            rec = SeqRecord(record.seq, id="{}_{}".format(dir_clan_name, idx), description=" | {}".format(rfam_file_name))
+            clan_records.append(rec)
+            idx += 1
+
+    # at the end , write the clan records of all families.
+    SeqIO.write(clan_records, path_file_out, "fasta")
+
+
+def gather_sequences_clan_train_test(clan_name, clan_dir, dir_out):
+    # 1) create Train and Test folder
+    dir_out_train = os.path.join(dir_out, "Train")  # train and test folder supposed created before.
+    dir_out_test = os.path.join(dir_out, "Test")
+
+    train_out_file_path_name = os.path.join(dir_out_train, "{}.fasta".format(clan_name))
+    test_out_file_path_name = os.path.join(dir_out_test, "{}.fasta".format(clan_name))
+
+    dir_in_train = os.path.join(clan_dir, "Train")
+    dir_in_test = os.path.join(clan_dir, "Test")
+
+    gather_sequences_multiples_files_into_one_file(clan_name, dir_in_train, train_out_file_path_name)
+    gather_sequences_multiples_files_into_one_file(clan_name, dir_in_test, test_out_file_path_name)
+
+
+def gather_train_test_families_in_Clans(directory, list_clan_names, dir_clan_out):
+
+    for clan_name in list_clan_names:
+        print(clan_name + " -------------- ")
+        dir_clan_in = directory + "{}_train_test".format(clan_name)
+        gather_sequences_clan_train_test(clan_name, dir_clan_in, dir_clan_out)
+
+
 def main():
-    # directory = (r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_01-51-69_families\Train")
-    # rename_all_files_in_directory(directory, "txt")
-    # rename_all_files_in_directory_prefix(directory, "red_")
-    # clans_family_download()
-    # clans_family_reducer()
-    clans_train_test()
+    directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
+    base_url_clan = "https://rfam.xfam.org/clan/"
+    list_clan_names = ["CL00051",
+                       "CL00003",
+                       "CL00069",
+                       "CL00106",
+                       "CL00038",
+                       "CL00054",
+                       "CL00002",
+                       "CL00014",
+                       "CL00102",
+                       "CL00001",
+                       "CL00117",
+                       "CL00021",
+                       "CL00111",
+                       "CL00118",
+                       "CL00066",
+                       "CL00112",
+                       "CL00116",
+                       "CL00010",
+                       "CL00005",
+                       "CL00027"
+                       ]
+    clans_family_download(directory, base_url_clan, list_clan_names)
+    clans_family_reducer(directory, list_clan_names)
+    clans_train_test(directory, list_clan_names)
+
+    dir_all_clan_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test"
+    gather_train_test_families_in_Clans(directory, list_clan_names, dir_all_clan_out)
 
 
 if __name__ == "__main__":
