@@ -35,6 +35,15 @@ std::string getFileName_without_extenstion(const std::string file_with_extension
     return file_with_extension.substr(0,dotPos);
 }
 
+
+std::string get_prefix_name_with_separator(const std::string in_str, const std::string separator)
+{
+    // Get the first position separator
+    std::size_t sep_pos = in_str.find(separator);
+
+    return in_str.substr(0,sep_pos);
+}
+
 std::vector<std::string> classParser(const std::string &file_name)
 {
     std::vector<std::string> list_infos;
@@ -75,7 +84,8 @@ std::vector<std::string> classParser(const std::string &file_name)
             nb_entry_total++;
             query_entry = split(line).at(1);
 
-            query_entry_family = getFileName_without_extenstion(query_entry);
+            //query_entry_family = getFileName_without_extenstion(query_entry);
+            query_entry_family = get_prefix_name_with_separator(query_entry,"_"); // todo: same as blast_calssification, wrtite one methode to generate seq id, and to parse them at the end. some time I use ".", others like here "_"
 
             list_infos.emplace_back( query_entry );
         }
@@ -486,13 +496,10 @@ void check_search_result(const string &dir_test, const string &file_to_parse)
 
 int main(int argc, char *argv[])
 {
-    //std::string file = R"(C:\Users\ibra\Desktop\Infernal\class_res_nbF_450_nbSeqs_min_3_max_4)";
-    //std::string file = R"(C:\Users\ibra\Desktop\Infernal\class_res_nbF_450_nbSeqs_min_3_max_4_nohmm)";
-    //std::string file = R"(C:\Users\ibra\Desktop\Infernal\class_res_nbF_450_nbSeqs_min_3_max_4_hmmonly)";
 
-    //std::string file = R"(C:\Users\ibra\Desktop\Infernal\Clans ncRNA\class_res_Clans)";
-    std::string file = R"(C:\Users\ibra\Desktop\Infernal\Clans ncRNA\class_res_Clans_nohmm)";
-    //std::string file = R"(C:\Users\ibra\Desktop\Infernal\Clans ncRNA\class_res_Clans_hmmonly)";
+    //std::string file = R"(C:\Users\ibra\Desktop\Infernal\Clans ncRNA\class_res_Clans_20)";
+    //std::string file = R"(C:\Users\ibra\Desktop\Infernal\Clans ncRNA\class_res_Clans_20_nohmm)";
+    std::string file = R"(C:\Users\ibra\Desktop\Infernal\Clans ncRNA\class_res_Clans_20_hmmonly)";
     auto res = classParser(file);
     return 0;
 
