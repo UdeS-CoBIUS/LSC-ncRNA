@@ -305,7 +305,7 @@ def gather_train_test_families_in_Clans(directory, list_clan_names, dir_clan_out
         gather_sequences_clan_train_test(clan_name, dir_clan_in, dir_clan_out)
 
 
-def main():
+def clan():
     directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
     base_url_clan = "https://rfam.xfam.org/clan/"
     list_clan_names = ["CL00051",
@@ -335,6 +335,10 @@ def main():
 
     dir_all_clan_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test"
     gather_train_test_families_in_Clans(directory, list_clan_names, dir_all_clan_out)
+
+
+def main():
+    clan()
 
 
 if __name__ == "__main__":
