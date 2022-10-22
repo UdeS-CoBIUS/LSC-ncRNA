@@ -95,6 +95,15 @@ def remove_extension(in_str):
     return in_str
 
 
+# CL00001_0  | RF00005.fasta
+# ==> return CL00001
+# pos_end = in_str.find_first("_")
+# return in_str[:pos_end]
+def get_id_family(in_str):
+    pos_end = in_str.find("_")
+    return in_str[:pos_end]
+
+
 # 1) NNCM : Naif Naif Calss Method =>
 # seq query goes with family which is nb of seqs majoritaire , donc > total nb seqs /2
 # dans notre cas, on test seulement cette condition pour notre query , si elle est bien classer ou pas
@@ -259,11 +268,13 @@ def parse_result_classification_NCM_Score_average(blast_xml_result):
 
     for rec in blast_records:
 
-        id_query = remove_extension(rec.query)
+        #id_query = remove_extension(rec.query)
+        id_query = get_id_family(rec.query)     # todo: writ uniqu way to writ seq id, and parsing after that base on that.
         dict_query_found_seq = {}
         # count nb seqs by family
         for ali in rec.alignments:
-            res_seq_id = remove_extension(ali.hit_def)
+            #res_seq_id = remove_extension(ali.hit_def)
+            res_seq_id = get_id_family(ali.hit_def)
             score = ali.hsps[0].score
             if res_seq_id not in dict_query_found_seq:
                 # dict_query_found_seq[res_seq_id] = 1
@@ -703,9 +714,9 @@ def main():
     # exprement_deep_ncrna_bn()
     # experiment_secondary_and_no_secondary_three_families()
 
-    path_train_folder = sys.argv[1] # path train dolder: .../Train
-    path_test_folder = sys.argv[2] # test folder as : ..../Test
-    data_set_name = sys.argv[3] # for example: Clan, secondary, allRfam ... etc
+    path_train_folder = sys.argv[1]  # path train dolder: .../Train
+    path_test_folder = sys.argv[2]  # test folder as : ..../Test
+    data_set_name = sys.argv[3]  # for example: Clan, secondary, allRfam ... etc
 
     experiments(path_train_folder, path_test_folder, data_set_name)
 
@@ -744,4 +755,4 @@ def test_code():
 if __name__ == '__main__':
     main()
     # test_code()
-    #change_seq_ids()
+    # change_seq_ids()
