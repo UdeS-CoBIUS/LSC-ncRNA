@@ -11,6 +11,8 @@ import os
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 
+import shutil
+
 
 # get all files path that begin with some prefix
 def get_all_files_path(directory, prefix):
@@ -305,7 +307,38 @@ def gather_train_test_families_in_Clans(directory, list_clan_names, dir_clan_out
         gather_sequences_clan_train_test(clan_name, dir_clan_in, dir_clan_out)
 
 
-def clan():
+def clan(directory, base_url_clan, list_clan_names):
+
+    clans_family_download(directory, base_url_clan, list_clan_names)
+    clans_family_reducer(directory, list_clan_names)
+    clans_train_test(directory, list_clan_names)
+
+    dir_all_clan_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test"
+    gather_train_test_families_in_Clans(directory, list_clan_names, dir_all_clan_out)
+
+
+def copy_files(source_dir, target_dir):
+    # get all files fro source dir:
+    list_files = get_files_path(source_dir, "fasta")
+    for file in list_files:
+        shutil.copy(file, target_dir)
+
+
+def gather_train_test_rfam(directory, list_clan_names):
+    test_dir_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Test"
+    train_dir_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Train"
+
+    for clan_name in list_clan_names:
+        clan_dir = os.path.join(directory, clan_name + "_train_test")
+        clan_dir_train = os.path.join(clan_dir, "Train")
+        clan_dir_test = os.path.join(clan_dir, "Test")
+
+        copy_files(clan_dir_train, train_dir_out)
+        copy_files(clan_dir_test, test_dir_out)
+
+
+
+def main():
     directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
     base_url_clan = "https://rfam.xfam.org/clan/"
     list_clan_names = ["CL00051",
@@ -329,16 +362,8 @@ def clan():
                        "CL00005",
                        "CL00027"
                        ]
-    clans_family_download(directory, base_url_clan, list_clan_names)
-    clans_family_reducer(directory, list_clan_names)
-    clans_train_test(directory, list_clan_names)
-
-    dir_all_clan_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test"
-    gather_train_test_families_in_Clans(directory, list_clan_names, dir_all_clan_out)
-
-
-def main():
-    clan()
+    #clan(directory, base_url_clan, list_clan_names)
+    gather_train_test_rfam(directory, list_clan_names)
 
 
 if __name__ == "__main__":
