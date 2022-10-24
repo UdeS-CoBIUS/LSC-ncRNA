@@ -127,7 +127,6 @@ def get_download_clan_Rfam_classes(url_clan, directory):
 
 
 def clans_family_download(directory, base_url_clan, list_clan_names):
-
     for clan_name in list_clan_names:
         url_clan = base_url_clan + clan_name
         get_download_clan_Rfam_classes(url_clan, directory)
@@ -220,6 +219,7 @@ def generate_train_test_files(folder):
     percentage_nb_seqs_train = 70
     construct_train_test_files(folder, train_test_folder, percentage_nb_seqs_train)
 
+
 def construct_train_test_files(path_dir_in, path_dir_out, percentage_nb_seqs_train):
     # 1) create Train and Test folder
     train_folder = os.path.join(path_dir_out, "Train")
@@ -276,7 +276,8 @@ def gather_sequences_multiples_files_into_one_file(dir_clan_name, dir_files_in, 
     for fasta_file in list_fasta_files:
         rfam_file_name = os.path.basename(fasta_file)
         for record in SeqIO.parse(fasta_file, "fasta"):
-            rec = SeqRecord(record.seq, id="{}_{}".format(dir_clan_name, idx), description=" | {}".format(rfam_file_name))
+            rec = SeqRecord(record.seq, id="{}_{}".format(dir_clan_name, idx),
+                            description=" | {}".format(rfam_file_name))
             clan_records.append(rec)
             idx += 1
 
@@ -300,7 +301,6 @@ def gather_sequences_clan_train_test(clan_name, clan_dir, dir_out):
 
 
 def gather_train_test_families_in_Clans(directory, list_clan_names, dir_clan_out):
-
     for clan_name in list_clan_names:
         print(clan_name + " -------------- ")
         dir_clan_in = directory + "{}_train_test".format(clan_name)
@@ -308,7 +308,6 @@ def gather_train_test_families_in_Clans(directory, list_clan_names, dir_clan_out
 
 
 def clan(directory, base_url_clan, list_clan_names):
-
     clans_family_download(directory, base_url_clan, list_clan_names)
     clans_family_reducer(directory, list_clan_names)
     clans_train_test(directory, list_clan_names)
@@ -337,6 +336,35 @@ def gather_train_test_rfam(directory, list_clan_names):
         copy_files(clan_dir_test, test_dir_out)
 
 
+# replace by creating a second output file, then remove the first one, and rename the second one.
+def replace_seqs_id_by_family_id_file(file_path):
+    file_base_name = os.path.basename(file_path)
+    file_dir_path = os.path.dirname(file_path)
+    file_out_base_name = file_base_name + "_out"
+    file_out_dir_path = os.path.join(file_dir_path, file_out_base_name)
+
+    # 1) write all line to out, with changing the line id start with ">"
+    with open(file_path, 'r') as fasta_in:
+        with open(file_out_dir_path, 'w') as fasta_out:
+            for line in fasta_in:
+                if line.startswith('>'):
+                    fasta_out.write(">{} \n".format(file_base_name))
+                else:
+                    fasta_out.write(line)
+    # 2) remove original file
+    os.remove(file_path)
+
+    # 3) rename out file to original.
+    os.rename(file_out_dir_path, file_path)
+
+
+def replace_seqs_id_by_family_id_dir(directory):
+    # 1) read all files in directory
+    list_files = get_files_path(directory, "fasta")
+
+    for file in list_files:
+        replace_seqs_id_by_family_id_file(file)
+
 
 def main():
     directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
@@ -362,8 +390,11 @@ def main():
                        "CL00005",
                        "CL00027"
                        ]
-    #clan(directory, base_url_clan, list_clan_names)
-    gather_train_test_rfam(directory, list_clan_names)
+    # clan(directory, base_url_clan, list_clan_names)
+    #gather_train_test_rfam(directory, list_clan_names)
+    dir_train_clan_20_rf = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Train"
+    dir_test_clan_20_rf = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Test"
+    replace_seqs_id_by_family_id_dir(dir_test_clan_20_rf)
 
 
 if __name__ == "__main__":

@@ -99,8 +99,8 @@ def remove_extension(in_str):
 # ==> return CL00001
 # pos_end = in_str.find_first("_")
 # return in_str[:pos_end]
-def get_id_family(in_str):
-    pos_end = in_str.find("_")
+def get_id_family(in_str, sep="."):
+    pos_end = in_str.find(sep)
     return in_str[:pos_end]
 
 
