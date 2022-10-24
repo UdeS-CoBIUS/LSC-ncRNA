@@ -344,11 +344,13 @@ def replace_seqs_id_by_family_id_file(file_path):
     file_out_dir_path = os.path.join(file_dir_path, file_out_base_name)
 
     # 1) write all line to out, with changing the line id start with ">"
+    idx = 0
     with open(file_path, 'r') as fasta_in:
         with open(file_out_dir_path, 'w') as fasta_out:
             for line in fasta_in:
                 if line.startswith('>'):
-                    fasta_out.write(">{} \n".format(file_base_name))
+                    fasta_out.write(">{}_{}\n".format(file_base_name, idx))
+                    idx += 1
                 else:
                     fasta_out.write(line)
     # 2) remove original file
@@ -394,6 +396,7 @@ def main():
     #gather_train_test_rfam(directory, list_clan_names)
     dir_train_clan_20_rf = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Train"
     dir_test_clan_20_rf = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Test"
+    replace_seqs_id_by_family_id_dir(dir_train_clan_20_rf)
     replace_seqs_id_by_family_id_dir(dir_test_clan_20_rf)
 
 
