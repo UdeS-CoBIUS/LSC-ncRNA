@@ -113,7 +113,7 @@ void secondary_structur(string &dir_input, string &test_name)
     string command;
     string file_name;
 
-    // be carful, RNAalifold output in the same working dirctory where it is lenched
+    // be careful, RNAalifold output in the same working directory where it is lunched
 
     for (auto & file_path : list_files_paths)
     {
@@ -132,8 +132,8 @@ void secondary_structur(string &dir_input, string &test_name)
     }
 }
 
-//void cmbuild(string &dir_input, string &test_name) // files are in the same dirctory
-void cmbuild(string &test_name) // files are in the same dirctory
+//void cmbuild(string &dir_input, string &test_name) // files are in the same directory
+void cmbuild(string &test_name) // files are in the same directory
 {
 
     char cwd[PATH_MAX];
@@ -170,7 +170,7 @@ void cmbuild(string &test_name) // files are in the same dirctory
     }
 }
 
-void combine_cms_in_one_file(string &test_name) // files are in the same dirctory
+void combine_cms_in_one_file(string &test_name) // files are in the same directory
 {
     string command;
 
