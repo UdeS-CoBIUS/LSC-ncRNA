@@ -13,6 +13,8 @@ from Bio.SeqRecord import SeqRecord
 
 import shutil
 
+max_nb_seqs = 12  # max numbers of sequence by fasta file.
+
 
 # get all files path that begin with some prefix
 def get_all_files_path(directory, prefix):
@@ -83,6 +85,19 @@ def get_clan_Rfam_classes_names(clan_url):
         list_rfam.append(item.find("a").get("title"))
 
     return list_rfam
+
+
+def get_clans_names(url_clans_page):
+    list_clans_names = []
+
+    r = requests.get(url_clans_page)
+    soup = BeautifulSoup(r.text, "html.parser")
+    # list_item = soup.find_all(class_="listItem")
+    # for item in list_item:
+    #    list_rfam.append(item.find("a").get("title"))
+    # todo: to be completed later.
+
+    return list_clans_names
 
 
 # download file from urls.
@@ -202,7 +217,7 @@ def clans_family_reducer(directory, list_clan_names):
     for clan_name in list_clan_names:
         url_clan = directory + clan_name
         print(" Reduce clan : " + clan_name)
-        reduce_nb_sequences_folder(url_clan, 12)
+        reduce_nb_sequences_folder(url_clan, max_nb_seqs)
         remove_files_bigin_prefix(url_clan, "RF")
         rename_files_remove_prefix_from_name(url_clan, "red_")
 
@@ -307,13 +322,23 @@ def gather_train_test_families_in_Clans(directory, list_clan_names, dir_clan_out
         gather_sequences_clan_train_test(clan_name, dir_clan_in, dir_clan_out)
 
 
-def clan(directory, base_url_clan, list_clan_names):
-    clans_family_download(directory, base_url_clan, list_clan_names)
-    clans_family_reducer(directory, list_clan_names)
-    clans_train_test(directory, list_clan_names)
+def clan(main_directory, dir_all_clans_out, base_url_clan, list_clan_names):
+    """
+    :param main_directory: main directory where we downlad clan temporray families, and work on them.
+    :param dir_all_clans_out: folder where we gather all sequnces of clans in Train and Test sub folder.
+    :param base_url_clan:  the clan url (example: https://rfam.xfam.org/clan/CL00051)
+    :param list_clan_names: list names of clans that will be treated.
+    :return: None
+    1) download all clan family is separate temporary folder
+    2) reduce the number of sequences  in each fasta file by max_nb_seqs
+    3) split each file is Train Test part.
+    4) gather all train test files of individual rfam family in their main clan faile Train Test.
+    """
+    clans_family_download(main_directory, base_url_clan, list_clan_names)
+    clans_family_reducer(main_directory, list_clan_names)
+    clans_train_test(main_directory, list_clan_names)
 
-    dir_all_clan_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test"
-    gather_train_test_families_in_Clans(directory, list_clan_names, dir_all_clan_out)
+    gather_train_test_families_in_Clans(main_directory, list_clan_names, dir_all_clans_out)
 
 
 def copy_files(source_dir, target_dir):
@@ -323,12 +348,12 @@ def copy_files(source_dir, target_dir):
         shutil.copy(file, target_dir)
 
 
-def gather_train_test_rfam(directory, list_clan_names):
-    test_dir_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Test"
-    train_dir_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Train"
+def gather_train_test_rfam(main_directory, rfam_only_dir, list_clan_names):
+    test_dir_out = os.path.join(rfam_only_dir, "Test") # the sub folder supposed to be created manually
+    train_dir_out = os.path.join(rfam_only_dir, "Train")
 
     for clan_name in list_clan_names:
-        clan_dir = os.path.join(directory, clan_name + "_train_test")
+        clan_dir = os.path.join(main_directory, clan_name + "_train_test")
         clan_dir_train = os.path.join(clan_dir, "Train")
         clan_dir_test = os.path.join(clan_dir, "Test")
 
@@ -368,8 +393,33 @@ def replace_seqs_id_by_family_id_dir(directory):
         replace_seqs_id_by_family_id_file(file)
 
 
+def rfam_individual_family_only_from_clans(main_directory, rfam_only_dir, list_clan_names):
+    """
+    :param main_directory: main directory where we gathered all clans and their rfam families (Train and Test)
+    :param rfam_only_dir: folder that contain (Train, Test) rfam only files.
+    :param list_clan_names: list of used clans names
+    :return: None
+
+    1) copy individual rfam train and test files from the clan folder into one folder "rfam_only_dir" (train and test)
+    2) replace seqs id by family id in rfam_only_dir/Train and Test rfam files.
+    """
+    # 1:
+    gather_train_test_rfam(main_directory, rfam_only_dir, list_clan_names)
+
+    # 2:
+    dir_rfam_only_train = os.path.join(rfam_only_dir, "Train")
+    dir_rfam_only_test = os.path.join(rfam_only_dir, "Test")
+    replace_seqs_id_by_family_id_dir(dir_rfam_only_train)
+    replace_seqs_id_by_family_id_dir(dir_rfam_only_test)
+
+
 def main():
+
+    mode = "rf" # cl: clans,  rf: rfam form clans, clrf: cl+rf
+
     directory = r"C:/Users/ibra/Desktop/Infernal/Clans ncRNA/"
+    dir_all_clan_out = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test"  # created manualy, and also Train, Test, res sub folder
+    rfam_only_dir = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam"
     base_url_clan = "https://rfam.xfam.org/clan/"
     list_clan_names = ["CL00051",
                        "CL00003",
@@ -383,6 +433,7 @@ def main():
                        "CL00001",
                        "CL00117",
                        "CL00021",
+                       "CL00057",
                        "CL00111",
                        "CL00118",
                        "CL00066",
@@ -390,14 +441,34 @@ def main():
                        "CL00116",
                        "CL00010",
                        "CL00005",
-                       "CL00027"
+                       "CL00027",
+                       "CL00053",
+                       "CL00063",
+                       "CL00100",
+                       "CL00119",
+                       "CL00004",
+                       "CL00032",
+                       "CL00034",
+                       "CL00035",
+                       "CL00040",
+                       "CL00096",
+                       "CL00093",
+                       "CL00015",
+                       "CL00121",
+                       "CL00036",
+                       "CL00045"
                        ]
-    # clan(directory, base_url_clan, list_clan_names)
-    #gather_train_test_rfam(directory, list_clan_names)
-    dir_train_clan_20_rf = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Train"
-    dir_test_clan_20_rf = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_Train_Test_Rfam\Test"
-    replace_seqs_id_by_family_id_dir(dir_train_clan_20_rf)
-    replace_seqs_id_by_family_id_dir(dir_test_clan_20_rf)
+
+    if mode == "cl":
+        clan(directory, dir_all_clan_out, base_url_clan, list_clan_names)
+    elif mode == "rf":
+        rfam_individual_family_only_from_clans(directory, rfam_only_dir, list_clan_names)
+    else: # both, or we can check "clrf"
+        clan(directory, dir_all_clan_out, base_url_clan, list_clan_names)
+        rfam_individual_family_only_from_clans(directory, rfam_only_dir, list_clan_names)
+
+
+
 
 
 if __name__ == "__main__":
