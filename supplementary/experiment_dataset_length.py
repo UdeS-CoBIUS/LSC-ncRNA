@@ -53,11 +53,14 @@ def group_families(dir_path):
 
     return list_counts_len_avr
 
-def scatter_list_tuples(list_nb_seqs_avr_len):
+def scatter_list_tuples(list_nb_seqs_avr_len, test_name):
     list_nb_seqs, list_avr_len = zip(*list_nb_seqs_avr_len)
     print(list_nb_seqs)
     print(list_avr_len)
     plt.scatter(list_nb_seqs, list_avr_len)
+    plt.title(test_name)
+    plt.xlabel("seqs nb by family")
+    plt.ylabel("Average seqs lenght")
     plt.show()
 
 def graph_list_tuples(list_tuples):
@@ -96,20 +99,25 @@ def merge_train_test_files(main_directory, dir_out_name):
 
 
 def main():
-    
+    dir_rfam_normal = r"C:\Users\ibra\Desktop\Infernal\nbF_all_nbSeqs_min_3"
+    dir_noise = r"C:\Users\ibra\Desktop\Infernal\deep_ncrna_datasets\original"
     dir_clan_36 = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test"
     dir_clan_36_rfam = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam"
+    
+    test_name = "4nd Dataset Clans Rfam families"
+
+    working_dir = dir_clan_36_rfam
 
     dir_out_name = "all_train_test"
-    merge_train_test_files(dir_clan_36_rfam, dir_out_name)
-    dir_all_train_test_files = os.path.join(dir_clan_36_rfam, dir_out_name)
+    merge_train_test_files(working_dir, dir_out_name)
+    dir_all_train_test_files = os.path.join(working_dir, dir_out_name)
 
     res = group_families(dir_all_train_test_files)
 
     print(" all results : ")
     print(res)
     #graph_list_tuples(res)
-    scatter_list_tuples(res)
+    scatter_list_tuples(res, test_name)
 
     # at the end : remove the all train test directory and its files.
     shutil.rmtree(dir_all_train_test_files)
