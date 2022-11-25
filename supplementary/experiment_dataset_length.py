@@ -73,6 +73,11 @@ def graph_list_tuples(list_tuples):
 
 def main():
     dir_test = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\CL00001"
+    dir_noise_0 = r"C:\Users\ibra\Desktop\Infernal\deep_ncrna_datasets\original\Train"
+    dir_all_rfam_min_3_train_only = r"C:\Users\ibra\Desktop\Infernal\nbF_all_nbSeqs_min_3\Train"
+    dir_clan_36 = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam\Train"
+
+    dir_test = dir_all_rfam_min_3_train_only
     res = group_families(dir_test)
 
     print(" all results : ")
