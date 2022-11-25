@@ -54,12 +54,24 @@ def group_families(dir_path):
     return list_counts_len_avr
 
 
+def graph_list_tuples(list_tuples):
+    import matplotlib.pyplot as plt
+
+    x_val = [x[0] for x in list_tuples]
+    y_val = [x[1] for x in list_tuples]
+
+    print(x_val)
+    plt.plot(x_val,y_val)
+    plt.plot(x_val,y_val,'or')
+    plt.show()
+
 def main():
     dir_test = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\CL00001"
     res = group_families(dir_test)
 
     print(" all results : ")
     print(res)
+    graph_list_tuples(res)
 
 
 
