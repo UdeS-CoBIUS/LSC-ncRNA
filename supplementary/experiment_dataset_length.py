@@ -10,6 +10,7 @@
 import os
 import matplotlib.pyplot as plt
 from Bio.SeqIO.FastaIO import SimpleFastaParser
+import shutil
 
 # count the number of sequences in each family
 # with simply counting the sign of sequence id ">"
@@ -109,6 +110,9 @@ def main():
     print(res)
     #graph_list_tuples(res)
     scatter_list_tuples(res)
+
+    # at the end : remove the all train test directory and its files.
+    shutil.rmtree(dir_all_train_test_files)
 
 
 
