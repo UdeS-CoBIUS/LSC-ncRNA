@@ -8,6 +8,8 @@
 #
 # 	  for that we have compute for each family 1) number of seqs, and the average len seqs.
 
+from os import listdir
+from os.path import isfile, join, basename
 
 # count the number of sequences in each family
 # with simply counting the sign of sequence id ">"
@@ -33,16 +35,31 @@ def count_and_average_len_seqs(file_family):
             total_len += len(seq)
             #print(" seq num =", count, " | len =",len(seq))
             
-    return count, total_len
+    return count, total_len//count # integer division
+
+def get_files_paths(directory):
+    files = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+    return files
+
+def group_families(dir_path):
+    # 1) get all the files in the directory
+    list_files = get_files_paths(dir_path)
+    print("list files:", list_files)
+    list_counts_len_avr = []
+    for f in list_files:
+        nb_seqs, avr_seq_len = count_and_average_len_seqs(f) 
+        print("file {} = {} seqs , {} avr len".format(basename(f),nb_seqs,avr_seq_len))
+        list_counts_len_avr.append((nb_seqs, avr_seq_len))
+
+    return list_counts_len_avr
 
 
 def main():
-    file_test = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\CL00001\RF00005.fasta"
-    nb_seqs, total_seqs_len = count_and_average_len_seqs(file_test)
+    dir_test = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\CL00001"
+    res = group_families(dir_test)
 
-    print(" nb seqs = ", nb_seqs)
-    print(" total seqs len = ", total_seqs_len)
-    print(" average len = ", total_seqs_len/nb_seqs)
+    print(" all results : ")
+    print(res)
 
 
 
