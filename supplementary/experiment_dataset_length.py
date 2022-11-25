@@ -70,10 +70,10 @@ def graph_list_tuples(list_tuples):
     plt.show()
 
 
-def merge_train_test_files(main_directory):
+def merge_train_test_files(main_directory, dir_out_name):
     dir_test = os.path.join(main_directory, "Test")
     dir_train = os.path.join(main_directory, "Train")
-    dir_all_train_test_files = os.path.join(main_directory, "all_train_test")
+    dir_all_train_test_files = os.path.join(main_directory, dir_out_name)
     
     if not os.path.exists(dir_all_train_test_files):
         os.makedirs(dir_all_train_test_files)
@@ -95,14 +95,15 @@ def merge_train_test_files(main_directory):
 
 
 def main():
-    dir_test = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\CL00001"
-    dir_noise_0 = r"C:\Users\ibra\Desktop\Infernal\deep_ncrna_datasets\original\Train"
-    dir_all_rfam_min_3_train_only = r"C:\Users\ibra\Desktop\Infernal\nbF_all_nbSeqs_min_3\Train"
-    dir_clan_36 = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test\Train"
-    dir_clan_36_rfam = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam\Train"
+    
+    dir_clan_36 = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test"
+    dir_clan_36_rfam = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam"
 
-    dir_test = dir_clan_36_rfam
-    res = group_families(dir_test)
+    dir_out_name = "all_train_test"
+    merge_train_test_files(dir_clan_36_rfam, dir_out_name)
+    dir_all_train_test_files = os.path.join(dir_clan_36_rfam, dir_out_name)
+
+    res = group_families(dir_all_train_test_files)
 
     print(" all results : ")
     print(res)
