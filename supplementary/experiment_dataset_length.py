@@ -10,6 +10,7 @@
 
 from os import listdir
 from os.path import isfile, join, basename
+import matplotlib.pyplot as plt
 
 # count the number of sequences in each family
 # with simply counting the sign of sequence id ">"
@@ -53,9 +54,14 @@ def group_families(dir_path):
 
     return list_counts_len_avr
 
+def scatter_list_tuples(list_nb_seqs_avr_len):
+    list_nb_seqs, list_avr_len = zip(*list_nb_seqs_avr_len)
+    print(list_nb_seqs)
+    print(list_avr_len)
+    plt.scatter(list_nb_seqs, list_avr_len)
+    plt.show()
 
 def graph_list_tuples(list_tuples):
-    import matplotlib.pyplot as plt
 
     x_val = [x[0] for x in list_tuples]
     y_val = [x[1] for x in list_tuples]
@@ -71,7 +77,8 @@ def main():
 
     print(" all results : ")
     print(res)
-    graph_list_tuples(res)
+    #graph_list_tuples(res)
+    scatter_list_tuples(res)
 
 
 
