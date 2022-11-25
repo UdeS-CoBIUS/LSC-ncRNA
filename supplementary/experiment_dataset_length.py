@@ -7,10 +7,9 @@
 #  3) Clan dataset (and for Rfam from clans)
 #
 # 	  for that we have compute for each family 1) number of seqs, and the average len seqs.
-
-from os import listdir
-from os.path import isfile, join, basename
+import os
 import matplotlib.pyplot as plt
+from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 # count the number of sequences in each family
 # with simply counting the sign of sequence id ">"
@@ -27,7 +26,6 @@ def count_number_of_seqs(file_family):
 # this form : http://biopython.org/DIST/docs/tutorial/Tutorial.html#sec:low-level-fasta-fastq
 def count_and_average_len_seqs(file_family):
     
-    from Bio.SeqIO.FastaIO import SimpleFastaParser
     count = 0
     total_len = 0
     with open(file_family) as in_handle:
@@ -39,7 +37,7 @@ def count_and_average_len_seqs(file_family):
     return count, total_len//count # integer division
 
 def get_files_paths(directory):
-    files = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+    files = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
     return files
 
 def group_families(dir_path):
@@ -49,7 +47,7 @@ def group_families(dir_path):
     list_counts_len_avr = []
     for f in list_files:
         nb_seqs, avr_seq_len = count_and_average_len_seqs(f) 
-        print("file {} = {} seqs , {} avr len".format(basename(f),nb_seqs,avr_seq_len))
+        print("file {} = {} seqs , {} avr len".format(os.path.basename(f),nb_seqs,avr_seq_len))
         list_counts_len_avr.append((nb_seqs, avr_seq_len))
 
     return list_counts_len_avr
@@ -70,6 +68,31 @@ def graph_list_tuples(list_tuples):
     plt.plot(x_val,y_val)
     plt.plot(x_val,y_val,'or')
     plt.show()
+
+
+def merge_train_test_files(main_directory):
+    dir_test = os.path.join(main_directory, "Test")
+    dir_train = os.path.join(main_directory, "Train")
+    dir_all_train_test_files = os.path.join(main_directory, "all_train_test")
+    
+    if not os.path.exists(dir_all_train_test_files):
+        os.makedirs(dir_all_train_test_files)
+
+    list_files_names = [f for f in os.listdir(dir_train) if os.path.isfile(os.path.join(dir_train, f))] # the files have the same names in Test and Train
+
+    
+    for file_name in list_files_names:
+        file_train = os.path.join(dir_train, file_name)
+        file_test = os.path.join(dir_test, file_name)
+        file_train_test_out = os.path.join(dir_all_train_test_files, file_name)
+
+        list_files_in = [file_train, file_test]
+        with open(file_train_test_out, 'w') as outfile:
+            for file_in in list_files_in:
+                with open(file_in) as infile:
+                    for line in infile:
+                        outfile.write(line)
+
 
 def main():
     dir_test = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\CL00001"
