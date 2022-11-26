@@ -61,6 +61,8 @@ def scatter_list_tuples(list_nb_seqs_avr_len, test_name):
     plt.title(test_name)
     plt.xlabel("seqs nb by family")
     plt.ylabel("Average seqs lenght")
+    plt.xscale('log')
+    plt.yscale('log')
     plt.show()
 
 def graph_list_tuples(list_tuples):
@@ -97,6 +99,12 @@ def merge_train_test_files(main_directory, dir_out_name):
                     for line in infile:
                         outfile.write(line)
 
+# note: noise data set, the file dosn't have exactly the same names
+#       but the same prefix only.
+#     TODO: write merge function for train test for that.
+def merge_train_test_files_noise(main_directory, dir_out_name):
+    pass # to be implemented ...
+
 
 def main():
     dir_rfam_normal = r"C:\Users\ibra\Desktop\Infernal\nbF_all_nbSeqs_min_3"
@@ -104,9 +112,9 @@ def main():
     dir_clan_36 = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test"
     dir_clan_36_rfam = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam"
     
-    test_name = "4nd Dataset Clans Rfam families"
+    test_name = "1st Dataset Rfam"
 
-    working_dir = dir_clan_36_rfam
+    working_dir = dir_rfam_normal
 
     dir_out_name = "all_train_test"
     merge_train_test_files(working_dir, dir_out_name)
