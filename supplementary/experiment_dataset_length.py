@@ -41,7 +41,7 @@ def get_files_paths(directory):
     files = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
     return files
 
-def group_families(dir_path):
+def get_nb_seqs_aver_len_group_families(dir_path):
     # 1) get all the files in the directory
     list_files = get_files_paths(dir_path)
     print("list files:", list_files)
@@ -103,7 +103,36 @@ def merge_train_test_files(main_directory, dir_out_name):
 #       but the same prefix only.
 #     TODO: write merge function for train test for that.
 def merge_train_test_files_noise(main_directory, dir_out_name):
-    pass # to be implemented ...
+    dir_test = os.path.join(main_directory, "Test")
+    dir_train = os.path.join(main_directory, "Train")
+    dir_all_train_test_files = os.path.join(main_directory, dir_out_name)
+    
+    if not os.path.exists(dir_all_train_test_files):
+        os.makedirs(dir_all_train_test_files)
+
+    # since names are in RFxxxxx_nb-seqs example (RF00309_210),
+    # RFxxxxx  are unique names
+    # RFxxxxx  is the same in Train and Test files
+    # we can get files of test and train in separate list, and sort theme
+    # hence we will have the same files in the same order (because of uniqueness of RFxxxxx)
+    # after that we can iterate by thier ids.
+    # and creat a new file in all_train_test with RFxxxxx names (without the suffix of nb-seqs)
+
+    list_files_paths_names_test = sorted(get_files_paths(dir_test))
+    list_files_paths_names_train = sorted(get_files_paths(dir_train))
+    
+    for i in range(len(list_files_paths_names_test)):
+        file_train = list_files_paths_names_train[i]
+        file_test = list_files_paths_names_test[i]
+        family_name = os.path.basename(file_train).split("_")[0] + ".fasta"# family name RFxxxxx
+        file_train_test_out = os.path.join(dir_all_train_test_files, family_name)
+
+        list_files_in = [file_train, file_test]
+        with open(file_train_test_out, 'w') as outfile:
+            for file_in in list_files_in:
+                with open(file_in) as infile:
+                    for line in infile:
+                        outfile.write(line)
 
 
 def main():
@@ -112,15 +141,16 @@ def main():
     dir_clan_36 = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test"
     dir_clan_36_rfam = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam"
     
-    test_name = "1st Dataset Rfam"
+    test_name = "2nd Dataset Noise"
 
-    working_dir = dir_rfam_normal
+    working_dir = dir_noise
 
     dir_out_name = "all_train_test"
-    merge_train_test_files(working_dir, dir_out_name)
+    #merge_train_test_files(working_dir, dir_out_name)
+    merge_train_test_files_noise(working_dir, dir_out_name)
     dir_all_train_test_files = os.path.join(working_dir, dir_out_name)
 
-    res = group_families(dir_all_train_test_files)
+    res = get_nb_seqs_aver_len_group_families(dir_all_train_test_files)
 
     print(" all results : ")
     print(res)
@@ -128,7 +158,7 @@ def main():
     scatter_list_tuples(res, test_name)
 
     # at the end : remove the all train test directory and its files.
-    shutil.rmtree(dir_all_train_test_files)
+    ##shutil.rmtree(dir_all_train_test_files)
 
 
 
