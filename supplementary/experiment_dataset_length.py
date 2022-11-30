@@ -53,7 +53,7 @@ def get_nb_seqs_aver_len_group_families(dir_path):
 
     return list_counts_len_avr
 
-def scatter_list_tuples(list_nb_seqs_avr_len, test_name):
+def scatter_list_tuples(list_nb_seqs_avr_len, test_name, is_log_scale = False):
     list_nb_seqs, list_avr_len = zip(*list_nb_seqs_avr_len)
     print(list_nb_seqs)
     print(list_avr_len)
@@ -61,8 +61,9 @@ def scatter_list_tuples(list_nb_seqs_avr_len, test_name):
     plt.title(test_name)
     plt.xlabel("seqs nb by family")
     plt.ylabel("Average seqs lenght")
-    plt.xscale('log')
-    plt.yscale('log')
+    if is_log_scale:
+        plt.xscale('log')
+        plt.yscale('log')
     plt.show()
 
 def graph_list_tuples(list_tuples):
