@@ -59,8 +59,8 @@ def scatter_list_tuples(list_nb_seqs_avr_len, test_name, is_log_scale = False):
     print(list_avr_len)
     plt.scatter(list_nb_seqs, list_avr_len)
     plt.title(test_name)
-    plt.xlabel("seqs nb by family")
-    plt.ylabel("Average seqs lenght")
+    plt.xlabel("Number of sequences")
+    plt.ylabel("Average sequences length")
     if is_log_scale:
         plt.xscale('log')
         plt.yscale('log')
@@ -84,6 +84,16 @@ def merge_train_test_files(main_directory, dir_out_name):
     
     if not os.path.exists(dir_all_train_test_files):
         os.makedirs(dir_all_train_test_files)
+    else:
+        print (" dir_all_train_test_files exists already ...")
+        # check if directory is empty
+        nb_items = len(os.listdir(dir_all_train_test_files))
+        if nb_items == 0:
+            print (" dir_all_train_test_files is empty")
+        else:
+            print (" dir_all_train_test_files contains {} items".format(nb_items))  
+        
+        return
 
     list_files_names = [f for f in os.listdir(dir_train) if os.path.isfile(os.path.join(dir_train, f))] # the files have the same names in Test and Train
 
