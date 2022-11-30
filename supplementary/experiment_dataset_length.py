@@ -152,9 +152,13 @@ def main():
     dir_clan_36 = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test"
     dir_clan_36_rfam = r"C:\Users\ibra\Desktop\Infernal\Clans ncRNA\Clans_36_Train_Test_Rfam"
     
-    test_name = "2nd Dataset Noise"
+    test_name_1st = "1st Dataset \'All Rfam\'"
+    test_name_2nd = "2nd Dataset \'Noise based\'"
+    test_name_3rd = "3rd Dataset \'36 Clans\'"
+    test_name_4th = "4th Dataset \'Rfam family from 36 Clans\'"
 
-    working_dir = dir_noise
+    working_dir = dir_clan_36_rfam
+    test_name = test_name_4th
 
     dir_out_name = "all_train_test"
     #merge_train_test_files(working_dir, dir_out_name)
