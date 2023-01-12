@@ -53,7 +53,8 @@ void getMainArgv(int argc, char *argv[],
 int main(int argc, char *argv[])
 {
     // by default:
-    //string dir_input = R"(C:\Users\ibra\OneDrive - USherbrooke\DatatSet\Rfam_RNA_Seed_ungapedFasta)";
+    //string dir_input = R"(C:\Users\ibra\OneDrive - USherbrooke\DatatSet\Rfam_RNA_Seed_ungapedFasta)"; // this not used.
+	// this next the based files used as Rfam 14.1 in our tests.
     //string dir_input = R"(C:\Users\ibra\OneDrive - USherbrooke\DatatSet\Rfam_RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles\RNA_Family)";
     string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Secondary_and_not_Rfam_some_family_v14.7\SecondaryBased_lessSimilarSeqs)";
     string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Secondary_and_not_Rfam_some_family_v14.7\SecondaryBased_lessSimilarSeqs_train_test)";
@@ -75,6 +76,8 @@ int main(int argc, char *argv[])
     cout << "Max nb seqs : " << max_nb_seqs_allowed << endl;
     cout << "percentage_nb_seqs_train : " << percentage_nb_seqs_train << endl;
 
+
+	//FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_input); // this used to get all informatio as nb seq, min seq len, max seq len, average seq len , and save to csv file.
 
 
 //    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families,
