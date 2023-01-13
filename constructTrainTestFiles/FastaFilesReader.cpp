@@ -509,9 +509,9 @@ FastaFilesReader::construct_Train_Test_files(const string &path_dir_in, const st
     buffer_test_info += util::to_string(nb_families_added);
     buffer_test_info += newline;
 
-    write_to_file(buffer_train_info, "info_train.csv", train_dir);
+    write_to_file(buffer_train_info, "info_train.csv", path_dir_out);
     buffer_train_info.clear();
-    write_to_file(buffer_test_info, "info_test.csv", test_dir);
+    write_to_file(buffer_test_info, "info_test.csv", path_dir_out);
     buffer_test_info.clear();
 }
 
