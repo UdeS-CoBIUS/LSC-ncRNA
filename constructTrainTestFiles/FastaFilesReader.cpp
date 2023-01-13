@@ -400,13 +400,13 @@ FastaFilesReader::construct_Train_Test_files(const string &path_dir_in, const st
 void
 FastaFilesReader::construct_Train_Test_files(const string &path_dir_in, const string &path_dir_out,
                                              uint32_t nb_seqs_min,
-                                             uint32_t percentage_nb_seqs_train)
+                                             uint32_t percentage_nb_seqs_test)
 {
     auto list_families_files_paths = FastaFilesReader::getListFiles(path_dir_in);
 
     uint32_t nb_families_added=0;
 
-    uint32_t nb_seqs_train;
+    uint32_t nb_seqs_test; // copute the test number first, the remaining are for train part. this will give the one sequence in the decinmal part to training, if division result is like x.y, test will get only x, and train will take 1 instead of (1 - 0.y)
     uint32_t nb_seqs_file;
 
     string buffer_train;
@@ -437,26 +437,13 @@ FastaFilesReader::construct_Train_Test_files(const string &path_dir_in, const st
         nb_seqs_file = FastaFilesReader::getNbSeqs(file_path);
         if( nb_seqs_min<=nb_seqs_file)
         {
-            nb_seqs_train = (nb_seqs_file*percentage_nb_seqs_train)/100;
+            /// nb_seqs_train = (nb_seqs_file*percentage_nb_seqs_train)/100; // old
+            nb_seqs_test = (nb_seqs_file*percentage_nb_seqs_test)/100;
 
             auto list_seqs=getListSequences(file_path);
             file_name = FastaFilesReader::getFileName(file_path);
 
-            for (idx = 0; idx < nb_seqs_train; ++idx)
-            {
-                buffer_train += ">";
-                buffer_train += file_name;
-                buffer_train += "_";
-                buffer_train += util::to_string(idx);
-                buffer_train += "\n";
-                buffer_train += list_seqs.at(idx);
-                buffer_train += "\n";
-            }
-
-            write_to_file(buffer_train, file_name, train_dir);
-            buffer_train.clear();
-
-            for (; idx < nb_seqs_file; ++idx)
+            for (idx = 0; idx < nb_seqs_test; ++idx)
             {
                 buffer_test += ">";
                 buffer_test += file_name;
@@ -470,19 +457,34 @@ FastaFilesReader::construct_Train_Test_files(const string &path_dir_in, const st
             write_to_file(buffer_test, file_name, test_dir);
             buffer_test.clear();
 
+            // the remaining are for training part.
+            for (; idx < nb_seqs_file; ++idx)
+            {
+                buffer_train += ">";
+                buffer_train += file_name;
+                buffer_train += "_";
+                buffer_train += util::to_string(idx);
+                buffer_train += "\n";
+                buffer_train += list_seqs.at(idx);
+                buffer_train += "\n";
+            }
+
+            write_to_file(buffer_train, file_name, train_dir);
+            buffer_train.clear();
+
 
             // train infos  -----------------------------------------
             buffer_train_info += file_name;
             buffer_train_info += CSV_SEPARATOR;
-            buffer_train_info += util::to_string(nb_seqs_train);
+            buffer_train_info += util::to_string(nb_seqs_file-nb_seqs_test);
             buffer_train_info += newline;
-            nb_total_seqs_train += nb_seqs_train;
+            nb_total_seqs_train += nb_seqs_file-nb_seqs_test;
             // test infos -----------------------------------------
             buffer_test_info += file_name;
             buffer_test_info += CSV_SEPARATOR;
-            buffer_test_info += util::to_string(nb_seqs_file-nb_seqs_train);
+            buffer_test_info += util::to_string(nb_seqs_test);
             buffer_test_info += newline;
-            nb_total_seqs_test += nb_seqs_file-nb_seqs_train;
+            nb_total_seqs_test += nb_seqs_test;
 
             nb_families_added++;
         }
