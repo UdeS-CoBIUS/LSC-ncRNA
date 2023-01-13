@@ -52,12 +52,12 @@ void getMainArgv(int argc, char *argv[],
 
 int main(int argc, char *argv[])
 {
-    string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles\RNA_Family)";
+    string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_14.1_RNA_Seed_ungapedFasta)";
     string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_more_than_3seqs)";
 
-    uint32_t nb_families = 600;
-    uint32_t min_nb_seqs_allowed = 20;
-    uint32_t max_nb_seqs_allowed = 105;
+    uint32_t nb_families = 3016; // just to use all families
+    uint32_t min_nb_seqs_allowed = 4;
+    uint32_t max_nb_seqs_allowed = 2000; // max is 1542 i think
 
     /// uint32_t percentage_nb_seqs_train = 70;// change to use percentage_nb_seqs_test
     uint32_t percentage_nb_seqs_test = 30; // 100 - percentage_nb_seqs_train
@@ -91,13 +91,13 @@ int main(int argc, char *argv[])
 	//FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_input); // this used to get all informatio as nb seq, min seq len, max seq len, average seq len , and save to csv file.
 
 
-//    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families,
-//                                                min_nb_seqs_allowed, max_nb_seqs_allowed,
-//                                                percentage_nb_seqs_train);
+    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families,
+                                                min_nb_seqs_allowed, max_nb_seqs_allowed,
+                                                percentage_nb_seqs_test);
 
-    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output,
-                                                 min_nb_seqs_allowed,
-                                                 percentage_nb_seqs_test);
+//    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output,
+//                                                 min_nb_seqs_allowed,
+//                                                 percentage_nb_seqs_test);
 
     //FastaFilesReader::get_Families_files(dir_input, dir_output, 1000,
     //                                            min_nb_seqs_allowed, max_nb_seqs_allowed);
