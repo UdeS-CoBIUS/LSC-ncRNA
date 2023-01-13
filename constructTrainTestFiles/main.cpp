@@ -52,12 +52,8 @@ void getMainArgv(int argc, char *argv[],
 
 int main(int argc, char *argv[])
 {
-    // by default:
-    //string dir_input = R"(C:\Users\ibra\OneDrive - USherbrooke\DatatSet\Rfam_RNA_Seed_ungapedFasta)"; // this not used.
-	// this next the based files used as Rfam 14.1 in our tests.
-    //string dir_input = R"(C:\Users\ibra\OneDrive - USherbrooke\DatatSet\Rfam_RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles\RNA_Family)";
-    string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Secondary_and_not_Rfam_some_family_v14.7\SecondaryBased_lessSimilarSeqs)";
-    string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Secondary_and_not_Rfam_some_family_v14.7\SecondaryBased_lessSimilarSeqs_train_test)";
+    string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles\RNA_Family)";
+    string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_more_than_3seqs)";
 
     uint32_t nb_families = 600;
     uint32_t min_nb_seqs_allowed = 20;
