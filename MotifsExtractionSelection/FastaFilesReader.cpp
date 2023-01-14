@@ -247,19 +247,14 @@ get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_dir_in, const strin
         }
     }
 
-    // todo: shuffle the list of families
-    // todo: get the first n families
-    // todo: save the file for the same name but to path_dir_out.
-
-    //-----------------------------------------
-        // shuffle the list of families
+    // shuffle the list of families
     std::mt19937 rng(std::random_device{}());
     std::shuffle(list_families_between_min_max.begin(), list_families_between_min_max.end(), rng);
 
     // get the first n families
     vector<std::string> list_families_selected(list_families_between_min_max.begin(), list_families_between_min_max.begin() + nb_files);
 
-    // save the file for the same name but to path_dir_out.
+    // save the files for the same name but to path_dir_out.
     for (const auto & file_name_path : list_families_selected)
     {
         std::string file_name_without_ext = FastaFilesReader::getFileName(file_name_path,false); 
@@ -272,6 +267,9 @@ get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_dir_in, const strin
         std::copy(std::istreambuf_iterator<char>(src),
                   std::istreambuf_iterator<char>(),
                   std::ostreambuf_iterator<char>(dst));
+
+        // can use: 
+        //  std::filesystem::copy_file(file_name_path, path_writ, std::filesystem::copy_options::overwrite_existing); // C++17
     }
 
     //-----------------------------------------
