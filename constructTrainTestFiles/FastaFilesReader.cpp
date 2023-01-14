@@ -874,14 +874,13 @@ FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_d
     vector<std::string> list_families_selected(list_families_between_min_max.begin(), list_families_between_min_max.begin() + nb_files);
 
     // save the file for the same name but to path_dir_out.
-    for (const auto & file_name : list_families_selected)
+    for (const auto & file_name_path : list_families_selected)
     {
-        std::string file_name_without_ext = FastaFilesReader::getFileName(file_name,false); 
+        std::string file_name_only = FastaFilesReader::getFileName(file_name,false); 
         string path_writ = path_dir_out;
-        path_writ += util::kPathSeparator; // separator WIN: \\, linux : /
-        path_writ += file_name_without_ext;
-        path_writ += ".fasta";
-        FastaFilesReader::copyFile(file_name, path_writ);
+        path_writ += util::kPathSeparator; 
+        path_writ += file_name_only;
+        FastaFilesReader::copyFile(file_name_path, path_writ);
     }
 
 }
