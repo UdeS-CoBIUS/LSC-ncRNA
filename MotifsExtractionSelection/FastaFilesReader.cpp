@@ -229,6 +229,54 @@ FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(const string &path
     return list_families_sequences;
 }
 
+static void
+get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_dir_in, const string &path_dir_out, uint32_t nb_files,
+                                                uint32_t nb_seqs_min, uint32_t nb_seqs_max)
+{
+    // get all files paths
+    auto list_families_files_names = FastaFilesReader::getListFiles(path_dir_in);
+
+    // get only files that have sequences between min and max
+    vector<std::string> list_families_between_min_max;
+
+    for (const auto & file_name : list_families_files_names)
+    {
+        if(isNbSeqsBetween_MinMax(file_name, nb_seqs_min,nb_seqs_max))
+        {
+            list_families_between_min_max.push_back(file_name);
+        }
+    }
+
+    // todo: shuffle the list of families
+    // todo: get the first n families
+    // todo: save the file for the same name but to path_dir_out.
+
+    //-----------------------------------------
+        // shuffle the list of families
+    std::mt19937 rng(std::random_device{}());
+    std::shuffle(list_families_between_min_max.begin(), list_families_between_min_max.end(), rng);
+
+    // get the first n families
+    vector<std::string> list_families_selected(list_families_between_min_max.begin(), list_families_between_min_max.begin() + nb_files);
+
+    // save the file for the same name but to path_dir_out.
+    for (const auto & file_name_path : list_families_selected)
+    {
+        std::string file_name_without_ext = FastaFilesReader::getFileName(file_name_path,false); 
+        string path_writ = path_dir_out;
+        path_writ += util::kPathSeparator; 
+        path_writ += file_name_without_ext;
+        path_writ += ".fasta";
+        std::ifstream src(file_name_path, std::ios::binary);
+        std::ofstream dst(path_writ, std::ios::binary);
+        std::copy(std::istreambuf_iterator<char>(src),
+                  std::istreambuf_iterator<char>(),
+                  std::ostreambuf_iterator<char>(dst));
+    }
+
+    //-----------------------------------------
+}
+
 void FastaFilesReader::creat_dir_c(char* path_dir)
 {
     struct stat st = {0};

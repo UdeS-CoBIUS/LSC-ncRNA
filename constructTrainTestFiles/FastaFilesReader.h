@@ -48,6 +48,10 @@ public:
     getListFamiliesSequences_FirstNFiles_MinMax(const string &path_dir, uint32_t nb_files,
                                                 uint32_t nb_seqs_min, uint32_t nb_seqs_max);
 
+    static void
+    get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_dir_in, const string &path_dir_out, uint32_t nb_files,
+                                                uint32_t nb_seqs_min, uint32_t nb_seqs_max);
+
     static void groupALLFamiliesSeqsInOneFile(const string &path_dir);
 
     static void construct_Train_Test_files(const string &path_dir_in, const string &path_dir_out, uint32_t nb_files,
