@@ -848,8 +848,8 @@ void FastaFilesReader::groupALLFamiliesSeqsInOneFile(const string &path_dir)
 
 
 
-static void
-get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_dir_in, const string &path_dir_out, uint32_t nb_files,
+void
+FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_dir_in, const string &path_dir_out, uint32_t nb_files,
                                                 uint32_t nb_seqs_min, uint32_t nb_seqs_max)
 {
     // get all files paths
