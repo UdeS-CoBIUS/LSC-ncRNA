@@ -53,9 +53,9 @@ void getMainArgv(int argc, char *argv[],
 int main(int argc, char *argv[])
 {
     string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_more_than_3seqs\Train)";
-    string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_600)";
+    string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_4-10)";
 
-    uint32_t nb_families = 266; // just to use all families
+    uint32_t nb_families = 270; // just to use all families
     uint32_t min_nb_seqs_allowed = 4;
     uint32_t max_nb_seqs_allowed = 10; // max is 1542 i think
 
