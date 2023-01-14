@@ -876,7 +876,7 @@ FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_d
     // save the file for the same name but to path_dir_out.
     for (const auto & file_name_path : list_families_selected)
     {
-        std::string file_name_only = FastaFilesReader::getFileName(file_name,false); 
+        std::string file_name_only = FastaFilesReader::getFileName(file_name_path,false); 
         string path_writ = path_dir_out;
         path_writ += util::kPathSeparator; 
         path_writ += file_name_only;
