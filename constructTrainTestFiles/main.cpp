@@ -97,15 +97,14 @@ int main(int argc, char *argv[])
 	//FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_input); // this used to get all informatio as nb seq, min seq len, max seq len, average seq len , and save to csv file.
 
 
-    // FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families,
-    //                                            min_nb_seqs_allowed, max_nb_seqs_allowed,
-    //                                            percentage_nb_seqs_test);
+    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families, min_nb_seqs_allowed, max_nb_seqs_allowed, percentage_nb_seqs_test);
+    
+    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, min_nb_seqs_allowed, percentage_nb_seqs_test);
 
-    FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(dir_input,dir_output,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
+        // this for get N random families that have nb seqs between min and max, and save them to dir_output
+    /// FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(dir_input,dir_output,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
 
-//    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output,
-//                                                 min_nb_seqs_allowed,
-//                                                 percentage_nb_seqs_test);
+    
 
     //FastaFilesReader::get_Families_files(dir_input, dir_output, 1000,
     //                                            min_nb_seqs_allowed, max_nb_seqs_allowed);

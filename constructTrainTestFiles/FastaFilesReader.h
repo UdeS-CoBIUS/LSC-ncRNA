@@ -62,6 +62,8 @@ public:
                                            uint32_t nb_seqs_min,
                                            uint32_t percentage_nb_seqs_train=60);
 
+    static void construct_Train_Test_files(const string &path_dir_in, const string &path_dir_out, uint32_t percentage_nb_seqs_test);
+
     static void copy_Train_Test_files(const string &path_dir_in, const string &path_dir_out, uint32_t nb_files,
                                            uint32_t nb_seqs_min, uint32_t nb_seqs_max);
 
