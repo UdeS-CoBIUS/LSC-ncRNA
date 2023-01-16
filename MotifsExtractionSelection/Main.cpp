@@ -298,7 +298,7 @@ int main(int argc, char *argv[]) {
 
     uint32_t is_delete_subMotifs = 0;
     //is_delete_subMotifs = strtol(argv[1], nullptr, 10);
-    if(is_delete_subMotifs) output_csv_file = "del_Yes_nbF500_nbSeqs20_60_";
+    if(is_delete_subMotifs) output_csv_file = "del_Yes_nbF_";
 
     output_csv_file += families_name;
     output_csv_file += "_min_" + util::to_string(min_length_motif);
