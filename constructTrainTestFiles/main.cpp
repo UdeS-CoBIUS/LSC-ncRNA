@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
 {
     string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_more_than_3seqs\Train)";
     string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_350)";
+    string mode = "-i";
 
     uint32_t nb_families = 165; // just to use all families
     uint32_t min_nb_seqs_allowed = 4;
@@ -61,9 +62,11 @@ int main(int argc, char *argv[])
 
      dir_input = argv[1];
      dir_output = argv[2];
-     nb_families = std::stoi(argv[3]);
-     min_nb_seqs_allowed = std::stoi(argv[4]);
-     max_nb_seqs_allowed = std::stoi(argv[5]);
+     mode = argv[3];
+
+     nb_families = std::stoi(argv[4]);
+     min_nb_seqs_allowed = std::stoi(argv[5]);
+     max_nb_seqs_allowed = std::stoi(argv[6]);
 
     /// uint32_t percentage_nb_seqs_train = 70;// change to use percentage_nb_seqs_test
     uint32_t percentage_nb_seqs_test = 30; // 100 - percentage_nb_seqs_train
@@ -92,18 +95,26 @@ int main(int argc, char *argv[])
     cout << "percentage_nb_seqs_train : " << 100 - percentage_nb_seqs_test << endl;
     cout << "percentage_nb_seqs_test : " << percentage_nb_seqs_test << endl;
 
-
-
-	//FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_input); // this used to get all informatio as nb seq, min seq len, max seq len, average seq len , and save to csv file.
-
-
-    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families, min_nb_seqs_allowed, max_nb_seqs_allowed, percentage_nb_seqs_test);
     
-    FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, min_nb_seqs_allowed, percentage_nb_seqs_test);
 
+    if(mode == "-i"){ // -i: information
+        // this used to get all informatio as nb seq, min seq len, max seq len, average seq len , and save to csv file.
+	    FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_input); 
+    }
+    else if(mode=="-s"){ // -s: sample
         // this for get N random families that have nb seqs between min and max, and save them to dir_output
-    /// FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(dir_input,dir_output,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
-
+        FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(dir_input,dir_output,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
+    }
+    else if(mode == "-sttmm"){ // -sttmm : split tarin test min max
+        FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families, min_nb_seqs_allowed, max_nb_seqs_allowed, percentage_nb_seqs_test);
+    }
+    else if(mode == "-sttm"){ // -sttm : split tarin test min
+        FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, min_nb_seqs_allowed, percentage_nb_seqs_test);
+    }
+    else if(mode == "-stt"){ // -stt : split tarin test
+        // split the all files in the directory into Train Test files.
+        FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, percentage_nb_seqs_test);
+    }
     
 
     //FastaFilesReader::get_Families_files(dir_input, dir_output, 1000,
