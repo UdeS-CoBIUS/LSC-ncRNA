@@ -53,11 +53,17 @@ void getMainArgv(int argc, char *argv[],
 int main(int argc, char *argv[])
 {
     string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_more_than_3seqs\Train)";
-    string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_4-10)";
+    string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_350)";
 
-    uint32_t nb_families = 270; // just to use all families
+    uint32_t nb_families = 165; // just to use all families
     uint32_t min_nb_seqs_allowed = 4;
     uint32_t max_nb_seqs_allowed = 10; // max is 1542 i think
+
+     dir_input = argv[1];
+     dir_output = argv[2];
+     nb_families = std::stoi(argv[3]);
+     min_nb_seqs_allowed = std::stoi(argv[4]);
+     max_nb_seqs_allowed = std::stoi(argv[5]);
 
     /// uint32_t percentage_nb_seqs_train = 70;// change to use percentage_nb_seqs_test
     uint32_t percentage_nb_seqs_test = 30; // 100 - percentage_nb_seqs_train

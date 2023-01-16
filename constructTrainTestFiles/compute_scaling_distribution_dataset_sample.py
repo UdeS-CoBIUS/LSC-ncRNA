@@ -2,6 +2,7 @@
 import math
 import csv
 
+# infos nb seqs by families in Rfam 14.1
 # nb seqs : nb families
 # [4-10]      : 1064
 # [11-20]     : 500
