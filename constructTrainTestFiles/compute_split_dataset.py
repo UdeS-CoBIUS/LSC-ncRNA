@@ -12,9 +12,9 @@ import csv
 # [1001-1542] : 4  
 
 
-original_list = [1064, 500, 407, 191, 119, 4, 4]
-list_totals_dataset_600 = [600,500,400,300,200,100]
-list_totals_dataset_350 = [350,250,150,50]
+original_list = [1064, 500, 364, 191, 119, 4, 4]
+list_totals_dataset_350 = [350,250,150,50] # First data set
+list_totals_dataset_600 = [600,500,400,300,200,100] # Second data set
 list_new_totals_dataset = list_totals_dataset_350 + list_totals_dataset_600
 
 
@@ -63,6 +63,7 @@ def main():
     
     csv_file_name = "dataset_distribution_nb_seqs.csv"
     my_dict = {}
+    my_dict[sum(original_list)] = original_list # add the original list to save it into the csv file.
 
     for new_total in list_new_totals_dataset:
         scaled_list_int = scale_list_int(new_total, original_list)
@@ -72,8 +73,5 @@ def main():
     write_to_csv_dict_key_list_values(my_dict, csv_file_name)
 
     
-
-
-
 if __name__ == '__main__':
     main()
