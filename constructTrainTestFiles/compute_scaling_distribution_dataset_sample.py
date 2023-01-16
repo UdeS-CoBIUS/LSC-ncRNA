@@ -61,7 +61,7 @@ def write_to_csv_dict_key_list_values(my_dict, csv_file_name):
 
 def main():
     
-    csv_file_name = "dataset_distribution_nb_seqs.csv"
+    csv_file_name = "compute_scaling_distribution_dataset_sample.csv"
     my_dict = {}
     my_dict[sum(original_list)] = original_list # add the original list to save it into the csv file.
 
