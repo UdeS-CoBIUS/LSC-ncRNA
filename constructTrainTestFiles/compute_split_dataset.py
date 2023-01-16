@@ -2,6 +2,22 @@
 import math
 import csv
 
+# nb seqs : nb families
+# [4-10]      : 1064
+# [11-20]     : 500
+# [21-40]     : 364
+# [41-100]    : 191
+# [101-500]   : 119
+# [501-1000]  : 4  
+# [1001-1542] : 4  
+
+
+original_list = [1064, 500, 407, 191, 119, 4, 4]
+list_totals_dataset_600 = [600,500,400,300,200,100]
+list_totals_dataset_350 = [350,250,150,50]
+list_new_totals_dataset = list_totals_dataset_350 + list_totals_dataset_600
+
+
 # code help chatGPT :)
 
 """
@@ -41,12 +57,6 @@ def write_to_csv_dict_key_list_values(my_dict, csv_file_name):
         
         print(" finished writing: ",csv_file_name)
 
-
-
-original_list = [1064, 500, 407, 191, 119, 4, 4]
-list_totals_dataset_600 = [600,500,400,300,200,100]
-list_totals_dataset_350 = [350,250,150,50]
-list_new_totals_dataset = list_totals_dataset_350 + list_totals_dataset_600
 
 
 def main():
