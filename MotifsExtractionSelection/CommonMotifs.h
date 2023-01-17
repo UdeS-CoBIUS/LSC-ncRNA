@@ -100,6 +100,9 @@ public:
 
     void saveMatrixCMS_ToCsv_File(string file_output) const;
     void saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) const;
+    void saveMatrixCMS_ToCsv_File_dircrly(string file_output) const;
+    void saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const;
+    void saveMatrixCMS_ToCsv_File_Chunked(string file_output, unsigned int chunk_size) const:
 
     ///bool can_delete_subMotif_hash(unsigned int idx_sm, unsigned int idx_lm);
     void
