@@ -1093,6 +1093,94 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
     cout<<"file_csv.close();"<<endl;
 }
 
+
+// chatGPT: use  `std::ofstream::write` function instead of `operator<<`
+void CommonMotifs::saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) const
+{
+    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_motifs = this->list_cms.size();
+
+    cout<<" Total nb_seqs = "<<nb_seqs<<endl;
+    cout<<" Total nb_motifs = "<<nb_motifs<<endl;
+
+    ofstream file_csv;
+    const string csv_separator =",";
+    string buffer;
+    uint32_t size_buffer = 0;
+
+    size_buffer += nb_motifs * nb_seqs; // the size of the matrix_commonMotifs_seqsId
+
+    // this supose that we have only one digit, but we can have tow digit!! so howe  i should do this
+    // generaly we have only one digit, but tow digit exist.
+    // i think to add 1/3 of the space to cover the possible tow digit
+    size_buffer += size_buffer/3;
+
+
+    size_buffer += 2*nb_seqs; // we add 1 colomn for familyId, we assum that we have 2 degit by each familyId
+    size_buffer += nb_seqs; // each seq is a row, so it is an "\n" at the end
+
+    // 1) familyId is the class.
+
+    uint32_t size_all_colomn_name = string("familyId").size();
+
+
+    // 2) compute the total size of all motifs
+    for (const auto & motif:this->list_cms)
+    {
+        size_all_colomn_name+=motif.size()+1; // +1 for the separtor
+    }
+    size_all_colomn_name +=1; // for the endline of column name
+
+    size_buffer+=size_all_colomn_name;
+
+    // reserve the space memory , then add the informations
+    buffer.reserve(size_buffer);
+
+    // the column names:
+    buffer+="familyId";
+    for (const auto & motif:this->list_cms)
+    {
+        buffer+=csv_separator;
+        buffer+=motif;
+    }
+    buffer+="\n";
+
+    // the matrix values
+    for (unsigned int i=0; i<nb_seqs; ++i)
+    {
+        if(this->gst.isSequencesAreGroupedByFamilies())
+        {
+            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            buffer+=util::to_string(pair_familyId_SeqId.first); //idx_family
+        }
+        else
+        {
+            buffer+="0"; //idx_family is 0, we have one family
+        }
+
+        for (unsigned int j = 0; j < nb_motifs; ++j)
+        {
+            buffer+=csv_separator;
+            buffer+=util::to_string(matrix_nbOcrrs_cmsSeqsIds[i][j]); // nb occurence
+        }
+        buffer+="\n";
+    }
+
+    //-------------------------------------------------------------------
+
+    // Open the file
+    file_csv.open(file_output+".csv", ios::out | ios::binary);
+
+    cout<<" file_csv.open (\"matrix_motifs_seqIds.csv\"); "<<endl;
+
+    // Write the buffer to the file
+    file_csv.write(buffer.c_str(), buffer.size());
+
+    file_csv.close();
+    cout<<"file_csv.close();"<<endl;
+}
+
+
 const unsigned int CommonMotifs::get_nb_totals_cms() const
 {
     return this->list_cms.size();
