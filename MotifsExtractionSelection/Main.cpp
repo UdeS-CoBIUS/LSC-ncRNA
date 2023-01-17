@@ -296,6 +296,8 @@ int main(int argc, char *argv[]) {
 
     string families_name = argv[6];
 
+    string save_csv_mode = argv[7]; // 1, 2, or 3
+
     uint32_t is_delete_subMotifs = 0;
     //is_delete_subMotifs = strtol(argv[1], nullptr, 10);
     if(is_delete_subMotifs) output_csv_file = "del_Yes_nbF_";
@@ -433,7 +435,22 @@ int main(int argc, char *argv[]) {
 
     cms.print_infos();
 
-    cms.saveMatrixCMS_ToCsv_File(output_csv_file);
+    if(save_csv_mode == "0"){ // default
+        cms.saveMatrixCMS_ToCsv_File(output_csv_file);
+    }
+    else if(save_csv_mode == "1"){ //
+        cms.saveMatrixCMS_ToCsv_File_ofstream_write(output_csv_file);
+    }
+    else if(save_csv_mode == "2"){ //
+        cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
+    }
+    else if(save_csv_mode == "3"){ //
+        cms.saveMatrixCMS_ToCsv_File_rowByrow(output_csv_file);
+    }
+    else if(save_csv_mode == "4"){ //
+        unsigned int chunk_size = 1000;
+        cms.saveMatrixCMS_ToCsv_File_Chunked(output_csv_file, chunk_size);
+    }
 
     auto end = chrono::high_resolution_clock::now();
 
