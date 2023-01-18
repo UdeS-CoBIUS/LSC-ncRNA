@@ -99,6 +99,7 @@ public:
     void print_matrix_cms_seqsId() const;
 
     void saveMatrixCMS_ToCsv_File(string file_output) const;
+    void saveMatrixCMS_ToCsv_File_stdtostring(string file_output) const;
     void saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) const;
     void saveMatrixCMS_ToCsv_File_dircrly(string file_output) const;
     void saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const;
