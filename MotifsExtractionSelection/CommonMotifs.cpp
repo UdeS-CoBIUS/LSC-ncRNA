@@ -1180,6 +1180,76 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring(string file_output) cons
 }
 
 
+// using buffer , and then use file "myfilestream << buffer".
+// use std::to_string instead of util::to_string (my implemenation use ostringstream)
+// don't compute the total size by going through each element.
+// use the chatGPT idea form the other function, just give an istimated size
+void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring_size_estimated(string file_output) const
+{
+    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_motifs = this->list_cms.size();
+
+    cout<<" Total nb_seqs = "<<nb_seqs<<endl;
+    cout<<" Total nb_motifs = "<<nb_motifs<<endl;
+
+    ofstream file_csv;
+    const string csv_separator =",";
+    string buffer;
+    uint32_t size_buffer = 0;
+
+
+    // the header information size:
+    size_buffer = nb_motifs*10 + nb_motifs + 20; // we suppse each motif take in average 10 (mid [2-20]) + nb_motifs for separtor, + 20 (suplimenatry and include siezof('familyId'))
+
+    // the matrix
+    size_buffer += nb_motifs * nb_seqs * 4; // (nb_motifs * nb_seqs) the size of the matrix_commonMotifs_seqsId, *4 supose each digit take 4
+    size_buffer += nb_seqs*4; // we add 1 colomn for familyId = nb_seqs entry, *4 : each digit take 4
+    size_buffer += nb_seqs; // each seq is a row, so it is an "\n" at the end
+    
+    // reserve the space memory , then add the informations
+    buffer.reserve(size_buffer);
+
+    // the column names:
+    buffer+="familyId";
+    for (const auto & motif:this->list_cms)
+    {
+        buffer+=csv_separator;
+        buffer+=motif;
+    }
+    buffer+="\n";
+
+    // the matrix values
+    for (unsigned int i=0; i<nb_seqs; ++i)
+    {
+        if(this->gst.isSequencesAreGroupedByFamilies())
+        {
+            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            buffer+=std::to_string(pair_familyId_SeqId.first); //idx_family
+        }
+        else
+        {
+            buffer+="0"; //idx_family is 0, we have one family
+        }
+
+        for (unsigned int j = 0; j < nb_motifs; ++j)
+        {
+            buffer+=csv_separator;
+            buffer+=std::to_string(matrix_nbOcrrs_cmsSeqsIds[i][j]); // nb occurence
+        }
+        buffer+="\n";
+    }
+
+    //-------------------------------------------------------------------
+    string dir_path = file_output+".csv";
+    file_csv.open (dir_path);
+    cout<<" file_csv.open (\"matrix_motifs_seqIds.csv\"); "<<endl;
+
+    file_csv<<buffer;
+
+    file_csv.close();
+    cout<<"file_csv.close();"<<endl;
+}
+
 // chatGPT: use  `std::ofstream::write` function instead of `operator<<`
 void CommonMotifs::saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) const
 {
