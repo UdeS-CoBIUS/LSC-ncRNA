@@ -100,6 +100,7 @@ public:
 
     void saveMatrixCMS_ToCsv_File(string file_output) const;
     void saveMatrixCMS_ToCsv_File_stdtostring(string file_output) const;
+    void saveMatrixCMS_ToCsv_File_stdtostring_size_estimated(string file_output) const;
     void saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) const;
     void saveMatrixCMS_ToCsv_File_dircrly(string file_output) const;
     void saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const;
