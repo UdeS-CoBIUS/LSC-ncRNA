@@ -1305,7 +1305,6 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_Chunked(string file_output, unsigned
     }
     header << endl;
     myFile.write(header.c_str(), header.size());
-
     std::string buffer;
     buffer.reserve(nb_motifs * 5 + 10); // reserve space for the row
 
