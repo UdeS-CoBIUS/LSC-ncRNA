@@ -1250,13 +1250,15 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const
     // Write the header row
     std::string header;
     header.reserve(nb_motifs*20 + 10);
-    header << "familyId";
+    header += "familyId";
     for (const auto & motif:this->list_cms)
     {
-        header << "," << motif;
+        header += ",";
+        header += motif;
     }
-    header << endl;
+    header += '\n';
     myFile.write(header.c_str(), header.size());
+
     std::string buffer;
     buffer.reserve(nb_motifs*5 + 10); // reserve space for the row
     // Write the matrix values
@@ -1278,7 +1280,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const
             buffer+=",";
             buffer+=std::to_string(matrix_nbOcrrs_cmsSeqsIds[i][j]); // nb occurence
         }
-        buffer+="\n";
+        buffer+='\n';
         myFile.write(buffer.c_str(), buffer.size());
     }
     myFile.close();
@@ -1299,12 +1301,14 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_Chunked(string file_output, unsigned
     // Write the header row
     std::string header;
     header.reserve(nb_motifs * 20 + 10);
-    header << "familyId";
+    header += "familyId";
     for (const auto &motif : this->list_cms) {
-        header << "," << motif;
+        header += ",";
+        header += motif;
     }
-    header << endl;
+    header += '\n';
     myFile.write(header.c_str(), header.size());
+
     std::string buffer;
     buffer.reserve(nb_motifs * 5 + 10); // reserve space for the row
 
@@ -1323,7 +1327,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_Chunked(string file_output, unsigned
                 buffer += ",";
                 buffer += std::to_string(matrix_nbOcrrs_cmsSeqsIds[i + j][k]); // nb occurence
             }
-            buffer += "\n";
+            buffer += '\n';
         }
         myFile.write(buffer.c_str(), buffer.size());
     }
