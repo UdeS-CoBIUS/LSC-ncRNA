@@ -438,6 +438,12 @@ int main(int argc, char *argv[]) {
     if(save_csv_mode == "0"){ // default
         cms.saveMatrixCMS_ToCsv_File(output_csv_file);
     }
+    else if(save_csv_mode == "0std"){ //
+        cms.saveMatrixCMS_ToCsv_File_stdtostring(output_csv_file);
+    }
+    else if(save_csv_mode == "0stdsize"){ //
+        cms.saveMatrixCMS_ToCsv_File_stdtostring_size_estimated(output_csv_file);
+    }
     else if(save_csv_mode == "1"){ //
         cms.saveMatrixCMS_ToCsv_File_ofstream_write(output_csv_file);
     }
