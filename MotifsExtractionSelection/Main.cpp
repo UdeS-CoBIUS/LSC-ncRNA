@@ -298,7 +298,7 @@ int main(int argc, char *argv[]) {
 
     string save_csv_mode = argv[7]; // 1, 2, or 3
 
-    uint32_t is_delete_subMotifs = 0;
+    uint32_t is_delete_subMotifs = 1;
     //is_delete_subMotifs = strtol(argv[1], nullptr, 10);
     if(is_delete_subMotifs) output_csv_file = "del_Yes_nbF_";
 
