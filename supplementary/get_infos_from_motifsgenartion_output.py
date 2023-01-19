@@ -32,6 +32,7 @@ Time taken by whole program is : 45.896144983 sec
 
 import os
 import csv
+import sys
 
 def get_infos_results_output(filename_path):
 
@@ -58,8 +59,8 @@ def get_infos_results_output(filename_path):
 
     return file_name_only, nb_seqs, nb_motifs, time_generated, time_generation_save_csv
 
-def get_files_paths(directory):
-    files = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+def get_files_paths(directory, prefix="out_F_"):
+    files = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and os.path.basename(f).startswith(prefix)]
     return files
 
 
@@ -72,9 +73,23 @@ def get_infos_dir(directory):
     for file in list_files_paths:
         result = get_infos_results_output(file)
         all_results.append(result)
+        print(result)
 
+    # sort results according to file names
+    sorted(all_results, key=lambda x: x[0])
     # write results to csv file
-    with open("out.csv", "w", newline="") as f:
+    with open("all_results_out_F_.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(all_results)
+    
+    print("All results out written to csv file [out_F_all_results.csv]")
 
+
+def main():
+    my_dir = sys.argv[1]
+    print(" dir = " + my_dir)
+    get_infos_dir(my_dir)
+
+
+if __name__ == '__main__':
+    main()
