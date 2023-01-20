@@ -12,6 +12,70 @@
 #include "CommonMotifs.h"
 #include "hasher_Container.h"
 
+#include <unistd.h>
+#include <iostream>
+using namespace std;
+
+// Struct to store the parsed command-line arguments
+struct args {
+
+    string dir_name;  // -in
+    int nb_families = 10; // -nf
+    int min_nb_seqs_allowed = 4; // -mins
+    int max_nb_seqs_allowed = 1000; // -maxs
+    int min_length_motif = 2; // -minl
+    int max_length_motif = 10; // -maxl
+    int is_delete_subMotifs = 0; // -d (false, true)
+    int Beta = 40; // -b
+    int Alpha = -1; // -a
+    int nbOccrs_allowed = 1; // -g (gamma)
+
+};
+
+// Function to parse command-line arguments using getopt
+args get_args(int argc, char* argv[]) {
+    args res;
+    int opt;
+    while ((opt = getopt(argc, argv, "in:nf:mins:maxs:minl:maxl:d:b:a:g:")) != -1) {
+        switch (opt) {
+            case 'in':
+                                res.dir_name = optarg;
+                break;
+            case 'nf':
+                res.nb_families = atoi(optarg);
+                break;
+            case 'mins':
+                res.min_nb_seqs_allowed = atoi(optarg);
+                break;
+            case 'maxs':
+                res.max_nb_seqs_allowed = atoi(optarg);
+                break;
+            case 'minl':
+                res.min_length_motif = atoi(optarg);
+                break;
+            case 'maxl':
+                res.max_length_motif = atoi(optarg);
+                break;
+            case 'd':
+                res.is_delete_subMotifs = atoi(optarg);
+                break;
+            case 'b':
+                res.Beta = atoi(optarg);
+                break;
+            case 'a':
+                res.Alpha = atoi(optarg);
+                break;
+            case 'g':
+                res.nbOccrs_allowed = atoi(optarg);
+                break;
+            default:
+                cout << "Usage: " << argv[0] << " -in <string> -nf <integer> -mins <integer> -maxs <integer> -minl <integer> -maxl <integer> -d <integer> -b <integer> -a <integer> -g <integer>" << endl;
+                exit(1);
+        }
+    }
+    return res;
+}
+
 
 void getMainArgv(int argc, char *argv[], string &dir_name, uint32_t &nb_families, uint32_t &min_nb_seqs_allowed,
                  uint32_t &max_nb_seqs_allowed, uint32_t &min_length_motif, uint32_t &max_length_motif,
