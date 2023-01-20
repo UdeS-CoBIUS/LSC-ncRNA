@@ -448,6 +448,7 @@ class Model:
         print(" score test = ", score_test)
 
     def test_group_score(self, dir_in_files, file_ext, method='np'):
+        
         start_time_test = time.time()
         list_all_seqs = self.get_all_seqs(dir_in_files, file_ext)
 

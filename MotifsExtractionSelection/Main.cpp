@@ -436,7 +436,8 @@ int main(int argc, char *argv[]) {
     cms.print_infos();
 
     // according to test results, we will use saveMatrixCMS_ToCsv_File_dircrly
-    cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
+    /// cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
+    cms.saveMatrixCMS_ToCsv_File(output_csv_file);
     /*
     if(save_csv_mode == "0"){ // default
         cms.saveMatrixCMS_ToCsv_File(output_csv_file);

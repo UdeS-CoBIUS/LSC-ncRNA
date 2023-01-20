@@ -13,14 +13,14 @@ def main():
 
     choose_mlm = sys.argv[1]  # 'EXT', 'NLP', 'VOT'
     dir_in_train_csv_matrix = sys.argv[2]
-    #file_ext = ".fasta.txt"
-    file_ext = ".fa"
+    file_ext = ".fasta.txt" #todo: remove the dependcy on the extention, because some times I change the exetesion, and I get error only for that, and it take time to descover that error come from here.
+    #file_ext = ".fa"
     dir_in_test_files = "/data/chei2402/ibra/test_infernal/nbF_all_nbSeqs_min_3/Test"
     dir_in_test_files = sys.argv[3]
 
     # n_job = -1 # -1 use multi-processing which is availabale only in EXT and rdf not in NLP
     # n_job = int(sys.argv[2])
-    n_job = 1
+    n_job = -1
 
     clm = Model(n_job)
 
