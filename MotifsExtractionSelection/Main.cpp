@@ -28,8 +28,8 @@ struct Args {
     int max_length_motif = 10; // -maxl
     int is_delete_subMotifs = 0; // -d (false, true)
     int Beta = 40; // -b
-    int Alpha = -1; // -a
-    int nbOccrs_allowed = 1; // -g (gamma)
+    int Alpha = -1; // -a   // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
+    int nbOccrs_allowed = 1; // -g (gamma) , lower bound, 1 is defult
 
 };
 
@@ -56,7 +56,7 @@ void print_args(Args arg) {
     cout << "max_nb_seqs_allowed: " << arg.max_nb_seqs_allowed << endl;
     cout << "min_length_motif: " << arg.min_length_motif << endl;
     cout << "max_length_motif: " << arg.max_length_motif << endl;
-    cout << "is_delete_subMotifs: " << arg.is_delete_subMotifs << endl;
+    cout << "is_delete_subMotifs: " << arg.is_delete_subMotifs << (is_delete_subMotifs ? " True " : " False ") << endl;
     cout << "Beta: " << arg.Beta << endl;
     cout << "Alpha: " << arg.Alpha << endl;
     cout << "nbOccrs_allowed: " << arg.nbOccrs_allowed << endl;
@@ -106,60 +106,22 @@ int main(int argc, char *argv[]) {
 
     Args args = get_args(argc, argv);
 
-    string dir_name = R"(/data/chei2402/ibra/test_infernal/nbF_all_nbSeqs_min_3/Train)";
-    //dir_name=argv[1];
-    dir_name = args.dir_name;
 
-    string output_csv_file;
-    //string output_csv_file = "nbF_380_nbSeqs_min_2_max_2";
-    //string output_csv_file = argv[2];
+    // the output matrix in the csv file 
 
-    uint32_t nb_families = args.nb_families;
-    uint32_t min_nb_seqs_allowed = args.min_seqs_allowed;
-    uint32_t max_nb_seqs_allowed = args.max_seqs_allowed;
+    string output_csv_file = "del_No_nbF_";
 
-    //int nb = 16;
-    //for (int nb = 2; nb <= 20; nb+=1)
-    //{
+    if(args.is_delete_subMotifs) output_csv_file = "del_Yes_nbF_";
 
-    output_csv_file = "del_No_nbF_";
+    output_csv_file += args.test_name;
+    output_csv_file += "_min_" + util::to_string(args.min_length_motif);
+    output_csv_file += "_max_" + util::to_string(args.max_length_motif);
+    output_csv_file += "_beta_" + util::to_string(args.Beta);
+    output_csv_file += "_alpha_" + util::to_string(args.Alpha);
+    output_csv_file += "_nbOccrs_" + util::to_string(args.nbOccrs_allowed);
 
-    uint32_t min_length_motif = args.min_length_motif;;
-    uint32_t max_length_motif = args.max_length_motif;
-    
-    uint32_t Beta = args.Beta;
 
-    int Alpha = args.Alpha; // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
-
-    unsigned int nbOccrs_allowed = args.nbOccrs_allowed; // lower bound allowed, 1 is default
-
-    string test_name = args.test_name;
-
-    // string save_csv_mode = argv[7]; // 1, 2, or 3 // according to test settings results. we will use cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
-
-    uint32_t is_delete_subMotifs = args.is_delete_subMotifs;
-
-    if(is_delete_subMotifs) output_csv_file = "del_Yes_nbF_";
-
-    output_csv_file += test_name;
-    output_csv_file += "_min_" + util::to_string(min_length_motif);
-    output_csv_file += "_max_" + util::to_string(max_length_motif);
-    output_csv_file += "_beta_" + util::to_string(Beta);
-    output_csv_file += "_alpha_" + util::to_string(Alpha);
-    output_csv_file += "_nbOccrs_" + util::to_string(nbOccrs_allowed);
-
-    //getMainArgv(argc, argv, dir_name, nb_families, min_nb_seqs_allowed, max_nb_seqs_allowed, min_length_motif,max_length_motif, is_delete_subMotifs, Beta);
-
-    cout << "dire name : " << dir_name << endl;
-    cout << "nb families : " << nb_families << endl;
-    cout << "Min nb seqs : " << min_nb_seqs_allowed << endl;
-    cout << "Max nb seqs : " << max_nb_seqs_allowed << endl;
-    cout << "Min length motif : " << min_length_motif << endl;
-    cout << "Max length motif : " << max_length_motif << endl;
-    cout << (is_delete_subMotifs ? " True " : " False ") << is_delete_subMotifs << endl;
-    cout << "BETA : " << Beta << endl;
-    cout << "Alpha : " << Alpha << endl;
-    cout << "nbOccrs_allowed : " << nbOccrs_allowed << endl;
+    print_args(args);    
 
     auto start = chrono::high_resolution_clock::now();
 
@@ -175,94 +137,20 @@ int main(int argc, char *argv[]) {
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(dir_name,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
     auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(dir_name);
 
-    //return 0;
-//    int i=1;
-//    int total=0;
-//    for(const auto &list_family:list_families_sequences)
-//    {
-//        cout<<"family["<<i++<<"] : "<<list_family.size()<<endl;
-//        total +=list_family.size();
-//    }
-//    cout<<"total : "<<total<<endl;
-
     //FastaFilesReader::groupALLFamiliesSeqsInOneFile(dir_name);
 
-    //return 0;
 
-    //SuffixTree_QuadraticTime gst;  // this construction for no max no min (default min is 1, max is the length of the sequnces)
-    SuffixTree_QuadraticTime gst(max_length_motif, min_length_motif);
-    //gst.GenerateSuffixTree(str);
-    //gst.GenerateGeneralizedSuffixTree(listStrings);
+    // this construction for no max no min (default min is 1, max is the length of the sequnces)
+    SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);
+
     gst.GenerateGeneralizedSuffixTree(list_families_sequences);
 
     //PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
 
-    //uint32_t nb_total_motifs;
-    //uint32_t nb_total_motifs_after_deletion_sm;
-    //-----------------------  Old_CommonMotifs  --------------------------
-    /*
-    Old_CommonMotifs cms(gst, Beta);
-
-    auto start = chrono::high_resolution_clock::now();
-    cms.generateMatrixCmsSeqs();
-    //cms.print_list_cm_umap_seqId_nbOccs();
-
-    nb_total_motifs = cms.list_of_all_commonMotifs.size();
-
-    //cout<<"--------------------"<<endl;
-    if(is_delete_subMotifs)
-        cms.deletSubMotifsFromTheMatrix();
-
-    nb_total_motifs_after_deletion_sm = cms.list_of_all_commonMotifs.size();
-
-    auto end = chrono::high_resolution_clock::now();
-    //cms.print_matrix_commonMotifs_seqsId();
-
-    */
-
-    //-----------------------  New CommonMotifs  --------------------------
-
-
     CommonMotifs cms(gst, Beta, Alpha, nbOccrs_allowed);
 
-    ///*
-    //auto start = chrono::high_resolution_clock::now();
-    //cms.cmsExtractionSelection();
-    //cms.print_list_cm_umap_seqId_nbOccs();
 
-    //nb_total_motifs = cms.get_nb_totals_cms();
-
-    //cout<<"--------------------"<<endl;
-    //if(is_delete_subMotifs)
-    //cms.deleteSubMotifs_at_end_ES();
-    //cms.deleteSubMotifs_at_end_ES_usingHash();
-
-    //cms.generateMatrixCmsSeqs();
-    //cms.print_matrix_cms_seqsId();
-
-    //auto end = chrono::high_resolution_clock::now();
-
-    //nb_total_motifs_after_deletion_sm = cms.get_nb_totals_cms();
-
-    //*/
-
-    /*
-
-    cms.cmsExtractionSelectionDeletionCSMs();
-    cms.generateMatrixCmsSeqs();
-    //cms.print_list_cm_umap_seqId_nbOccs();
-
-
-    //nb_total_motifs_after_deletion_sm = cms.get_nb_totals_cms();
-    //cms.print_matrix_cms_seqsId();
-
-     */
-
-    //cms.saveToCsvMatrixCommonMotifsSeqsIds_buffer_reserve(); // 18.71
-
-
-
-    if (is_delete_subMotifs) {
+    if (args.is_delete_subMotifs) {
         cms.cmsExtractionSelectionDeletionCSMs();
     } else {
         cms.cmsExtractionSelection();
