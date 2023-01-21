@@ -98,55 +98,6 @@ Args get_args(int argc, char* argv[]) {
 
 
 
-void getMainArgv(int argc, char *argv[], string &dir_name, uint32_t &nb_families, uint32_t &min_nb_seqs_allowed,
-                 uint32_t &max_nb_seqs_allowed, uint32_t &min_length_motif, uint32_t &max_length_motif,
-                 uint32_t &is_delete_subMotifs, uint32_t &Beta)
-{
-    uint32_t nb_arg = 8;
-
-    if(argc==nb_arg+1)
-    {
-        dir_name = argv[1];
-
-        nb_families = strtol(argv[2], nullptr, 10);
-        min_nb_seqs_allowed = strtol(argv[3], nullptr, 10);
-        max_nb_seqs_allowed = strtol(argv[4], nullptr, 10);
-
-        min_length_motif = strtol(argv[5], nullptr, 10);
-        max_length_motif = strtol(argv[6], nullptr, 10);
-
-        is_delete_subMotifs = strtol(argv[7], nullptr, 10);
-
-        Beta = strtol(argv[8], nullptr, 10);
-    }
-
-
-    /*
-    unordered_map<string,uint32_t > umap_main_argv;// text indice -d ---> position in argv
-    umap_main_argv.reserve(6);
-    umap_main_argv.insert(make_pair("-d",0));  // for dir_name
-    umap_main_argv.insert(make_pair("-n",0));  // for nb files
-    umap_main_argv.insert(make_pair("-mins",0)); // for min_nb_seqs_allowed
-    umap_main_argv.insert(make_pair("-mans",0)); // for max_nb_seqs_allowed
-    umap_main_argv.insert(make_pair("-milm",0)); // for min_length_motif
-    umap_main_argv.insert(make_pair("-malm",0));  // for man_length_motif
-
-    for (uint32_t i = 1; i < argc; ++i) { // i==0 is the programe name
-
-        if(umap_main_argv.find(argv[i])==umap_main_argv.end())
-        {
-            cout<<"error in : arg ("<<(i+1)<<") {"<<argv[i]<<"} "<<endl;
-        }
-        else
-        {
-            umap_main_argv[argv]
-        }
-    }
-    */
-
-
-}
-
 
 int main(int argc, char *argv[]) {
 
