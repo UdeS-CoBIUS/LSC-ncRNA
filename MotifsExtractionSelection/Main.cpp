@@ -333,19 +333,6 @@ void test_map()
     print_test_vec(vec_strLen_FlistIdx,list_str);
 }
 
-void test_BST()
-{
-    std::vector<int> vec = { 10 , 115 ,15, 40, 35 , 55 , 75 };
-    int searched_key = 40;
-
-    std::set<int> my_BST(vec.begin(),vec.end());
-
-    auto lower_bound = my_BST.lower_bound(searched_key);
-    auto upper_bound = my_BST.upper_bound(searched_key);
-
-    cout<<" Value Before = " << *(lower_bound.operator--())<<endl;
-    cout<<" Value After = " << *upper_bound<<endl;
-}
 
 int main(int argc, char *argv[]) {
 
