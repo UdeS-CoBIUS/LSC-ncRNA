@@ -17,7 +17,7 @@
 using namespace std;
 
 // Struct to store the parsed command-line arguments
-struct args {
+struct Args {
 
     string dir_name;  // -in
     int nb_families = 10; // -nf
@@ -32,49 +32,70 @@ struct args {
 
 };
 
+void print_args_definition() {
+    cout << "-in : <string> a path directory for fasta files" << endl;
+    cout << "-nf : <integer> number of families "<< endl;
+    cout << "-mins : <integer>, min number of sequences (default 4)"<< endl;
+    cout << "-maxs : <integer>, max number of sequences"<< endl;
+    cout << "-minl : <integer>, min length of motif" << endl;
+    cout << "-maxl : <integer>, max length of motif" << endl;
+    cout << "-d : <integer> (0: false, 1 or other: true), is delete sub-motifs" << endl;
+    cout << "-b : <integer> beta (between [0 and 100])" << endl;
+    cout << "-a : <integer>, alpha  (-1 default no alpha, or: 0 equal number of occurrences, or 1,2,3,.... )" << endl;
+    cout << "-g : <integer> ( >=1), gamma, number of occurrences allowed" << endl;
+}
+
+
+void print_args(Args arg) {
+    cout << "dir_name: " << arg.dir_name << endl;
+    cout << "nb_families: " << arg.nb_families << endl;
+    cout << "min_nb_seqs_allowed: " << arg.min_nb_seqs_allowed << endl;
+    cout << "max_nb_seqs_allowed: " << arg.max_nb_seqs_allowed << endl;
+    cout << "min_length_motif: " << arg.min_length_motif << endl;
+    cout << "max_length_motif: " << arg.max_length_motif << endl;
+    cout << "is_delete_subMotifs: " << arg.is_delete_subMotifs << endl;
+    cout << "Beta: " << arg.Beta << endl;
+    cout << "Alpha: " << arg.Alpha << endl;
+    cout << "nbOccrs_allowed: " << arg.nbOccrs_allowed << endl;
+}
+
 // Function to parse command-line arguments using getopt
-args get_args(int argc, char* argv[]) {
-    args res;
-    int opt;
-    while ((opt = getopt(argc, argv, "in:nf:mins:maxs:minl:maxl:d:b:a:g:")) != -1) {
-        switch (opt) {
-            case 'in':
-                                res.dir_name = optarg;
-                break;
-            case 'nf':
-                res.nb_families = atoi(optarg);
-                break;
-            case 'mins':
-                res.min_nb_seqs_allowed = atoi(optarg);
-                break;
-            case 'maxs':
-                res.max_nb_seqs_allowed = atoi(optarg);
-                break;
-            case 'minl':
-                res.min_length_motif = atoi(optarg);
-                break;
-            case 'maxl':
-                res.max_length_motif = atoi(optarg);
-                break;
-            case 'd':
-                res.is_delete_subMotifs = atoi(optarg);
-                break;
-            case 'b':
-                res.Beta = atoi(optarg);
-                break;
-            case 'a':
-                res.Alpha = atoi(optarg);
-                break;
-            case 'g':
-                res.nbOccrs_allowed = atoi(optarg);
-                break;
-            default:
-                cout << "Usage: " << argv[0] << " -in <string> -nf <integer> -mins <integer> -maxs <integer> -minl <integer> -maxl <integer> -d <integer> -b <integer> -a <integer> -g <integer>" << endl;
-                exit(1);
+Args get_args(int argc, char* argv[]) {
+
+    Args res;
+ 
+    for (int i = 1; i < argc; i++) {
+        string arg = argv[i];
+        if (arg == "-in") {
+            res.dir_name = argv[++i];
+        } else if (arg == "-nf") {
+            res.nb_families = atoi(argv[++i]);
+        } else if (arg == "-mins") {
+            res.min_nb_seqs_allowed = atoi(argv[++i]);
+        } else if (arg == "-maxs") {
+            res.max_nb_seqs_allowed = atoi(argv[++i]);
+        } else if (arg == "-minl") {
+            res.min_length_motif = atoi(argv[++i]);
+        } else if (arg == "-maxl") {
+            res.max_length_motif = atoi(argv[++i]);
+        } else if (arg == "-d") {
+            res.is_delete_subMotifs = atoi(argv[++i]);
+        } else if (arg == "-b") {
+            res.Beta = atoi(argv[++i]);
+        } else if (arg == "-a") {
+            res.Alpha = atoi(argv[++i]);
+        } else if (arg == "-g") {
+            res.nbOccrs_allowed = atoi(argv[++i]);
+        } else {
+            cout << "Usage: " << argv[0] << " -in <string> -nf <integer> -mins <integer> -maxs <integer> -minl <integer> -maxl <integer> -d <integer> -b <integer> -a <integer> -g <integer>" << endl;
+            print_args_definition();
+            exit(1);
         }
     }
+
     return res;
 }
+
 
 
 void getMainArgv(int argc, char *argv[], string &dir_name, uint32_t &nb_families, uint32_t &min_nb_seqs_allowed,
