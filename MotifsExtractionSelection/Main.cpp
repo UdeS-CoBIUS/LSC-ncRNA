@@ -219,25 +219,6 @@ void test_erase_from_forward_list()
     for (int & val : mylist) cout<<val<<", ";
 }
 
-void flist_erase_all(forward_list<uint32_t> &flist,vector<string> &list_str, string str)
-{
-
-    auto prev = flist.before_begin();
-    for (auto it = flist.begin(); it!=flist.end(); )
-    {
-        if(list_str.at(*it)==str)
-        {
-            it = flist.erase_after(prev);
-            // break; // comment or uncomment to deal with only the first or all found element(s).
-        }
-        else
-        {
-            prev = it;
-            ++it;
-        }
-    }
-}
-
 
 int main(int argc, char *argv[]) {
 
