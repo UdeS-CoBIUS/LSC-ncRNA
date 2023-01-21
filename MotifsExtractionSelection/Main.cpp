@@ -192,32 +192,6 @@ bool remove_pred(uint32_t val)
     return val == 30;
 }
 
-void test_erase_from_forward_list()
-{
-    std::forward_list<int> mylist = {10, 10, 20, 30, 40, 10, 50, 10, 60};
-
-    uint32_t skey = 10;
-
-    for (int & val : mylist) std::cout<<val<<", ";
-
-    auto prev = mylist.before_begin();
-    for (auto it = mylist.begin(); it!=mylist.end(); )
-    {
-        if(*it==skey)
-        {
-            it = mylist.erase_after(prev);
-            // break; // comment or uncomment to deal with only the first or all found element(s).
-        }
-        else
-        {
-            prev = it;
-            ++it;
-        }
-    }
-
-    std::cout<<"\n after deletion : "<<std::endl;
-    for (int & val : mylist) cout<<val<<", ";
-}
 
 
 int main(int argc, char *argv[]) {
