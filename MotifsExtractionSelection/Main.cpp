@@ -69,23 +69,23 @@ Args get_args(int argc, char* argv[]) {
         if (arg == "-in") {
             res.dir_name = argv[++i];
         } else if (arg == "-nf") {
-            res.nb_families = atoi(argv[++i]);
+            res.nb_families = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-mins") {
-            res.min_nb_seqs_allowed = atoi(argv[++i]);
+            res.min_nb_seqs_allowed = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-maxs") {
-            res.max_nb_seqs_allowed = atoi(argv[++i]);
+            res.max_nb_seqs_allowed = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-minl") {
-            res.min_length_motif = atoi(argv[++i]);
+            res.min_length_motif = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-maxl") {
-            res.max_length_motif = atoi(argv[++i]);
+            res.max_length_motif = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-d") {
-            res.is_delete_subMotifs = atoi(argv[++i]);
+            res.is_delete_subMotifs = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-b") {
-            res.Beta = atoi(argv[++i]);
+            res.Beta = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-a") {
-            res.Alpha = atoi(argv[++i]);
+            res.Alpha = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-g") {
-            res.nbOccrs_allowed = atoi(argv[++i]);
+            res.nbOccrs_allowed = strtol(argv[++i], nullptr, 10);
         } else {
             cout << "Usage: " << argv[0] << " -in <string> -nf <integer> -mins <integer> -maxs <integer> -minl <integer> -maxl <integer> -d <integer> -b <integer> -a <integer> -g <integer>" << endl;
             print_args_definition();
@@ -95,8 +95,6 @@ Args get_args(int argc, char* argv[]) {
 
     return res;
 }
-
-
 
 
 int main(int argc, char *argv[]) {
