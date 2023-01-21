@@ -147,52 +147,6 @@ void getMainArgv(int argc, char *argv[], string &dir_name, uint32_t &nb_families
 
 }
 
-void print_test_vec(vector<forward_list<uint32_t>> &vec_flist, vector<string> &list_str)
-{
-    cout<<"\n --------------------- "<<endl;
-    uint32_t len=0;
-    for (auto &flist : vec_flist)
-    {
-        if(!flist.empty())
-        {
-            cout<<"len("<<len<<"): ";
-
-            for (uint32_t i : flist)
-            {
-                cout<<"("<<list_str.at(i)<<", <"<<list_str.at(i).length()<<","<<i<<">) , ";
-            }
-
-            cout<<endl;
-        }
-
-        len++;
-    }
-    cout<<"\n --------------------- "<<endl;
-}
-
-void print_test_map(map<uint32_t , vector<uint32_t >> &map_str_len_listIdx, vector<string> &list_str)
-{
-    cout<<"\n --------------------- "<<endl;
-    for (auto &it : map_str_len_listIdx)
-    {
-        cout<<"len("<<it.first<<"): ";
-
-        for (uint32_t i : it.second)
-        {
-            cout<<"("<<list_str.at(i)<<", <"<<list_str.at(i).length()<<","<<i<<">) , ";
-        }
-
-        cout<<endl;
-    }
-    cout<<"\n --------------------- "<<endl;
-}
-
-bool remove_pred(uint32_t val)
-{
-    return val == 30;
-}
-
-
 
 int main(int argc, char *argv[]) {
 
