@@ -20,6 +20,7 @@ using namespace std;
 struct Args {
 
     string dir_name;  // -in
+    string test_name = "test"; // -tn
     int nb_families = 10; // -nf
     int min_nb_seqs_allowed = 4; // -mins
     int max_nb_seqs_allowed = 1000; // -maxs
@@ -34,6 +35,7 @@ struct Args {
 
 void print_args_definition() {
     cout << "-in : <string> a path directory for fasta files" << endl;
+    cout << "-tn : <string> test name, give a specifc name to you your exepremnt" << endl;
     cout << "-nf : <integer> number of families "<< endl;
     cout << "-mins : <integer>, min number of sequences (default 4)"<< endl;
     cout << "-maxs : <integer>, max number of sequences"<< endl;
@@ -48,6 +50,7 @@ void print_args_definition() {
 
 void print_args(Args arg) {
     cout << "dir_name: " << arg.dir_name << endl;
+    cout << "test_name: " << arg.test_name << endl;
     cout << "nb_families: " << arg.nb_families << endl;
     cout << "min_nb_seqs_allowed: " << arg.min_nb_seqs_allowed << endl;
     cout << "max_nb_seqs_allowed: " << arg.max_nb_seqs_allowed << endl;
@@ -86,6 +89,8 @@ Args get_args(int argc, char* argv[]) {
             res.Alpha = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-g") {
             res.nbOccrs_allowed = strtol(argv[++i], nullptr, 10);
+        } else if (arg == "-tn") {
+            res.test_name = argv[++i];
         } else {
             cout << "Usage: " << argv[0] << " -in <string> -nf <integer> -mins <integer> -maxs <integer> -minl <integer> -maxl <integer> -d <integer> -b <integer> -a <integer> -g <integer>" << endl;
             print_args_definition();
@@ -99,16 +104,19 @@ Args get_args(int argc, char* argv[]) {
 
 int main(int argc, char *argv[]) {
 
+    Args args = get_args(argc, argv);
+
     string dir_name = R"(/data/chei2402/ibra/test_infernal/nbF_all_nbSeqs_min_3/Train)";
-    dir_name=argv[1];
+    //dir_name=argv[1];
+    dir_name = args.dir_name;
 
     string output_csv_file;
     //string output_csv_file = "nbF_380_nbSeqs_min_2_max_2";
     //string output_csv_file = argv[2];
 
-    uint32_t nb_families = 10;
-    uint32_t min_nb_seqs_allowed = 20;
-    uint32_t max_nb_seqs_allowed = 40;
+    uint32_t nb_families = args.nb_families;
+    uint32_t min_nb_seqs_allowed = args.min_seqs_allowed;
+    uint32_t max_nb_seqs_allowed = args.max_seqs_allowed;
 
     //int nb = 16;
     //for (int nb = 2; nb <= 20; nb+=1)
@@ -116,28 +124,24 @@ int main(int argc, char *argv[]) {
 
     output_csv_file = "del_No_nbF_";
 
-    uint32_t min_length_motif = 1;
-    min_length_motif = strtol(argv[2], nullptr, 10);
-    uint32_t max_length_motif = 7;
-    max_length_motif = strtol(argv[3], nullptr, 10);
+    uint32_t min_length_motif = args.min_length_motif;;
+    uint32_t max_length_motif = args.max_length_motif;
+    
+    uint32_t Beta = args.Beta;
 
-    uint32_t Beta = 0;
-    Beta = strtol(argv[4], nullptr, 10);
+    int Alpha = args.Alpha; // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
 
-    int Alpha = -1; // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
+    unsigned int nbOccrs_allowed = args.nbOccrs_allowed; // lower bound allowed, 1 is default
 
-    unsigned int nbOccrs_allowed = 1; // lower bound allowed, 1 is default
-    nbOccrs_allowed = strtol(argv[5], nullptr, 10);
-
-    string families_name = argv[6];
+    string test_name = args.test_name;
 
     // string save_csv_mode = argv[7]; // 1, 2, or 3 // according to test settings results. we will use cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
 
-    uint32_t is_delete_subMotifs = 0;
-    //is_delete_subMotifs = strtol(argv[1], nullptr, 10);
+    uint32_t is_delete_subMotifs = args.is_delete_subMotifs;
+
     if(is_delete_subMotifs) output_csv_file = "del_Yes_nbF_";
 
-    output_csv_file += families_name;
+    output_csv_file += test_name;
     output_csv_file += "_min_" + util::to_string(min_length_motif);
     output_csv_file += "_max_" + util::to_string(max_length_motif);
     output_csv_file += "_beta_" + util::to_string(Beta);
