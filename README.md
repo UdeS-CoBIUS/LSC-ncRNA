@@ -45,18 +45,21 @@ All the parameters between [] are optional. The path to the directory of fast fi
 
 Example:
 ```shell
-nohup ./MatrixCmsNStrNbOccs -in "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Train" -minl 2 -maxl -b 50 -g 1 -tn F_600 > out_F_600 &
+nohup ./MatrixCmsNStrNbOccs -in "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Train" -minl 2 -maxl 8 -b 50 -g 1 -tn F_600 > out_F_600 &
 ```
 
-<## C) Train, and test and generate the score values:>
+The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_beta_[-b]_alpha_[-a]_nbOccrs_[-g].csv, the prvious test produce the following name: del_No_nbF_F_600_min_2_max_8_beta_50_alpha_-1_nbOccrs_1.csv
+
+
 ## C) Training and Testing experimental:
 
-The second step is the selection of supervised learning classification algorithms that allow achieving the most accurate classification of ncRNA sequences.
+The step of the selection of supervised learning classification algorithms that allow achieving the most accurate classification of ncRNA sequences.
 
-The training and test part, generate at the end difirent scores:
-- Procissing time, of 1) trainig part and 2) testing part.
-- Scores of training `score Train` and predection `pred Train`.
-- pred Test (accuracy), Precision, Recall, and fbeta_score.
+## C.1) selection of supervised learning classification algorithms:
+To choose the best classification algorithm we use the following python program ***Classification/modelstest.py*** as follows:
+`python3 modelstest.py path_motifs.csv`. The code test the following algorithm ['ext','knn','rdf','gnb', 'dt', 'nlp', 'svc'] using 10-fold cross-validation with a split of 0.3 for testing.
+
+## C.2) Experimental with the chosen models.
 
 To lucnh the program we use the main python script as follow:
 *python3 Main.py mod "path/2d_matrix.csv" "path_test_folder"*, where:
@@ -67,8 +70,14 @@ To lucnh the program we use the main python script as follow:
 Example:
 
 ```shell
-python3 Main.py EXT "/data/chei2402/ibra/SCode_MatrixCmsNbOccs/del_No_nbF_Clans_min_6_max_7_beta_50_alpha_-1_nbOccrs_1.csv" "/data/chei2402/ibra/test_infernal/Clans_family_train_test/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_beta_50_alpha_-1_nbOccrs_1
+python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_beta_50_alpha_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_beta_50_alpha_-1_nbOccrs_1
 ```
+
+The training and test part, generate at the end different scores:
+- Procissing time, of 1) trainig part and 2) testing part.
+- Scores of training `score Train` and predection `pred Train`.
+- pred Test (accuracy), Precision, Recall, and fbeta_score.
+
 
 
 ## 5) Blast based classification (blastn(av-s)):
