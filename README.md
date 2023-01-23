@@ -4,10 +4,11 @@
 
 
 # Experimentation Pipeline
-## 1) get the dataset:
+## A) dataset preparation
+## A.1) get the dataset:
 Download the ncRNA from somewhere, form example Rfam (https://rfam.xfam.org/)
 
-## 2) Train Test split:
+## A.2) datset Train Test split:
 For each family (fasta file), split the sequnces into train and test dataset.
 We use the code in ***constructTrainTestFiles***.
 - dir input for fasta file, each file is a family.
@@ -19,27 +20,39 @@ The output will be, 1) a folder Train with *percentage_nb_seqs_train* sequnces, 
 
 **note**, be aware of problem of file encoding, and endline. sometimse it causes problems. In my case, I have to change to encoding to UTF8 to avoid extra-space when reading a line (see my answer: https://stackoverflow.com/a/73952980/3429103)
 
-## 3) Motifs computation and selection:
-which generate a 2d vector (matrix) at the end, of motifs and their number of occurences.
-You can lunch the generateion of the 2d matrix using:
+## B) Motifs computation and selection:
+This is the first step in our method whoch is the computation and the selection of sequence motifs that allow defining a vectorial representation of ncRNAs sequences.
+In this part as result we generate a 2d vector (matrix), that contain the number of occurences for each motif that exist in the ncRNA sequence. The matrix is saved as a single csv file.
 
-***./MatrixCmsNStrNbOccs "train_dir" minl maxl alpha gamma exp_name***
-- MatrixCmsNStrNbOccs: the name of the program
-- "train_dir": the path to the directory that conatins the Train dataset (eache family in distenct file)
-- minl: minimum motif lenght
-- maxl: maximum motif lenght
-- alpha: percentage of represenation of the motif in the family.
-- gamma: number of occurence of the motif.
-- exp_name : the name of experemenation.
+The program can be used like this:
+
+./MatrixCmsNStrNbOccs -in \<string\> [-nf \<integer\> -mins \<integer\> -maxs \<integer\> -minl \<integer\> -maxl \<integer\> -d \<integer\> -b \<integer\> -a \<integer\> -g \<integer\> -tn \<string\>]
+
+- *MatrixCmsNStrNbOccs* : the program name
+- *-in* : \<string\> a path directory for fasta files.
+- *-tn* : \<string\> test name, give a specific name to you your excrement, (default "test")
+- *-nf* : \<integer\> number of families, (**default 10**)
+- *-mins* : \<integer\>, min number of sequences, (**default 4**)
+- *-maxs* : \<integer\>, max number of sequences, (**default 1000**)
+- *-minl* : \<integer\>, min length of motif, (**default 2**)
+- *-maxl* : \<integer\>, max length of motif, (**default 10**)
+- *-d* : \<integer\> (0: false, 1 or other: true), is delete sub-motifs, (**default 0**)
+- *-b* : \<integer\> beta (between [0 and 100]), (**default 40**)
+- *-a* : \<integer\>, alpha  (-1 no alpha, or: 0 equal number of occurrences, or 1,2,3,..., , (**default -1**)
+- *-g* : \<integer\> ( >=1), gamma, number of occurrences allowed, (**default 1**)
+
+All the parameters between [] are optional. The path to the directory of fast files is obligatory. The motifs length (minl, maxl) and Beta parameter and test name parameters are recommended to use.
 
 Example:
 ```shell
-nohup ./MatrixCmsNStrNbOccs "/data/chei2402/ibra/test_infernal/Clans_family_train_test/Train" 6 7 50 1 Clans > out_Clans_M_6_7_1 &
+nohup ./MatrixCmsNStrNbOccs -in "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Train" -minl 2 -maxl -b 50 -g 1 -tn F_600 > out_F_600 &
 ```
 
-At the end, we have as result a csv file that contains sequences ids, and motifs with numnber of occurences by motis in each sequence.
+<## C) Train, and test and generate the score values:>
+## C) Training and Testing experimental:
 
-## 4) Train, and test and generate the score values:
+The second step is the selection of supervised learning classification algorithms that allow achieving the most accurate classification of ncRNA sequences.
+
 The training and test part, generate at the end difirent scores:
 - Procissing time, of 1) trainig part and 2) testing part.
 - Scores of training `score Train` and predection `pred Train`.
