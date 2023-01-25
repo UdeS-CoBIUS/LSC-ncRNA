@@ -77,7 +77,14 @@ def get_infos_dir(directory):
 
     # sort results according to file names
     sorted(all_results, key=lambda x: x[0])
+
     # write results to csv file
+
+    header = ["file_name_only",	"nb seqs", "nb_motifs", "time_generated", "time_generation_save_csv"]
+
+    all_results.insert(0, header)
+
+
     with open("all_results_out_F_.csv", "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(all_results)
