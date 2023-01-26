@@ -1,75 +1,18 @@
 #include <iostream>
 #include "FastaFilesReader.h"
 
-void getMainArgv(int argc, char *argv[],
-                string &dir_input, string &dir_output, uint32_t &nb_families,
-                 uint32_t &min_nb_seqs_allowed,uint32_t & max_nb_seqs_allowed,
-                 uint32_t &percentage_nb_seqs_train)
-{
-
-    uint32_t nb_arg = 6;
-
-    if(argc==nb_arg+1)
-    {
-        dir_input = argv[1];
-        dir_output = argv[2];
-
-        nb_families = strtol(argv[3], nullptr, 10);
-        min_nb_seqs_allowed = strtol(argv[4], nullptr, 10);
-        max_nb_seqs_allowed = strtol(argv[5], nullptr, 10);
-
-        percentage_nb_seqs_train = strtol(argv[6], nullptr, 10);
-    }
-
-
-    /*
-    // use getopt
-    int c;
-    extern char *optarg;
-    extern int optind, optopt;
-
-    while ((c = getopt(argc, argv, ":ionmxp")) != -1) {
-        switch(c) {
-            case 'i': dir_input = optarg; break;
-            case 'o': dir_output = optarg; break;
-            case 'n': nb_families = strtol(optarg, nullptr, 10); break;
-            case 'm': min_nb_seqs_allowed = strtol(optarg, nullptr, 10); break;
-            case 'x': max_nb_seqs_allowed = strtol(optarg, nullptr, 10); break;
-            case 'p': percentage_nb_seqs_train = strtol(optarg, nullptr, 10); break;
-            case ':':       /// -f or -o without operand
-                fprintf(stderr, "Option -%c requires an operand\n", optopt);
-                break;
-            case '?':
-                fprintf(stderr,
-                        "Unrecognized option: -%c\n", optopt);
-            default: fprintf(stderr,
-                             "Error: -%c\n", optopt);
-        }
-    }
-
-    */
-}
-
-int main(int argc, char *argv[])
-{
-    string dir_input = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_more_than_3seqs\Train)";
-    string dir_output = R"(C:\Users\ibra\Desktop\Infernal\Rfam_14.1_dataset\Rfam_350)";
-    string mode = "-i";
-
-    uint32_t nb_families = 165; // just to use all families
-    uint32_t min_nb_seqs_allowed = 4;
-    uint32_t max_nb_seqs_allowed = 10; // max is 1542 i think
-
-     dir_input = argv[1];
-     dir_output = argv[2];
-     mode = argv[3];
-
-     nb_families = std::stoi(argv[4]);
-     min_nb_seqs_allowed = std::stoi(argv[5]);
-     max_nb_seqs_allowed = std::stoi(argv[6]);
+// Struct to store the parsed command-line arguments
+struct Args {
+    string dir_input; // -in
+    string dir_output; // -out
+    string mode = "-i"; // -m
+    uint32_t nb_families; // -nf
+    uint32_t min_nb_seqs_allowed = 4; // -mins
+    uint32_t max_nb_seqs_allowed = 1000; // -maxs
+    uint32_t percentage_nb_seqs_test = 30; // -pt
 
     /// uint32_t percentage_nb_seqs_train = 70;// change to use percentage_nb_seqs_test
-    uint32_t percentage_nb_seqs_test = 30; // 100 - percentage_nb_seqs_train
+    // uint32_t percentage_nb_seqs_test = 30; // 100 - percentage_nb_seqs_train
     // we use percentage_nb_seqs_test to compute the number of test sequences
     // the remaining are dirctly the train sequences.
     // And we want give the train more sequences that the test
@@ -83,41 +26,95 @@ int main(int argc, char *argv[])
     // like this we will have less sequences in test part, because of the division.
     // 4*30/100 = 1 ( real result is 1.2), and remaing 3 are for train part.
 
+};
 
-    //getMainArgv(argc, argv, dir_input, dir_output, nb_families, min_nb_seqs_allowed, max_nb_seqs_allowed, percentage_nb_seqs_train);
+void print_args_definition() {
+    cout << "-in : <string> a path directory for fasta files" << endl;
+    cout << "-out : <string> a main path directory the results out" << endl;
+    cout << "-nf : <integer> number of families "<< endl;
+    cout << "-mins : <integer>, min number of sequences (default 4)"<< endl;
+    cout << "-maxs : <integer>, max number of sequences"<< endl;
+    cout << "-pt : <integer>, percentage number sequences Test" << endl;
 
-    cout << "dir input : " << dir_input << endl;
-    cout << "dir output : " << dir_output << endl;
+    cout << "-m : <string> the used mode, several mode are avaialable: "<< endl;
+    cout << "-m i: informatio, get all informations as nb seqs, min seq len, max seq len, average seq len , and save to csv file." << endl;
+    cout << "-m s: Sample dataset, get n random families that have nb seqs between min and max, and save them to dir_output" << endl;
+    cout << "-m sttmm : Split Tarin Test Min Max, for a given nb of families, and min max number of seqs, split to train and test" << endl;
+    cout << "-m sttm : Split Tarin Test Min, consider only min number of seqs, and split all files in input folder to train and test" << endl;
+    cout << "-m stt : Split Tarin Test, for all files in input folder split to train and test" << endl;
+}
 
-    cout << "nb families : " << nb_families << endl;
-    cout << "Min nb seqs : " << min_nb_seqs_allowed << endl;
-    cout << "Max nb seqs : " << max_nb_seqs_allowed << endl;
-    cout << "percentage_nb_seqs_train : " << 100 - percentage_nb_seqs_test << endl;
-    cout << "percentage_nb_seqs_test : " << percentage_nb_seqs_test << endl;
 
+void print_args(Args arg) {
+    cout << "dir_input: " << arg.dir_input << endl;
+    cout << "dir_output: " << arg.dir_output << endl;
+    cout << "nb_families: " << arg.nb_families << endl;
+    cout << "min_nb_seqs_allowed: " << arg.min_nb_seqs_allowed << endl;
+    cout << "max_nb_seqs_allowed: " << arg.max_nb_seqs_allowed << endl;
+    cout << "percentage_nb_seqs_test: " << arg.percentage_nb_seqs_test << endl;
+    cout << "mode: " << arg.mode << endl;
+}
+
+// Function to parse command-line arguments
+Args get_args(int argc, char* argv[]) {
+
+    Args res;
+ 
+    for (int i = 1; i < argc; i++) {
+        string arg = argv[i];
+        if (arg == "-in") {
+            res.dir_input = argv[++i];
+        } else if (arg == "-out") {
+            res.dir_output = argv[++i];
+        } else if (arg == "-nf") {
+            res.nb_families = strtol(argv[++i], nullptr, 10);
+        } else if (arg == "-mins") {
+            res.min_nb_seqs_allowed = strtol(argv[++i], nullptr, 10);
+        } else if (arg == "-maxs") {
+            res.max_nb_seqs_allowed = strtol(argv[++i], nullptr, 10);
+        } else if (arg == "-pt") {
+            res.percentage_nb_seqs_test = strtol(argv[++i], nullptr, 10);
+        } else if (arg == "-m") {
+            res.mode =argv[++i];
+        } else {
+            cout << "Usage: " << argv[0] << " -in <string> -out <string> -nf <integer> -mins <integer> -maxs <integer> -pt <integer> -m <string>" << endl;
+            print_args_definition();
+            exit(1);
+        }
+    }
+
+    return res;
+}
+
+int main(int argc, char *argv[])
+{
+
+    Args args = get_args(argc, argv);
+    
+    print_args(args);
     
 
-    if(mode == "-i"){ // -i: information
+    if(args.mode == "i"){ // -m i: information
         // this used to get all informatio as nb seq, min seq len, max seq len, average seq len , and save to csv file.
-        cout << " -i: get and Save to csv all ncRNAs families informations" << endl;
+        cout << " -m i: get and Save to csv all ncRNAs families informations" << endl;
 	    FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_input); 
     }
-    else if(mode=="-s"){ // -s: sample
+    else if(args.mode=="s"){ // -m s: sample
         // this for get N random families that have nb seqs between min and max, and save them to dir_output
-        cout << " -s: get N random families that have nb seqs between min and max, and save them to dir_output..." << endl;
+        cout << " -m s: get N random families that have nb seqs between min and max, and save them to dir_output..." << endl;
         FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(dir_input,dir_output,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
     }
-    else if(mode == "-sttmm"){ // -sttmm : split tarin test min max
-        cout << " -s: -sttmm : split tarin test min max ..." << endl;
+    else if(args.mode == "sttmm"){ // -m sttmm : split tarin test min max
+        cout << " -m sttmm : split tarin test min max ..." << endl;
         FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families, min_nb_seqs_allowed, max_nb_seqs_allowed, percentage_nb_seqs_test);
     }
-    else if(mode == "-sttm"){ // -sttm : split tarin test min
-        cout << " -s: -sttm : split tarin test min ..." << endl;
+    else if(args.mode == "sttm"){ // -m sttm : split tarin test min
+        cout << " -m sttm : split tarin test min ..." << endl;
         FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, min_nb_seqs_allowed, percentage_nb_seqs_test);
     }
-    else if(mode == "-stt"){ // -stt : split tarin test
+    else if(args.mode == "stt"){ // -m stt : split tarin test
         // split the all files in the directory into Train Test files.
-        cout << " -s: -stt : split tarin test ..." << endl;
+        cout << " -m stt : split tarin test ..." << endl;
         FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, percentage_nb_seqs_test);
     }
     

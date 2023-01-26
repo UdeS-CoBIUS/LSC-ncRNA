@@ -48,6 +48,10 @@ The output will be, 1) a folder Train with *percentage_nb_seqs_train* sequnces, 
 
 **note**, be aware of problem of file encoding, and endline. sometimse it causes problems. In my case, I have to change to encoding to UTF8 to avoid extra-space when reading a line (see my answer: https://stackoverflow.com/a/73952980/3429103)
 
+
+### Datset statistitique informations:
+
+
 ## B) Motifs computation and selection:
 This is the first step in our method whoch is the computation and the selection of sequence motifs that allow defining a vectorial representation of ncRNAs sequences.
 In this part as result we generate a 2d vector (matrix), that contain the number of occurences for each motif that exist in the ncRNA sequence. The matrix is saved as a single csv file.
