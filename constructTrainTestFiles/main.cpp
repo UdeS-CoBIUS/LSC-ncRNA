@@ -97,25 +97,25 @@ int main(int argc, char *argv[])
     if(args.mode == "i"){ // -m i: information
         // this used to get all informatio as nb seq, min seq len, max seq len, average seq len , and save to csv file.
         cout << " -m i: get and Save to csv all ncRNAs families informations" << endl;
-	    FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_input); 
+	    FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(args.dir_input); 
     }
     else if(args.mode=="s"){ // -m s: sample
         // this for get N random families that have nb seqs between min and max, and save them to dir_output
         cout << " -m s: get N random families that have nb seqs between min and max, and save them to dir_output..." << endl;
-        FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(dir_input,dir_output,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
+        FastaFilesReader::get_Save_N_Random_Family_nbSeqs_in_MinMax(args.dir_input, args.dir_output, args.nb_families, args.min_nb_seqs_allowed, args.max_nb_seqs_allowed);
     }
     else if(args.mode == "sttmm"){ // -m sttmm : split tarin test min max
         cout << " -m sttmm : split tarin test min max ..." << endl;
-        FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, nb_families, min_nb_seqs_allowed, max_nb_seqs_allowed, percentage_nb_seqs_test);
+        FastaFilesReader::construct_Train_Test_files(args.dir_input, args.dir_output, args.nb_families, args.min_nb_seqs_allowed, args.max_nb_seqs_allowed, args.percentage_nb_seqs_test);
     }
     else if(args.mode == "sttm"){ // -m sttm : split tarin test min
         cout << " -m sttm : split tarin test min ..." << endl;
-        FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, min_nb_seqs_allowed, percentage_nb_seqs_test);
+        FastaFilesReader::construct_Train_Test_files(args.dir_input, args.dir_output, args.min_nb_seqs_allowed, args.percentage_nb_seqs_test);
     }
     else if(args.mode == "stt"){ // -m stt : split tarin test
         // split the all files in the directory into Train Test files.
         cout << " -m stt : split tarin test ..." << endl;
-        FastaFilesReader::construct_Train_Test_files(dir_input, dir_output, percentage_nb_seqs_test);
+        FastaFilesReader::construct_Train_Test_files(args.dir_input, args.dir_output, args.percentage_nb_seqs_test);
     }
     
     //FastaFilesReader::get_Families_files(dir_input, dir_output, 1000,
