@@ -36,20 +36,34 @@ Each class of each dataset was split into two random subsets for train (70\%) an
 
 We use the script in ***dataset/clans_dataset.py*** to download and prepare the dataset.
 
-### Datset Train Test split:
-For each family (fasta file), split the sequnces into train and test dataset.
-We use the code in ***constructTrainTestFiles***.
-- dir input for fasta file, each file is a family.
-- dir output.  the output will be in "dir output"/Train , and "dir output"/Test
-- min_nb_seqs_allowed: minumum sequences in family, (let say 10).
-- percentage_nb_seqs_train: let say 70%.
+### Datset Train Test split and dataset statistics:
+
+We use ***constructTrainTestFiles*** to split the dataset into train and test, and to get the dataset statistics.
+- To split the dataset, for each family (fasta file), we split the sequences in it, into train and test file.
+- dataset statistics: for a given folder, for each family (in separate file) get the follwing informations: nb seqs, min seq len, max seq len, average seq len , and save to csv file.
+
+The program can be use like this:
+constructTrainTestFiles -in \<string\> [-out \<string\> -nf \<integer\> -mins \<integer\> -maxs \<integer\> -pt \<integer\> -m \<string\>]
+
+- *constructTrainTestFiles* : the program name
+
+- -in : \<string\> a path directory for fasta files.
+- -out : \<string\> a main path directory the results out.
+- -nf : \<integer\> number of families.
+- -mins : \<integer\>, min number of sequences (default 4).
+- -maxs : \<integer\>, max number of sequences.
+- -pt : \<integer\>, percentage number sequences Test, defult value is 30.
+
+- -m : \<string\> the used mode, several mode are avaialable: 
+    - -m i: information, get all informations as nb seqs, min seq len, max seq len, average seq len , and save to csv file.
+    - -m s: Sample dataset, get n random families that have nb seqs between min and max, and save them to dir_output
+    - -m sttmm : Split Tarin Test Min Max, for a given nb of families, and min max number of seqs, split to train and test
+    - -m sttm : Split Tarin Test Min, consider only min number of seqs, and split all files in input folder to train and test
+    - -m stt : Split Tarin Test, for all files in input folder split to train and test
 
 The output will be, 1) a folder Train with *percentage_nb_seqs_train* sequnces, 2) and the same goes for Test folder with *100%-percentage_nb_seqs_train*. 3) a csv file that conatins some useful information.
 
 **note**, be aware of problem of file encoding, and endline. sometimse it causes problems. In my case, I have to change to encoding to UTF8 to avoid extra-space when reading a line (see my answer: https://stackoverflow.com/a/73952980/3429103)
-
-
-### Datset statistitique informations:
 
 
 ## B) Motifs computation and selection:
