@@ -6,7 +6,7 @@
 ## General use
 Our method is divided into two main steps: 
 
-- ➤ 1) Motifs computation and selection. Use the first profram as explained and detailed in the [Motifs computation and selection](##_B)_Motifs_computation_and_selection)... to generate the csv file.
+- ➤ 1) Motifs computation and selection. Use the first profram as explained and detailed in the [Motifs computation and selection](#_B_Motifs_computation_and_selection)... to generate the csv file.
 
 - ➤ 2) Use the second prgram with the csv file as input to Fit and predect later the new ncRNA classification.
 
