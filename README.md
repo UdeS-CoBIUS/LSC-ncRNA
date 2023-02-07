@@ -157,3 +157,11 @@ nohup python blast_classification.py "/data/chei2402/ibra/test_infernal/Clans_fa
 
 ### supplementary sub-folder: 
 contains supplementary information and data for our paper.
+
+
+:busts_in_silhouette: __Authors__
+`ibrahim Chegrane & Nabil Bendjaa & Aida Ouangraoua`, CoBIUS LAB, Department of Computer Science, Faculty of Science, Université de Sherbrooke, Sherbrooke, Canada
+
+> :bulb: If you are using our algorithm in your research, please cite our recent paper: __Upcoming__ 
+
+> :e-mail: Contact: ibrahim[dot]chegrane[at]usherbrooke[dot]ca
