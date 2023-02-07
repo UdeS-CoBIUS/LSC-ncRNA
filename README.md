@@ -5,6 +5,18 @@ Large Scale Classification of non-coding RNA
 
 
 # Experimentation Pipeline
+
+<!-- Requirements -->
+<h3 id="requirements"> :hammer_and_pick: Requirements</h3>
+
+*   __`C++14`__
+*   __`python3 (at least python 3.6)`__
+*   __`Biopython`__
+*   __`datatable`__
+*   __`sklearn`__
+*   __`Pandas`__
+*   __`Numpy`__
+
 ## A) Dataset preparation
 
 Download the ncRNA from somewhere, form example Rfam (https://rfam.xfam.org/). In our case we used the following 3 datasets
