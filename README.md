@@ -1,9 +1,18 @@
 # LSC-ncRNA : Large Scale Classification of non-coding RNA
 
-# General use
+***LSC-ncRNA*** is an implementation of our sequence-based method that relies on the computation and the selection of common sequence motifs to provide a set of features for effectively classifying large ncRNAs families by a supervised learning approach in a reasonable time. 
 
 
-# Experimentation Pipeline
+## General use
+Our method is divided into two main steps: 
+
+- ➤ 1) Motifs computation and selection. Use the first profram as explained and detailed in the [Motifs computation and selection](##_B)_Motifs_computation_and_selection)... to generate the csv file.
+
+- ➤ 2) Use the second prgram with the csv file as input to Fit and predect later the new ncRNA classification.
+
+
+
+# Details & Experimentation Pipeline
 
 <!-- Requirements -->
 <h3 id="requirements"> :hammer_and_pick: Requirements</h3>
@@ -163,4 +172,4 @@ contains supplementary information and data for our paper.
 
 > :bulb: If you are using our algorithm in your research, please cite our recent paper: __Upcoming__ 
 
-> :e-mail: Contact: ibrahim[dot]chegrane[at]usherbrooke[dot]ca
+> :e-mail: Contact: Aida[dot]Ouangraoua[at]usherbrooke[dot]ca
