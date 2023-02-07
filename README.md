@@ -6,7 +6,7 @@
 ## General use
 Our method is divided into two main steps: 
 
-- ➤ 1) Motifs computation and selection. Use the first profram as explained and detailed in the [Motifs computation and selection](#_B_Motifs_computation_and_selection)... to generate the csv file.
+- ➤ 1) Motifs computation and selection. Use the first profram as explained and detailed in the [Motifs computation and selection](#motifs_computation_and_selection)to generate the csv file.
 
 - ➤ 2) Use the second prgram with the csv file as input to Fit and predect later the new ncRNA classification.
 
@@ -86,7 +86,7 @@ The output will be, 1) a folder Train with *percentage_nb_seqs_train* sequnces, 
 **note**, be aware of problem of file encoding, and endline. sometimse it causes problems. In my case, I have to change to encoding to UTF8 to avoid extra-space when reading a line (see my answer: https://stackoverflow.com/a/73952980/3429103)
 
 
-## B) Motifs computation and selection:
+## <a name="motifs_computation_and_selection"> B) Motifs computation and selection:
 This is the first step in our method whoch is the computation and the selection of sequence motifs that allow defining a vectorial representation of ncRNAs sequences.
 In this part as result we generate a 2d vector (matrix), that contain the number of occurences for each motif that exist in the ncRNA sequence. The matrix is saved as a single csv file.
 
