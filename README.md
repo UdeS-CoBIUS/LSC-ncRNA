@@ -6,10 +6,9 @@
 ## General use
 Our method is divided into two main steps: 
 
-- ➤ 1) Motifs computation and selection. Use the first profram as explained and detailed in the [Motifs computation and selection](#motifs_computation_and_selection)to generate the csv file.
+- 1) [➤ Motifs computation and selection](#motifs_computation_and_selection)  this is the first program to generate the csv file.
 
-- ➤ 2) Use the second prgram with the csv file as input to Fit and predect later the new ncRNA classification.
-
+- 2) [➤ Classification](#fit_predict) Use the second prgram with the csv file as input to Fit and predict later the new ncRNA classification.
 
 
 # Details & Experimentation Pipeline
@@ -125,7 +124,7 @@ The step of the selection of supervised learning classification algorithms that 
 To choose the best classification algorithm we use the following python program ***Classification/modelstest.py*** as follows:
 `python3 modelstest.py path_motifs.csv`. The code test the following algorithm ['ext','knn','rdf','gnb', 'dt', 'nlp', 'svc'] using 10-fold cross-validation with a split of 0.3 for testing.
 
-## C.2) Experimental with the chosen models.
+## <a name="fit_predict"> C.2) Experimental with the chosen models.
 
 To lucnh the program we use the main python script as follow:
 *python3 Main.py mod "path/2d_matrix.csv" "path_test_folder"*, where:
