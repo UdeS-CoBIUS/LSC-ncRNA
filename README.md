@@ -1,4 +1,4 @@
-# :rna LSC-ncRNA : Large Scale Classification of non-coding RNA
+# :dna LSC-ncRNA : Large Scale Classification of non-coding RNA :dna
 
 # General use
 
