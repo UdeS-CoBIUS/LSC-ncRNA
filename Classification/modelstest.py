@@ -114,10 +114,10 @@ if __name__ == '__main__':
     print("train with cross_validate")
     traing_result=model_instance.cv_model()
 
-    plt.figure(figsize=(10,10))
-    #la barre pour voir la variation des scores selon les resultat de cross_validation un resultat bon avec minimum de variance est le meilleur
-    plt.errorbar(list(traing_result['model']), list(traing_result['cv_mean']),
-                 list(traing_result['cv_std']), fmt='o', lw=3,capsize=20,markersize=20)
+    #plt.figure(figsize=(10,10))
+    # la barre pour voir la variation des scores selon les resultat de cross_validation un resultat bon avec minimum de variance est le meilleur
+    #plt.errorbar(list(traing_result['model']), list(traing_result['cv_mean']),
+    #             list(traing_result['cv_std']), fmt='o', lw=3,capsize=20,markersize=20)
 
     print("resultat____test__________________________________")
 
