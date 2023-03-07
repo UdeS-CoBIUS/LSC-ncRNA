@@ -434,6 +434,36 @@ class Model:
         print(" Time pred + creat = ", end_time - start_0_time, " s")
         print(" score test = ", score_test)
 
+    def compute_classification_report_global_average(self, y_true, y_pred):
+        
+        report = classification_report(y_true, y_pred)
+
+        # Get accuracy, macro avg, and weighted avg from report
+        lines = report.split('\n')
+
+        print ("accuracy = ",lines[-3])
+        print ("macro avg = ", lines[-2])
+        print ("weighted avg = ", lines[-1])
+
+        # precision at idx 1
+        # recall    at idx 2
+        # f1-score  at idx 3
+        # support   at idx 4
+        
+        print (" computing  : ")
+        accuracy = float(lines[-3].split()[3])
+        macro_avg = [float(num) for num in lines[-2].split()[-4:]]
+        weighted_avg = [float(num) for num in lines[-1].split()[-4:]]
+
+        # Print to console
+        print(" precision    recall  f1-score   support")
+        print(f"Accuracy: {accuracy}")
+        print(f"Macro Avg: {macro_avg}")
+        print(f"Weighted Avg: {weighted_avg}")
+
+
+
+
     def test_groupe_score_numpy(self, test_matrix, list_classes):
         start_0_time = time.time()
         start_time = time.time()
@@ -470,6 +500,10 @@ class Model:
         score_test = accuracy_score(list_all_classes, result_pred)
         result_scores = precision_recall_fscore_support(list_all_classes, result_pred, average='macro')
 
+        # add classification_report only global average score
+        compute_classification_report_global_average(list_all_classes, result_pred)
+        
+
         # printing:
         print("list all seqs len: ", len(list_all_seqs))
         print(" time matrix construction By AC :", end_time_ctm - start_time_ctm, " s")
@@ -499,6 +533,10 @@ class Model:
         list_all_classes_ids = self.get_all_classes_ids(dir_in_files, file_ext)
         score_test = accuracy_score(list_all_classes_ids, result_pred)
         result_scores = precision_recall_fscore_support(list_all_classes_ids, result_pred, average='macro')
+
+        # add classification_report only global average score
+        compute_classification_report_global_average(list_all_classes, result_pred)
+
 
         # printing:
         print("list all seqs len: ", len(list_all_seqs))
@@ -551,6 +589,9 @@ class Model:
         list_all_classes_ids = self.get_all_classes_ids(dir_in_files, file_ext)
         score_test = accuracy_score(list_all_classes_ids, result_pred)
         result_scores = precision_recall_fscore_support(list_all_classes_ids, result_pred, average='macro')
+
+        # add classification_report only global average score
+        compute_classification_report_global_average(list_all_classes, result_pred)
 
         # printing:
         print("list all seqs len: ", len(list_all_seqs))
@@ -774,6 +815,9 @@ class Model:
         list_all_classes = self.get_all_classes_ids(dir_in_files, file_ext)
         score_test = accuracy_score(list_all_classes, result_pred)
         result_scores = precision_recall_fscore_support(list_all_classes, result_pred, average='macro')
+
+        # add classification_report only global average score
+        compute_classification_report_global_average(list_all_classes, result_pred)
 
         # printing:
         print("list all seqs len: ", len(list_all_seqs))
