@@ -539,7 +539,7 @@ class Model:
         result_scores = precision_recall_fscore_support(list_all_classes_ids, result_pred, average='macro')
 
         # add classification_report only global average score
-        self.compute_classification_report_global_average(list_all_classes, result_pred)
+        self.compute_classification_report_global_average(list_all_classes_ids, result_pred)
 
 
         # printing:
@@ -595,7 +595,7 @@ class Model:
         result_scores = precision_recall_fscore_support(list_all_classes_ids, result_pred, average='macro')
 
         # add classification_report only global average score
-        self.compute_classification_report_global_average(list_all_classes, result_pred)
+        self.compute_classification_report_global_average(list_all_classes_ids, result_pred)
 
         # printing:
         print("list all seqs len: ", len(list_all_seqs))
@@ -821,7 +821,7 @@ class Model:
         result_scores = precision_recall_fscore_support(list_all_classes, result_pred, average='macro')
 
         # add classification_report only global average score
-        compute_classification_report_global_average(list_all_classes, result_pred)
+        self.compute_classification_report_global_average(list_all_classes, result_pred)
 
         # printing:
         print("list all seqs len: ", len(list_all_seqs))
