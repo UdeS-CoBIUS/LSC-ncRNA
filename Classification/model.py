@@ -436,34 +436,18 @@ class Model:
 
     def compute_classification_report_global_average(self, y_true, y_pred):
         
-        print("------------------- classification report : ")
+        print("{ ------------------- classification report : ")
 
         report = classification_report(y_true, y_pred)
 
         # Get accuracy, macro avg, and weighted avg from report
         lines = report.split('\n')
-
-        print ("accuracy = ",lines[-3])
-        print ("macro avg = ", lines[-2])
-        print ("weighted avg = ", lines[-1])
-
-        # precision at idx 1
-        # recall    at idx 2
-        # f1-score  at idx 3
-        # support   at idx 4
-        
-        print (" computing  : ")
-        accuracy = float(lines[-3].split()[3])
-        macro_avg = [float(num) for num in lines[-2].split()[-4:]]
-        weighted_avg = [float(num) for num in lines[-1].split()[-4:]]
-
-        # Print to console
         print(" precision    recall  f1-score   support")
-        print(f"Accuracy: {accuracy}")
-        print(f"Macro Avg: {macro_avg}")
-        print(f"Weighted Avg: {weighted_avg}")
+        print (lines[-4]) # accuracy
+        print (lines[-3]) # macro avg
+        print (lines[-2]) # weighted avg
 
-        print(" classification report ------------------- ")
+        print(" classification report ------------------- }")
 
 
 
