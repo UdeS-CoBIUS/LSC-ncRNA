@@ -66,5 +66,6 @@
         "xtree": "cpp",
         "xutility": "cpp"
     },
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "cmake.sourceDirectory": "${workspaceFolder}/constructTrainTestFiles"
 }
