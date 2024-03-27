@@ -8,39 +8,22 @@
 
 # LSC-ncRNA : Large Scale Classification of non-coding RNA 
 
-  
-
 ***LSC-ncRNA*** is the implementation of a sequence-based method that relies on the computation and selection of common ncRNA sequence motifs to provide a set of features for effectively and efficiently classifying ncRNA families using a supervised learning approach. 
-
-  
-
-  
 
 ## General use 
 
 The method is divided into two main steps:  
 
-  
-
 - 1) [Motifs computation and selection](#motifs_computation_and_selection)  this is the first program to generate a file at the CSV format that contains vector representations of RNA sequences. 
-
-  
 
 - 2) [Classification](#fit_predict) this is the second program called with the csv file as input to fit the models and to classify new ncRNAs. 
 
   
-
-  
-
 # Details & Experimentation Pipeline 
-
-  
 
 <!-- Requirements --> 
 
 <h3 id="requirements"> :hammer_and_pick: Requirements</h3> 
-
-  
 
 *   __`C++14`__ 
 
@@ -56,25 +39,17 @@ The method is divided into two main steps:
 
 *   __`Numpy`__ 
 
-  
-
-## A) Dataset preparation 
-
-  
+## A) Dataset preparation   
 
 Download the ncRNA data, for example from Rfam (https://rfam.xfam.org/). In our case we used the following 3 datasets 
-
-  
 
 ### Dataset 1: Rfam 14.1 seed sequences from 3,016 ncRNAs families 
 
 Download the from the ftp server on https://ftp.ebi.ac.uk/pub/databases/Rfam/14.1/Rfam.seed.gz 
 
-  
-
 Extract Rfam.seed.gz into the file Rfam.seed. 
 
-Command: Gunzip Rfam.seed.gz 
+Command: `gunzip Rfam.seed.gz`
 
 Divide the file Rfam.seed into each family in a separate files, one for each RNA family, such that the file name for each family is the Rfam family name (as Rfxxxxx  such that (xxxxx: is a number). 
 
