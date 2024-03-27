@@ -43,37 +43,40 @@ The method is divided into two main steps:
 
 Download the ncRNA data, for example from Rfam (https://rfam.xfam.org/). In our case we used the following 3 datasets 
 
+All the data set (including the split into train and test files) are available in the repo in `datasets/`.
+
+If you want to recreate it from scratch, you can apply the following steps:
+
 ### Dataset 1: Rfam 14.1 seed sequences from 3,016 ncRNAs families 
+available in : `datasets/Rfam_14.1_dataset.zip`
 
-Download the from the ftp server on https://ftp.ebi.ac.uk/pub/databases/Rfam/14.1/Rfam.seed.gz 
+1) Download the from the ftp server on https://ftp.ebi.ac.uk/pub/databases/Rfam/14.1/Rfam.seed.gz 
 
-Extract Rfam.seed.gz into the file Rfam.seed. 
+2) Extract Rfam.seed.gz into the file Rfam.seed. 
 
 Command: `gunzip Rfam.seed.gz`
 
 Divide the file Rfam.seed into each family in a separate files, one for each RNA family, such that the file name for each family is the Rfam family name (as Rfxxxxx  such that (xxxxx: is a number). 
 
-You need to use the C++ code for that in (folder), and comiple if necessary:
+You need to use the C++ code in (RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles), and compile it if necessary:
 
-Command: `g++ main.cpp -o extrcat -std=c++14`
+Command: `g++ main.cpp -o extract -std=c++14`
 
 After that just use :
 
-Command: `./extrcat -in path_to//Rfam.seed -out path_to/Rfam_out_files`
+Command: `./extract -in path_to/Rfam.seed -out path_to/Rfam_out_files`
 
 
-Change the sequence identifiers in the fasta file to the family name >Rfamxxxxx , so that sequence classes are provided for subsequent processing. 
+3) Change the sequence identifiers in the fasta file to the family name `>Rfamxxxxx` , so that sequence classes are provided for subsequent processing. 
 
-Command: xxx 
-
+This is done automatically when we [construct train test files](#train_test_label) which is explained bellow.
   
 
 The first dataset is split into 30% Test and 70% Train. 
 
 The train part  is used to do cross validation experimentation. We generate a sample with 600 families, and a sample with 350 families, and each of them is also split into 30% test and 70% train. 
 
-Command: xxx 
-
+For command explanation see : [construct train test files](#train_test_label) bellow.
   
 
 ### Dataset 2: 88 Rfam families with noise 
@@ -112,9 +115,8 @@ Each class of each dataset was split into two subsets for train (70\%) and test 
 
 We use the script in ***dataset/clans_dataset.py*** to download and prepare the dataset. 
 
-  
 
-### Dataset Train Test split and dataset statistics: 
+### <a name="train_test_label"> Dataset Train Test split and dataset statistics: 
 
   
 
@@ -163,8 +165,6 @@ The output will be 1) a folder Train with *percentage_nb_seqs_train* sequences, 
   
 
 **note**, be aware of problem of file encoding, and endline. In our case, we have to change to encoding to UTF8 to avoid extra-space when reading a line (see my answer: https://stackoverflow.com/a/73952980/3429103) 
-
-  
 
   
 
