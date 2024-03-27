@@ -53,9 +53,12 @@ Command: `gunzip Rfam.seed.gz`
 
 Divide the file Rfam.seed into each family in a separate files, one for each RNA family, such that the file name for each family is the Rfam family name (as Rfxxxxx  such that (xxxxx: is a number). 
 
-You need to use the C++ code for that in (folder), and comiple if necessary
+You need to use the C++ code for that in (folder), and comiple if necessary:
+
 Command: `g++ main.cpp -o extrcat -std=c++14`
-after that just use :
+
+After that just use :
+
 Command: `./extrcat -in path_to//Rfam.seed -out path_to/Rfam_out_files`
 
 
