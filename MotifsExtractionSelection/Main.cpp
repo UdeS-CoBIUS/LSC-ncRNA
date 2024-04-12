@@ -56,7 +56,7 @@ void print_args(Args arg) {
     cout << "max_nb_seqs_allowed: " << arg.max_nb_seqs_allowed << endl;
     cout << "min_length_motif: " << arg.min_length_motif << endl;
     cout << "max_length_motif: " << arg.max_length_motif << endl;
-    cout << "is_delete_subMotifs: " << arg.is_delete_subMotifs << (is_delete_subMotifs ? " True " : " False ") << endl;
+    cout << "is_delete_subMotifs: " << (arg.is_delete_subMotifs ? " True " : " False ") << endl;
     cout << "Beta: " << arg.Beta << endl;
     cout << "Alpha: " << arg.Alpha << endl;
     cout << "nbOccrs_allowed: " << arg.nbOccrs_allowed << endl;
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(list_families_files_names);
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles(dir_name,nb_families,max_nb_seqs_allowed);
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(dir_name,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
-    auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(dir_name);
+    auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(args.dir_name);
 
     //FastaFilesReader::groupALLFamiliesSeqsInOneFile(dir_name);
 
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
 
     //PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
 
-    CommonMotifs cms(gst, Beta, Alpha, nbOccrs_allowed);
+    CommonMotifs cms(gst, args.Beta, args.Alpha, args.nbOccrs_allowed);
 
 
     if (args.is_delete_subMotifs) {
