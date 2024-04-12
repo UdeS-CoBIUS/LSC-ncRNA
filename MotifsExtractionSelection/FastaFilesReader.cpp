@@ -216,7 +216,7 @@ FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(const string &path
 
     for (const auto & file_name : list_families_files_names)
     {
-        if(isNbSeqsBetween_MinMax(file_name, nb_seqs_min,nb_seqs_max))
+        if(FastaFilesReader::isNbSeqsBetween_MinMax(file_name, nb_seqs_min,nb_seqs_max))
         {
             list_families_sequences.push_back(getListSequences(file_name));
 
@@ -241,7 +241,7 @@ get_Save_N_Random_Family_nbSeqs_in_MinMax(const string &path_dir_in, const strin
 
     for (const auto & file_name : list_families_files_names)
     {
-        if(isNbSeqsBetween_MinMax(file_name, nb_seqs_min,nb_seqs_max))
+        if(FastaFilesReader::isNbSeqsBetween_MinMax(file_name, nb_seqs_min,nb_seqs_max))
         {
             list_families_between_min_max.push_back(file_name);
         }
