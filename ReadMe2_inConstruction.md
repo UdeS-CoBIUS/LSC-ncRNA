@@ -341,3 +341,324 @@ contains supplementary information and data for our paper.
 > :e-mail: Contact: Aida[dot]Ouangraoua[at]usherbrooke[dot]ca 
 
  
+
+#############################################
+
+In a Git repository, it's a good practice to document the structure and purpose of files and directories to help contributors understand and navigate the project. You have a couple of options for where to put this information:
+
+### Option 1: Include in README.md
+
+The most common and straightforward approach is to include this information in the `README.md` file. This file is typically the first thing people see when they visit your repository, making it an ideal place for an overview of the project structure.
+
+# Project Directory Structure
+This section provide an provides an overview of the structure and purpose of files and directories in the repository.
+
+
+```
+LSC-ncRNA/
+├── LICENSE
+├── README.md
+├── datasets/
+│   ├── data/
+│   │   ├── Clans_ncRNA_from_Rfam_14.8/
+│   │   ├── deep_ncrna_datasets/
+│   │   └── Rfam_14.1_dataset/
+│   ├── preparation/
+│   │   ├── clans_dataset.py
+│   │   ├── RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles/
+│   │   └── constructTrainTestFiles/
+│   └── information/
+│       ├── All_Rfam_14point1_seed_ncRNA_Families_infos.xlsx
+│       ├── compute_scaling_distribution_dataset_sample.csv
+│       ├── compute_scaling_distribution_dataset_sample.xlsx
+├── my_method/  
+│   ├── MotifsExtractionSelection/
+│   └── Classification/
+├── compared_methods/  
+│   ├── blast_classification.py
+│   └── infernal/
+│       ├── testInfernal/
+│       └── ParseResultInfernal/
+└── supplementary/
+```
+
+## datasets/
+- Contains all datasets, dataset preparation scripts, and dataset information.
+
+### data/
+Prepared datasets, it is ready to use. just unzip it.
+- **Clans_ncRNA_from_Rfam_14.8/**: Prepared clan datasets.
+- **deep_ncrna_datasets/**: Unzipped deep ncRNA datasets.
+- **Rfam_14.1_dataset/**: Unzipped Rfam 14.1 datasets.
+
+### preparation/
+- **clans_dataset.py**: Script to prepare the clan dataset.
+- **RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles/**: Scripts for seed alignment to plain FASTA files.
+- **constructTrainTestFiles/**: Scripts for constructing train and test files.
+
+### information/
+- **All_Rfam_14point1_seed_ncRNA_Families_infos.xlsx**: Information about the Rfam 14.1 seed ncRNA families.
+- **compute_scaling_distribution_dataset_sample.csv**: Dataset scaling information.
+- **compute_scaling_distribution_dataset_sample.xlsx**: Dataset scaling information (Excel format).
+
+## my_method/
+- Contains scripts for main methods: motif extraction and classification.
+
+### MotifsExtractionSelection/
+- Scripts for motif extraction and selection.
+
+### Classification/
+- Scripts for classification.
+
+## compared_methods/
+- Contains scripts for compared methods: BLAST and Infernal.
+
+### blast_classification.py
+- Script for the BLAST classification method.
+
+### infernal/
+- **testInfernal/**: Testing scripts for Infernal.
+- **ParseResultInfernal/**: Scripts for parsing Infernal results.
+
+## supplementary/
+- Additional supplementary materials.
+
+
+# chatgpt 4.o proposition help
+
+To create a clean, understandable, and professional README focused on your method, it is essential to structure it in a way that guides the user through the core aspects of your project: its purpose, how to use it, and any necessary requirements. Here's a suggested restructured README:
+
+---
+
+# LSC-ncRNA: Large Scale Classification of non-coding RNA
+
+**LSC-ncRNA** is a sequence-based method designed to effectively and efficiently classify non-coding RNA (ncRNA) families using supervised learning. The method involves two main steps: motifs computation and selection, followed by classification.
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Requirements](#requirements)
+3. [Usage](#usage)
+    - [Motifs Computation and Selection](#motifs-computation-and-selection)
+    - [Classification](#classification)
+4. [Datasets](#datasets)
+5. [Project Directory Structure](#project-directory-structure)
+6. [Authors](#authors)
+7. [Citation](#citation)
+
+## Overview
+
+The LSC-ncRNA method consists of:
+
+1. **Motifs Computation and Selection**: Generates a CSV file containing vector representations of RNA sequences based on common sequence motifs.
+2. **Classification**: Uses the generated CSV file to fit models and classify new ncRNAs.
+
+## Requirements
+
+- `C++14`
+- `Python 3` (at least Python 3.6)
+- `Biopython`
+- `Datatable`
+- `Scikit-learn`
+- `Pandas`
+- `Numpy`
+
+## Usage
+
+### Motifs Computation and Selection
+
+1. **Prepare Dataset**
+    - Ensure your datasets are available in the `datasets/data/` directory.
+    - You can prepare the dataset from scratch using scripts in the `datasets/preparation/` directory if needed.
+
+2. **Compute and Select Motifs**
+
+    ```sh
+    ./MatrixCmsNStrNbOccs -in <path_to_fasta_files> -minl 2 -maxl 8 -b 50 -g 1 -tn <experiment_name>
+    ```
+
+    **Example:**
+
+    ```sh
+    nohup ./MatrixCmsNStrNbOccs -in "/data/ibra/Rfam_14.1_dataset/Train" -minl 2 -maxl 8 -b 50 -g 1 -tn F_600 > out_F_600 &
+    ```
+
+    The output CSV file will have a name following this format: `del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_beta_[-b]_alpha_[-a]_nbOccrs_[-g].csv`.
+
+### Classification
+
+1. **Select Classification Algorithms**
+
+    Use `modelstest.py` to select the best classification algorithm.
+
+    ```sh
+    python3 modelstest.py path_to_motifs.csv
+    ```
+
+2. **Fit and Predict**
+
+    Use `Main.py` to train the model and classify ncRNA sequences.
+
+    ```sh
+    python3 Main.py <model> <path_to_motifs_csv> <path_to_test_folder>
+    ```
+
+    **Example:**
+
+    ```sh
+    python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_beta_50_alpha_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_beta_50_alpha_-1_nbOccrs_1
+    ```
+
+    Supported models are "EXT" (Extra-tree), "RDF" (Random forest), "NLP" (MultiLayer perceptron), and "VOT" (voting model).
+
+## Datasets
+
+Datasets are pre-prepared and available in the `datasets/data/` directory. If you need to recreate the datasets from scratch, use the scripts in `datasets/preparation/`.
+
+## Project Directory Structure
+
+```
+LSC-ncRNA/
+├── LICENSE
+├── README.md
+├── datasets/
+│   ├── data/
+│   │   ├── Clans_ncRNA_from_Rfam_14.8/
+│   │   ├── deep_ncrna_datasets/
+│   │   └── Rfam_14.1_dataset/
+│   ├── preparation/
+│   │   ├── clans_dataset.py
+│   │   ├── RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles/
+│   │   └── constructTrainTestFiles/
+│   └── information/
+│       ├── All_Rfam_14point1_seed_ncRNA_Families_infos.xlsx
+│       ├── compute_scaling_distribution_dataset_sample.csv
+│       ├── compute_scaling_distribution_dataset_sample.xlsx
+├── my_method/  
+│   ├── MotifsExtractionSelection/
+│   └── Classification/
+├── compared_methods/  
+│   ├── blast_classification.py
+│   └── infernal/
+│       ├── testInfernal/
+│       └── ParseResultInfernal/
+└── supplementary/
+```
+
+### datasets/
+- **data/**: Contains prepared datasets.
+- **preparation/**: Scripts for dataset preparation.
+- **information/**: Information about datasets.
+
+### my_method/
+- **MotifsExtractionSelection/**: Scripts for motifs extraction and selection.
+- **Classification/**: Scripts for classification.
+
+### compared_methods/
+- **blast_classification.py**: Script for BLAST classification method.
+- **infernal/**: Scripts for Infernal method.
+
+### supplementary/
+- Additional supplementary materials.
+
+## Authors
+
+- Ibrahim Chegrane
+- Nabil Bendjaa
+- Aida Ouangraoua
+
+CoBIUS LAB, Department of Computer Science, Faculty of Science, Université de Sherbrooke, Sherbrooke, Canada
+
+## Citation
+
+If you are using our algorithm in your research, please cite our upcoming paper.
+
+For any inquiries, contact: [Aida Ouangraoua](mailto:Aida.Ouangraoua@usherbrooke.ca)
+
+---
+
+This version of the README is focused on clarity and ease of use, highlighting the primary components and steps necessary to use your method while providing additional sections for dataset preparation and the project structure. This should help users understand and navigate your project more efficiently.
+
+
+# script 
+
+Sure! Here's a Python script that automates the entire process, from dataset preparation to motif computation, selection, and classification. This script assumes you have all the necessary tools and libraries installed and available in your environment.
+
+```python
+import os
+import subprocess
+import sys
+
+def run_command(command):
+    print(f"Running command: {command}")
+    result = subprocess.run(command, shell=True)
+    if result.returncode != 0:
+        sys.exit(f"Command failed: {command}")
+
+def prepare_dataset_rfam14_1(input_path, output_path):
+    # Step 1: Download and extract Rfam.seed.gz
+    os.makedirs(output_path, exist_ok=True)
+    os.chdir(output_path)
+    run_command(f"wget {input_path}")
+    run_command("gunzip Rfam.seed.gz")
+
+    # Step 2: Divide the file into separate files for each family
+    run_command("g++ RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles/main.cpp -o extract -std=c++14")
+    run_command(f"./extract -in Rfam.seed -out {output_path}/Rfam_out_files")
+
+    # Step 3: Modify sequence identifiers and split the data into training and testing sets
+    run_command(f"python3 constructTrainTestFiles.py -in {output_path}/Rfam_out_files -out {output_path} -m stt")
+
+def compute_motifs(input_dir, min_length, max_length, beta, gamma, experiment_name):
+    # Compute and select sequence motifs
+    command = f"./MatrixCmsNStrNbOccs -in {input_dir} -minl {min_length} -maxl {max_length} -b {beta} -g {gamma} -tn {experiment_name}"
+    run_command(command)
+
+def select_classification_algorithm(csv_path):
+    # Select the best classification algorithm
+    run_command(f"python3 modelstest.py {csv_path}")
+
+def train_and_test_model(model, csv_path, test_folder):
+    # Train and test the model
+    command = f"python3 Main.py {model} \"{csv_path}\" \"{test_folder}\""
+    run_command(command)
+
+if __name__ == "__main__":
+    # Define paths and parameters
+    rfam_input_path = "https://ftp.ebi.ac.uk/pub/databases/Rfam/14.1/Rfam.seed.gz"
+    rfam_output_path = "datasets/data/Rfam_14.1_dataset"
+    motifs_input_dir = f"{rfam_output_path}/Train"
+    motifs_min_length = 2
+    motifs_max_length = 8
+    motifs_beta = 50
+    motifs_gamma = 1
+    experiment_name = "F_600"
+    model = "EXT"  # Example model: EXT, RDF, NLP, etc.
+    csv_path = f"{rfam_output_path}/del_No_nbF_F_600_min_{motifs_min_length}_max_{motifs_max_length}_beta_{motifs_beta}_alpha_-1_nbOccrs_{motifs_gamma}.csv"
+    test_folder = f"{rfam_output_path}/Test"
+
+    # Run the steps
+    prepare_dataset_rfam14_1(rfam_input_path, rfam_output_path)
+    compute_motifs(motifs_input_dir, motifs_min_length, motifs_max_length, motifs_beta, motifs_gamma, experiment_name)
+    select_classification_algorithm(csv_path)
+    train_and_test_model(model, csv_path, test_folder)
+```
+
+### Explanation
+
+1. **`run_command` Function**: This function is used to execute shell commands and handle errors.
+2. **`prepare_dataset_rfam14_1` Function**: This function handles the dataset preparation:
+   - Downloads and extracts the Rfam data.
+   - Compiles and runs the C++ program to split the data.
+   - Modifies sequence identifiers and splits the dataset into training and testing sets using a Python script.
+3. **`compute_motifs` Function**: This function computes and selects sequence motifs.
+4. **`select_classification_algorithm` Function**: This function selects the best classification algorithm.
+5. **`train_and_test_model` Function**: This function trains and tests the selected model.
+6. **`__main__` Block**: This block sets paths and parameters, and runs all the steps sequentially.
+
+### Assumptions
+- The C++ code for `RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles` is located at the specified path and named `main.cpp`.
+- The Python script `constructTrainTestFiles.py` exists and performs the dataset splitting.
+- The `MatrixCmsNStrNbOccs` executable is available in the current working directory.
+
+Make sure to adjust paths and parameters as necessary for your specific environment and data.
