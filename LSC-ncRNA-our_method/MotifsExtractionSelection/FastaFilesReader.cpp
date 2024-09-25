@@ -15,6 +15,10 @@
 #include <tuple>
 #include <cstring>
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+
 // must verify the end line to be \n
 const char FastaFilesReader::newline = '\n'; // be careful on that, depending on the file \r\n, \r, \n ; you can see: https://stackoverflow.com/questions/6864759/determining-the-newline-character-for-the-environment-a-c-program-is-being-com
 
@@ -280,10 +284,10 @@ void FastaFilesReader::creat_dir_c(char* path_dir)
     struct stat st = {0};
 
     if (stat(path_dir, &st) == -1) {
-        #ifdef __linux__
-            mkdir(path_dir,0777); // linux
-        #else // _win32
+        #ifdef _WIN32
             mkdir(path_dir);
+        #else // Unix-like systems (Linux, macOS)
+            mkdir(path_dir, 0777);
         #endif
     }
 }
