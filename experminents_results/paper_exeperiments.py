@@ -12,6 +12,8 @@ import zipfile
 import subprocess
 import re
 import csv
+import re
+import csv
 
 
 # datasets: ------------------------------
@@ -58,6 +60,7 @@ def prepare_dataset_from_scratch():
 
 
 
+
 # delete sub motifs: ------------------------------
 # We use the medium dataset including 600 ncRNA families for which we considered subsamples of increasing sizes \{100,200,300,400,500,600\}.
 # The initial set of motifs is obtained by naively computing all common linear motifs (sub-strings) of length between $minl = 2$ and $maxl = 20$ between any two sequences of a family.
@@ -70,8 +73,22 @@ def prepare_dataset_from_scratch():
 #   true: with filtering
 #   false: without filtering
 
+# there is no filtering parameters is used.
+# beta: 0 , is defined as percentage_same_family, a cm is accepted if :   ((double)(nb_seqs_have_cm*100)/(double)nb_all_seqs_comparedTo) >= percentage_same_family )
+# alpha: -1, no filtering on the number of occurences of the cm
+# gamma nbOccrs_allowed: 1, no filtering on the number of occurences of the cm, at least we have 1 (the default)
+
+# is_delete_subMotifs: True, to delete sub motifs
+#   true: with filtering
+#   false: without filtering
+
 # We generate 2 figures:
 # Evolution of the data size (Left figure) and processing time (Right figure) for the generation of datasetby filtering out exact submotifs\textbf{(F)}, and without any  filtering \textbf{(NF)}.
+# for that:
+# test on \{100,200,300,400,500,600\}
+# $minl = 2$ and $maxl = 20$
+# -d : <integer> (0: false, 1 or other: true), is delete sub-motifs
+ 
 # for that:
 # test on \{100,200,300,400,500,600\}
 # $minl = 2$ and $maxl = 20$
