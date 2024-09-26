@@ -17,6 +17,24 @@ import csv
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from pathlib import Path
+
+def find_project_root(project_name="LSC-ncRNA") -> Path:
+    """
+    Find the project root directory by looking for a specific directory name.
+    :param project_name: The name of the project directory
+    :return: The absolute path to the project root directory as a Path object
+    """
+    current_dir = Path(__file__).resolve().parent
+    
+    print(f"current_dir: {current_dir}")
+
+    while current_dir != current_dir.parent:  # Stop at the root directory
+        if current_dir.name == project_name:
+            return current_dir
+        current_dir = current_dir.parent
+    
+    raise FileNotFoundError(f"Project root directory '{project_name}' not found.")
 
 
 # datasets: ------------------------------
@@ -28,9 +46,13 @@ import pandas as pd
 
 
 def prepare_dataset():
-    # Define the directory containing the datasets
-    data_dir = "datasets/data/"
+
+    # Get the project root directory
+    project_root = find_project_root()
     
+    # Define the directory containing the datasets
+    data_dir = project_root / "datasets/data"
+
     # List of dataset zip files
     datasets = [
         "Clans_ncRNA_from_Rfam_14.8.zip",
@@ -99,23 +121,29 @@ def prepare_dataset_from_scratch():
  
 
 def get_delete_sub_motifs_dir_path(size):
+    # Get the project root directory
+    project_root = find_project_root()
+    
     # Check for double subfolder (when unzipped by Python)
-    double_subfolder_path = f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+    double_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
     
     # Check for single subfolder (when unzipped by other apps)
-    single_subfolder_path = f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+    single_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
     
-    if os.path.exists(double_subfolder_path):
+    if double_subfolder_path.exists():
         return double_subfolder_path
-    elif os.path.exists(single_subfolder_path):
+    elif single_subfolder_path.exists():
         return single_subfolder_path
     else:
         raise FileNotFoundError(f"Directory not found for size {size}. Checked paths:\n{double_subfolder_path}\n{single_subfolder_path}")
 
 
 def deletion_sub_motifs():
+    # Get the project root directory
+    project_root = find_project_root()
+    
     # Step 1: Define parameters and paths
-    cpp_dir = "LSC-ncRNA-our_method/MotifsExtractionSelection"
+    cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
     executable = os.path.join(cpp_dir, "MotifsExtractionSelection")
     
     # check if the executable exists
@@ -220,41 +248,40 @@ def deletion_sub_motifs():
     # Call the function to generate plots
     generate_result_sub_motifs_F_vs_NF_plots(csv_path)
 
-def generate_result_sub_motifs_F_vs_NF_plots(results):
+def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
     
-    # Convert results to a DataFrame
-    df = pd.DataFrame(results)
-
-    # Create two subplots
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(csv_file_path)
 
     # Plot 1: Evolution of the data size for F vs NF
+    plt.figure(figsize=(10, 6))
     for is_delete, group in df.groupby('is_delete_submotifs'):
         label = 'F' if is_delete else 'NF'
-        ax1.plot(group['dataset_size'], group['file_size_gb'], marker='o', label=label)
+        plt.plot(group['dataset_size'], group['file_size_gb'], marker='o', label=label)
 
-    ax1.set_xlabel('Dataset Size')
-    ax1.set_ylabel('File Size (GB)')
-    ax1.set_title('Evolution of Data Size')
-    ax1.legend()
-    ax1.grid(True)
+    plt.xlabel('Dataset Size')
+    plt.ylabel('File Size (GB)')
+    plt.title('Evolution of Data Size')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('results/evolution_of_data_size.png')
+    plt.close()
+    print("Plot saved as results/evolution_of_data_size.png")
 
     # Plot 2: Evolution of processing time for F vs NF
+    plt.figure(figsize=(10, 6))
     for is_delete, group in df.groupby('is_delete_submotifs'):
         label = 'F' if is_delete else 'NF'
-        ax2.plot(group['dataset_size'], group['execution_time'] / 60, marker='o', label=label)
+        plt.plot(group['dataset_size'], group['execution_time'] / 60, marker='o', label=label)
 
-    ax2.set_xlabel('Dataset Size')
-    ax2.set_ylabel('Processing Time (minutes)')
-    ax2.set_title('Evolution of Processing Time')
-    ax2.legend()
-    ax2.grid(True)
-
-    plt.tight_layout()
-    plt.savefig('results/deletion_submotifs_comparison.png')
+    plt.xlabel('Dataset Size')
+    plt.ylabel('Processing Time (minutes)')
+    plt.title('Evolution of Processing Time')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('results/evolution_of_processing_time.png')
     plt.close()
-
-    print("Plots saved as results/deletion_submotifs_comparison.png")
+    print("Plot saved as results/evolution_of_processing_time.png")
 
 
 
@@ -313,7 +340,11 @@ def generate_csv_output_filename(args: Dict[str, Union[str, int, bool]]) -> str:
  
 
 def compile_code_MotifsExtractionSelection():
-    cpp_dir = "LSC-ncRNA-our_method/MotifsExtractionSelection"
+    # Get the project root directory
+    project_root = find_project_root()
+    
+    cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
+
     executable_name = "MotifsExtractionSelection"
     command = [
         "g++",

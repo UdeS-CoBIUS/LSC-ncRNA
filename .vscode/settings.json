@@ -67,5 +67,6 @@
         "xutility": "cpp"
     },
     "cmake.configureOnOpen": false,
-    "cmake.sourceDirectory": "${workspaceFolder}/constructTrainTestFiles"
+    "cmake.sourceDirectory": "${workspaceFolder}/constructTrainTestFiles",
+    "git.ignoreLimitWarning": true
 }
