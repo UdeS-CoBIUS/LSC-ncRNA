@@ -14,6 +14,9 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <random> // added for debug
+#include <fstream> // added for debug
+
 using namespace std;
 
 // Struct to store the parsed command-line arguments
@@ -21,7 +24,7 @@ struct Args {
 
     string dir_name;  // -in
     string test_name = "test"; // -tn
-    int nb_families = 10; // -nf
+    int nb_families = -1; // -nf
     int min_nb_seqs_allowed = 4; // -mins
     int max_nb_seqs_allowed = 1000; // -maxs
     int min_length_motif = 2; // -minl
@@ -101,29 +104,95 @@ Args get_args(int argc, char* argv[]) {
     return res;
 }
 
+// generate the name of the output csv file:
+string generate_output_csv_file_name(Args args) {
+    stringstream ss;
+    ss << args.test_name
+       << "_nbF_" << args.nb_families
+       << "_is_del_" << (args.is_delete_subMotifs ? "yes" : "no")
+       << "_min_" << args.min_length_motif
+       << "_max_" << args.max_length_motif
+       << "_beta_" << args.Beta
+       << "_alpha_" << args.Alpha
+       << "_nbOccrs_" << args.nbOccrs_allowed
+       << ".csv";
+    return ss.str();
+}
+
+void generate_save_random_matrix(string output_csv_file) {
+    // Generate random matrix of 100x100
+    const int rows = 100;
+    const int cols = 100;
+    vector<vector<int>> matrix(rows, vector<int>(cols));
+    vector<string> items(cols);
+
+    // Random number generator
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> len_dist(3, 10);
+    uniform_int_distribution<> char_dist(0, 25);
+    uniform_int_distribution<> occr_dist(0, 10);
+
+    // Generate random items (substrings)
+    for (int j = 0; j < cols; ++j) {
+        int len = len_dist(gen);
+        string item;
+        for (int k = 0; k < len; ++k) {
+            item += static_cast<char>('A' + char_dist(gen));
+        }
+        items[j] = item;
+    }
+
+    // Generate random occurrences
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            matrix[i][j] = occr_dist(gen);
+        }
+    }
+
+    // Save matrix to CSV file
+    ofstream outFile(output_csv_file);
+    if (!outFile.is_open()) {
+        cerr << "Error: Unable to open file " << output_csv_file << endl;
+        return;
+    }
+
+    // Write header
+    outFile << "Index";
+    for (const auto& item : items) {
+        outFile << "," << item;
+    }
+    outFile << endl;
+
+    // Write data
+    for (int i = 0; i < rows; ++i) {
+        outFile << i;
+        for (int j = 0; j < cols; ++j) {
+            outFile << "," << matrix[i][j];
+        }
+        outFile << endl;
+    }
+
+    outFile.close();
+    cout << "Random matrix saved to " << output_csv_file << endl;
+}
+
 
 int main(int argc, char *argv[]) {
 
     Args args = get_args(argc, argv);
 
+    print_args(args);    
 
     // the output matrix in the csv file 
 
-    string output_csv_file = "del_No_nbF_";
-
-    if(args.is_delete_subMotifs) output_csv_file = "del_Yes_nbF_";
-
-    output_csv_file += args.test_name;
-    output_csv_file += "_min_" + util::to_string(args.min_length_motif);
-    output_csv_file += "_max_" + util::to_string(args.max_length_motif);
-    output_csv_file += "_beta_" + util::to_string(args.Beta);
-    output_csv_file += "_alpha_" + util::to_string(args.Alpha);
-    output_csv_file += "_nbOccrs_" + util::to_string(args.nbOccrs_allowed);
-
-
-    print_args(args);    
-
+    string output_csv_file = generate_output_csv_file_name(args);
+    cout << "C++ output_csv_file: " << output_csv_file << endl;
+    
     auto start = chrono::high_resolution_clock::now();
+
+    // sleep for 10 seconds, for debug only, to be removed
+    sleep(3);
 
     //FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_name);
 
@@ -143,6 +212,7 @@ int main(int argc, char *argv[]) {
     // this construction for no max no min (default min is 1, max is the length of the sequnces)
     SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);
 
+    /* // begin : only for debug
     gst.GenerateGeneralizedSuffixTree(list_families_sequences);
 
     //PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
@@ -157,14 +227,20 @@ int main(int argc, char *argv[]) {
     }
 
     cms.generateMatrixCmsSeqs();
+    */ // end : only for debug
 
     auto end_before_saving = chrono::high_resolution_clock::now();
 
-    cms.print_infos();
+    // cms.print_infos(); // for debug, need to reactivate this line of code
 
     // according to test results, we will use saveMatrixCMS_ToCsv_File_dircrly
     /// cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
-    cms.saveMatrixCMS_ToCsv_File(output_csv_file);
+    
+    /// cms.saveMatrixCMS_ToCsv_File(output_csv_file); // desctivate for debug 
+
+    // generate random matrix of 100x50 and save it in csv file output_csv_file
+    generate_save_random_matrix(output_csv_file);
+
     /*
     if(save_csv_mode == "0"){ // default
         cms.saveMatrixCMS_ToCsv_File(output_csv_file);
