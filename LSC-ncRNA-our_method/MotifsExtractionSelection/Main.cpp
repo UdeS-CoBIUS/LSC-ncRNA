@@ -119,10 +119,10 @@ string generate_output_csv_file_name(Args args) {
     return ss.str();
 }
 
-void generate_save_random_matrix(string output_csv_file) {
+void generate_save_random_matrix(string output_csv_file, int nb_families) {
     // Generate random matrix of 100x100
-    const int rows = 100;
-    const int cols = 100;
+    const int rows = 10;
+    const int cols = nb_families;
     vector<vector<int>> matrix(rows, vector<int>(cols));
     vector<string> items(cols);
 
@@ -177,28 +177,7 @@ void generate_save_random_matrix(string output_csv_file) {
     cout << "Random matrix saved to " << output_csv_file << endl;
 }
 
-
-int main(int argc, char *argv[]) {
-
-    Args args = get_args(argc, argv);
-
-    print_args(args);    
-
-    // the output matrix in the csv file 
-
-    string output_csv_file = generate_output_csv_file_name(args);
-    cout << "C++ output_csv_file: " << output_csv_file << endl;
-    
-    auto start = chrono::high_resolution_clock::now();
-
-    // sleep for 10 seconds, for debug only, to be removed
-    sleep(3);
-
-    //FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_name);
-
-    //string str="ACTGactg";
-    //vector<string> listStrings={"ttgg","ccttgg","ttggcc"}; // sub motif for all subtree
-    //vector<string> listStrings={"ACTGactg"}; // sub motif for all subtree
+CommonMotifs generate_common_motifs_matrix(Args args){
 
     //auto list_families_files_names = FastaFilesReader::get_First_N_Files(dir_name,nb_families);
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(list_families_files_names);
@@ -206,13 +185,10 @@ int main(int argc, char *argv[]) {
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(dir_name,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
     auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(args.dir_name);
 
-    //FastaFilesReader::groupALLFamiliesSeqsInOneFile(dir_name);
-
-
     // this construction for no max no min (default min is 1, max is the length of the sequnces)
     SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);
 
-    /* // begin : only for debug
+    
     gst.GenerateGeneralizedSuffixTree(list_families_sequences);
 
     //PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
@@ -227,21 +203,21 @@ int main(int argc, char *argv[]) {
     }
 
     cms.generateMatrixCmsSeqs();
-    */ // end : only for debug
 
-    auto end_before_saving = chrono::high_resolution_clock::now();
+    // this is special delete, used when we have a loop in the suffix tree
+    /// list_families_sequences.clear();
+    //} // end loop for to generate all matrix at the same time.
 
-    // cms.print_infos(); // for debug, need to reactivate this line of code
+    return cms;
+}
 
+void save_common_motifs_matrix_to_csv(CommonMotifs cms, string output_csv_file){
     // according to test results, we will use saveMatrixCMS_ToCsv_File_dircrly
     /// cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
     
-    /// cms.saveMatrixCMS_ToCsv_File(output_csv_file); // desctivate for debug 
+    cms.saveMatrixCMS_ToCsv_File(output_csv_file);
 
-    // generate random matrix of 100x50 and save it in csv file output_csv_file
-    generate_save_random_matrix(output_csv_file);
-
-    /*
+        /*
     if(save_csv_mode == "0"){ // default
         cms.saveMatrixCMS_ToCsv_File(output_csv_file);
     }
@@ -266,11 +242,46 @@ int main(int argc, char *argv[]) {
     }
     */
 
+}
+
+int main(int argc, char *argv[]) {
+
+    Args args = get_args(argc, argv);
+
+    print_args(args);    
+
+    // the output matrix in the csv file 
+
+    string output_csv_file = generate_output_csv_file_name(args);
+    cout << "C++ output_csv_file: " << output_csv_file << endl;
+    
+    auto start = chrono::high_resolution_clock::now();
+
+    // sleep for 10 seconds, for debug only, to be removed
+    sleep(3);
+
+    //FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_name);
+
+    //FastaFilesReader::groupALLFamiliesSeqsInOneFile(dir_name);
+
+    // generate the common motifs matrix: desactivated for debug
+    // CommonMotifs cms = generate_common_motifs_matrix(args);
+    
+    auto end_before_saving = chrono::high_resolution_clock::now();
+
+    // cms.print_infos(); // for debug, need to reactivate this line of code
+
+    // save the common motifs matrix to csv file
+    // save_common_motifs_matrix_to_csv(cms, output_csv_file); // desactivated for debug
+
+    // generate random matrix of nb_families x 20 and save it in csv file output_csv_file
+    generate_save_random_matrix(output_csv_file, args.nb_families);
+
+
+
     auto end = chrono::high_resolution_clock::now();
 
-    //cout<<" All extracted nb_motifs = "<<nb_total_motifs<<endl;
-    //cout<<" Remaining nb_motifs After deletion= "<<nb_total_motifs_after_deletion_sm<<endl;
-
+   
     // Calculating total time taken by the program.
 
     double time_taken = chrono::duration_cast<chrono::nanoseconds>(end_before_saving - start).count();
@@ -281,12 +292,6 @@ int main(int argc, char *argv[]) {
     time_taken *= 1e-9;
     cout << "Time taken by whole program is : " << fixed << time_taken << setprecision(9) << " sec" << endl;
 
-
-
-    // this is special delet a cause de loop
-    list_families_sequences.clear();
-
-    //} // end loop for to generate all matrix at the same time.
 
     return 0;
 }
