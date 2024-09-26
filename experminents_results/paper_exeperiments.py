@@ -14,6 +14,9 @@ import re
 import csv
 import re
 import csv
+import matplotlib.pyplot as plt
+import pandas as pd
+
 
 
 # datasets: ------------------------------
@@ -95,6 +98,21 @@ def prepare_dataset_from_scratch():
 # -d : <integer> (0: false, 1 or other: true), is delete sub-motifs
  
 
+def get_delete_sub_motifs_dir_path(size):
+    # Check for double subfolder (when unzipped by Python)
+    double_subfolder_path = f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+    
+    # Check for single subfolder (when unzipped by other apps)
+    single_subfolder_path = f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+    
+    if os.path.exists(double_subfolder_path):
+        return double_subfolder_path
+    elif os.path.exists(single_subfolder_path):
+        return single_subfolder_path
+    else:
+        raise FileNotFoundError(f"Directory not found for size {size}. Checked paths:\n{double_subfolder_path}\n{single_subfolder_path}")
+
+
 def deletion_sub_motifs():
     # Step 1: Define parameters and paths
     cpp_dir = "LSC-ncRNA-our_method/MotifsExtractionSelection"
@@ -117,8 +135,7 @@ def deletion_sub_motifs():
     for size in dataset_sizes:
         for is_delete_submotifs in [0, 1]:
             # Step 3: Set up input file paths
-            # the path of the directory is like: /Users/chei2402/Documents/github/LSC-ncRNA/datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_100_Train_Test/Train
-            dir_path = f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+            dir_path = get_delete_sub_motifs_dir_path(size)
             test_name = f"test_dnd" # test delete no delete
             
             # Step 4: Prepare the command for running MotifsExtractionSelection
@@ -193,7 +210,52 @@ def deletion_sub_motifs():
             except Exception as e:
                 print(f"Error processing dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}: {str(e)}")    
     
+    # generate the plot of the results in 2 figures:
+    # we compare 2 methods:
+    # A- filtering out exact submotifs \textbf{(F)}, 
+    # B- Without any  filtering \textbf{(NF)}
+    # 1. generate Evolution of the data size for F vs NF:  
+    # 2. generate evolution of processing time in minute  for F vs NF
     
+    # Call the function to generate plots
+    generate_result_sub_motifs_F_vs_NF_plots(csv_path)
+
+def generate_result_sub_motifs_F_vs_NF_plots(results):
+    
+    # Convert results to a DataFrame
+    df = pd.DataFrame(results)
+
+    # Create two subplots
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Plot 1: Evolution of the data size for F vs NF
+    for is_delete, group in df.groupby('is_delete_submotifs'):
+        label = 'F' if is_delete else 'NF'
+        ax1.plot(group['dataset_size'], group['file_size_gb'], marker='o', label=label)
+
+    ax1.set_xlabel('Dataset Size')
+    ax1.set_ylabel('File Size (GB)')
+    ax1.set_title('Evolution of Data Size')
+    ax1.legend()
+    ax1.grid(True)
+
+    # Plot 2: Evolution of processing time for F vs NF
+    for is_delete, group in df.groupby('is_delete_submotifs'):
+        label = 'F' if is_delete else 'NF'
+        ax2.plot(group['dataset_size'], group['execution_time'] / 60, marker='o', label=label)
+
+    ax2.set_xlabel('Dataset Size')
+    ax2.set_ylabel('Processing Time (minutes)')
+    ax2.set_title('Evolution of Processing Time')
+    ax2.legend()
+    ax2.grid(True)
+
+    plt.tight_layout()
+    plt.savefig('results/deletion_submotifs_comparison.png')
+    plt.close()
+
+    print("Plots saved as results/deletion_submotifs_comparison.png")
+
 
 
 # compile code_MotifsExtractionSelection: ------------------------------
@@ -275,7 +337,7 @@ def compile_code_MotifsExtractionSelection():
 
 
 def main():
-    # prepare_dataset() # unzip already pre-prepared datasets
+    prepare_dataset() # unzip already pre-prepared datasets
     
     # compile the c++ code for motifs extraction and selection
     compile_code_MotifsExtractionSelection()
