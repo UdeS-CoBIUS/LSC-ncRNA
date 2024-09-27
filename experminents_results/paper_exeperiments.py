@@ -121,6 +121,12 @@ def prepare_dataset_from_scratch():
  
 
 def get_delete_sub_motifs_dir_path(size):
+    """
+    Get the directory path for the given dataset size.
+    Datasets for the experiments deletion of sub motifs are pre-prepared and available in the `datasets/data/` directory.
+    :param size: The size of the dataset
+    :return: The directory path as a Path object
+    """
     # Get the project root directory
     project_root = find_project_root()
     
@@ -283,7 +289,40 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
     plt.close()
     print("Plot saved as results/evolution_of_processing_time.png")
 
+# -------------------------------------------
+# Experiments on: number of generated motifs (fixed-length and combined-length) vs classification accuracy (EXT and MLP): ------------------------------
+# datasets used: 50, 150, 250, 350
+#
+# figures fixed-length:
+# - Growth_NB_motifs.PNG: Number of generated motifs for fixed length motifs minl=maxl from 2 to 20. for dataset : 50, 150, 250, 350.
+# - k-mer_EXT.PNG: Accuracy EXT for fixed length motifs for minl=maxl from 1 to 20. for dataset : 50, 150, 250, 350.
+# - k-mer_MLP.PNG: Accuracy MLP for fixed length motifs for minl=maxl from 1 to 20. for dataset : 50, 150, 250, 350.
 
+# Figure combined-length:
+# - Growth_NB_motifs_For_350_min_2_maxTo_20.PNG: Number of generated motifs for combined lenght motifs minl=2, maxl from 2 to 20. for dataset : 350.
+
+# - EXT_NLP_nbF350_min2_max_variable.PNG: Accuracy EXT and MLP for minl motif = 2. maxl motifs from 2 to 20 ([2-20]).
+# - EXT_NLP_nbF350_min2_max_variable_time.PNG: Time taken by whole program (matrix generation + classification):  for minl motif = 2. maxl motifs from 2 to 10 ([2-10]).
+
+# \begin{figure*}[h]
+#    %\centering
+#    \includegraphics[width=.5\textwidth]{images/Growth_NB_motifs.PNG}\hfill
+#    \includegraphics[width=.5\textwidth]{images/Growth_NB_motifs_For_350_min_2_maxTo_20.PNG}
+    
+#    \includegraphics[width=.5\textwidth]{images/k-mer_EXT.PNG}\hfill
+#    \includegraphics[width=.5\textwidth]{images/EXT_NLP_nbF350_min2_max_variable.PNG}\hfill
+    
+#    %\includegraphics[width=.5\textwidth]{images/k-mer_NLP.PNG}\hfill
+#    %\includegraphics[width=.5\textwidth]{}\hfill%images/EXT_NLP_nbF350_min2_max_variable_time.PNG}\hfill
+    
+#    \caption{Relation between the number of generated motifs and : (Top-Left figure) the size of fixed-length motifs; (Top-Right figure) the size of combined-length motifs. Classification accuracy for: (Bottom-Left figure) different sizes of fixed-length motifs using EXT; (Bottom-Right figure) different sizes of combined-length motifs using EXT and MLP.}
+#    \label{fig:fixed_combined_ext_nlp}
+#    \vspace{-.5cm}
+#   \end{figure*}
+
+
+
+# -------------------------------------------
 
 # compile code_MotifsExtractionSelection: ------------------------------
 # Struct to store the parsed command-line arguments
