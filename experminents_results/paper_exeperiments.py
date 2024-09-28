@@ -19,6 +19,10 @@ import pandas as pd
 
 from pathlib import Path
 
+# define a global variable to use debug datasets
+is_debug_datasets = True
+debug_datasets_size = [5, 10, 15, 20, 25, 30]
+dir_main_path_debug_datasets = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
 
 def find_project_root(project_name="LSC-ncRNA") -> Path:
     """
@@ -119,21 +123,28 @@ def prepare_dataset_from_scratch():
 # -d : <integer> (0: false, 1 or other: true), is delete sub-motifs
 
 
-def get_rfam14_sample_train_test_dir_path(size):
+def get_rfam14_sample_train_test_dir_path(size, is_debug_datasets=False):
     """
-    datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample: 50, 100, 150, 200, 250, 300, 350, 400, 500, 600
+    used:  datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample: 50, 100, 150, 200, 250, 300, 350, 400, 500, 600
+    debug: datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test: 5, 10, 15, 20, 25, 30
     Get the directory path for the given dataset size.
     :param size: The size of the dataset
+    :param is_debug_datasets: Whether to use debug datasets
     :return: The directory path as a Path object
     """
     # Get the project root directory
     project_root = find_project_root()
 
-    # Check for double subfolder (when unzipped by Python)
-    double_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
-
-    # Check for single subfolder (when unzipped by other apps)
-    single_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+    if is_debug_datasets:
+        # Check for double subfolder (when unzipped by Python)
+        double_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        # Check for single subfolder (when unzipped by other apps)
+        single_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+    else:
+        # Check for double subfolder (when unzipped by Python)
+        double_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        # Check for single subfolder (when unzipped by other apps)
+        single_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
 
     if double_subfolder_path.exists():
         return double_subfolder_path
