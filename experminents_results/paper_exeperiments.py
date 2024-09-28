@@ -19,6 +19,7 @@ import pandas as pd
 
 from pathlib import Path
 
+
 def find_project_root(project_name="LSC-ncRNA") -> Path:
     """
     Find the project root directory by looking for a specific directory name.
@@ -26,14 +27,14 @@ def find_project_root(project_name="LSC-ncRNA") -> Path:
     :return: The absolute path to the project root directory as a Path object
     """
     current_dir = Path(__file__).resolve().parent
-    
+
     print(f"current_dir: {current_dir}")
 
     while current_dir != current_dir.parent:  # Stop at the root directory
         if current_dir.name == project_name:
             return current_dir
         current_dir = current_dir.parent
-    
+
     raise FileNotFoundError(f"Project root directory '{project_name}' not found.")
 
 
@@ -46,10 +47,9 @@ def find_project_root(project_name="LSC-ncRNA") -> Path:
 
 
 def prepare_dataset():
-
     # Get the project root directory
     project_root = find_project_root()
-    
+
     # Define the directory containing the datasets
     data_dir = project_root / "datasets/data"
 
@@ -59,13 +59,13 @@ def prepare_dataset():
         "deep_ncrna_datasets.zip",
         "Rfam_14.1_dataset.zip"
     ]
-    
+
     for dataset in datasets:
         zip_path = os.path.join(data_dir, dataset)
         extract_dir = os.path.join(data_dir, dataset[:-4])  # Remove .zip extension
-        
+
         print(f"Unzipping {dataset}...")
-        
+
         try:
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_dir)
@@ -77,13 +77,12 @@ def prepare_dataset():
         except Exception as e:
             print(f"An error occurred while unzipping {dataset}: {str(e)}")
 
+
 def prepare_dataset_from_scratch():
     # ... existing code ...
     print("Preparing dataset from scratch...")
     # Implement dataset preparation steps here
     # e.g., unzipping, splitting, etc.
-
-
 
 
 # delete sub motifs: ------------------------------
@@ -113,45 +112,46 @@ def prepare_dataset_from_scratch():
 # test on \{100,200,300,400,500,600\}
 # $minl = 2$ and $maxl = 20$
 # -d : <integer> (0: false, 1 or other: true), is delete sub-motifs
- 
+
 # for that:
 # test on \{100,200,300,400,500,600\}
 # $minl = 2$ and $maxl = 20$
 # -d : <integer> (0: false, 1 or other: true), is delete sub-motifs
- 
 
-def get_delete_sub_motifs_dir_path(size):
+
+def get_rfam14_sample_train_test_dir_path(size):
     """
+    datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample: 50, 100, 150, 200, 250, 300, 350, 400, 500, 600
     Get the directory path for the given dataset size.
-    Datasets for the experiments deletion of sub motifs are pre-prepared and available in the `datasets/data/` directory.
     :param size: The size of the dataset
     :return: The directory path as a Path object
     """
     # Get the project root directory
     project_root = find_project_root()
-    
+
     # Check for double subfolder (when unzipped by Python)
     double_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
-    
+
     # Check for single subfolder (when unzipped by other apps)
     single_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
-    
+
     if double_subfolder_path.exists():
         return double_subfolder_path
     elif single_subfolder_path.exists():
         return single_subfolder_path
     else:
-        raise FileNotFoundError(f"Directory not found for size {size}. Checked paths:\n{double_subfolder_path}\n{single_subfolder_path}")
+        raise FileNotFoundError(
+            f"Directory not found for size {size}. Checked paths:\n{double_subfolder_path}\n{single_subfolder_path}")
 
 
 def deletion_sub_motifs():
     # Get the project root directory
     project_root = find_project_root()
-    
+
     # Step 1: Define parameters and paths
     cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
     executable = os.path.join(cpp_dir, "MotifsExtractionSelection")
-    
+
     # check if the executable exists
     if not os.path.exists(executable):
         print(f"Error executable does not exists: {executable} not found in {cpp_dir}")
@@ -159,23 +159,23 @@ def deletion_sub_motifs():
 
     dataset_sizes = [100, 200, 300, 400, 500, 600]
     min_length, max_length = 2, 20
-    beta = 0 # don't use beta (0 is the smallest value)
-    alpha = -1 # don't use alpha
-    gamma = 1 # 1 is smallest value
-    
+    beta = 0  # don't use beta (0 is the smallest value)
+    alpha = -1  # don't use alpha
+    gamma = 1  # 1 is smallest value
+
     results = []
 
     # Step 2: Iterate through dataset sizes and submotif deletion options
     for size in dataset_sizes:
         for is_delete_submotifs in [0, 1]:
             # Step 3: Set up input file paths
-            dir_path = get_delete_sub_motifs_dir_path(size)
-            test_name = f"test_dnd" # test delete no delete
-            
+            dir_path = get_rfam14_sample_train_test_dir_path(size)
+            test_name = f"test_dnd"  # test delete no delete
+
             # Step 4: Prepare the command for running MotifsExtractionSelection
             command = [
                 executable,
-                "-in", dir_path, # dir_name
+                "-in", dir_path,  # dir_name
                 "-tn", test_name,
                 "-nf", str(size),
                 "-minl", str(min_length),
@@ -222,13 +222,14 @@ def deletion_sub_motifs():
                     "file_size_gb": file_size
                 })
 
-                print(f"Processed dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
+                print(
+                    f"Processed dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
 
                 # Step 9: Save results to a CSV file
                 results_dir = "results"
                 os.makedirs(results_dir, exist_ok=True)  # Create the directory if it doesn't exist
                 csv_path = os.path.join(results_dir, "deletion_sub_motifs_results.csv")
-                
+
                 with open(csv_path, "w", newline="") as csvfile:
                     fieldnames = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]
                     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -240,22 +241,23 @@ def deletion_sub_motifs():
                 # Step 10: Clean up the generated CSV file, since it will have big size
                 os.remove(output_csv_file)
                 print(f"Cleaned up {output_csv_file}")
-            
+
             except Exception as e:
-                print(f"Error processing dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}: {str(e)}")    
-    
-    # generate the plot of the results in 2 figures:
+                print(
+                    f"Error processing dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}: {str(e)}")
+
+                # generate the plot of the results in 2 figures:
     # we compare 2 methods:
     # A- filtering out exact submotifs \textbf{(F)}, 
     # B- Without any  filtering \textbf{(NF)}
     # 1. generate Evolution of the data size for F vs NF:  
     # 2. generate evolution of processing time in minute  for F vs NF
-    
+
     # Call the function to generate plots
     generate_result_sub_motifs_F_vs_NF_plots(csv_path)
 
+
 def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
-    
     # Read the CSV file into a DataFrame
     df = pd.read_csv(csv_file_path)
 
@@ -289,6 +291,8 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
     plt.close()
     print("Plot saved as results/evolution_of_processing_time.png")
 
+
+# -------------------------------------------
 # -------------------------------------------
 # Experiments on: number of generated motifs (fixed-length and combined-length) vs classification accuracy (EXT and MLP): ------------------------------
 # datasets used: 50, 150, 250, 350
@@ -308,25 +312,267 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
 #    %\centering
 #    \includegraphics[width=.5\textwidth]{images/Growth_NB_motifs.PNG}\hfill
 #    \includegraphics[width=.5\textwidth]{images/Growth_NB_motifs_For_350_min_2_maxTo_20.PNG}
-    
+
 #    \includegraphics[width=.5\textwidth]{images/k-mer_EXT.PNG}\hfill
 #    \includegraphics[width=.5\textwidth]{images/EXT_NLP_nbF350_min2_max_variable.PNG}\hfill
-    
+
 #    %\includegraphics[width=.5\textwidth]{images/k-mer_NLP.PNG}\hfill
 #    %\includegraphics[width=.5\textwidth]{}\hfill%images/EXT_NLP_nbF350_min2_max_variable_time.PNG}\hfill
-    
+
 #    \caption{Relation between the number of generated motifs and : (Top-Left figure) the size of fixed-length motifs; (Top-Right figure) the size of combined-length motifs. Classification accuracy for: (Bottom-Left figure) different sizes of fixed-length motifs using EXT; (Bottom-Right figure) different sizes of combined-length motifs using EXT and MLP.}
 #    \label{fig:fixed_combined_ext_nlp}
 #    \vspace{-.5cm}
 #   \end{figure*}
 
+# generate the common motifs csv file:
+# we use the following parameters:
+# fixed-length motifs: minl=maxl from 1 to 20
+# combined-length motifs: minl=2, maxl from 2 to 20
+# there is no filtering parameters is used.
+# -d : <integer> (0: false), there is no delete sub-motifs
+# -b: beta: 0 , is defined as percentage_same_family, a cm is accepted if :   ((double)(nb_seqs_have_cm*100)/(double)nb_all_seqs_comparedTo) >= percentage_same_family )
+# -a : alpha: -1, no filtering on the number of occurences of the cm
+# -g : gamma nbOccrs_allowed: 1, no filtering on the number of occurences of the cm, at least we have 1 (the default)
+# => get the number of generated motifs
+# => get the processing time for generating the csv file.
+#
+# classification:
+# use EXT and MLP for the classification of the motifs
+# use the csv file generated in the previous step
+# => get the accuracy for the classification
+# => get the processing time for the classification
+#
+# save the results:
+# number of generated motifs
+# total processing time: generating the csv file + classification
+# accuracy for the classification
+
+# plot the results: as explained before for 6 figures.
 
 
+import os
+import subprocess
+import re
+import csv
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.tree import ExtraTreeClassifier
+from sklearn.metrics import accuracy_score
+
+
+def run_motif_experiments():
+    # Step 1: Define parameters
+    dataset_sizes = [50, 150, 250, 350]
+    fixed_lengths = range(1, 21)  # 1 to 20
+    combined_lengths = [(2, max_len) for max_len in range(2, 21)]  # (2, 2) to (2, 20)
+
+    results = {
+        'fixed_length': {size: {} for size in dataset_sizes},
+        'combined_length': {350: {}}
+    }
+
+    # Step 2: Run experiments for fixed-length motifs
+    for size in dataset_sizes:
+        for cm_length in fixed_lengths:
+            results['fixed_length'][size][cm_length] = run_single_experiment(size, cm_length, cm_length)
+
+    # Step 3: Run experiments for combined-length motifs (only for size 350)
+    for min_len, max_len in combined_lengths:
+        results['combined_length'][350][(min_len, max_len)] = run_single_experiment(350, min_len, max_len)
+
+    # Step 4: Generate plots
+    generate_plots(results)
+
+
+def run_single_experiment(dataset_size, min_length, max_length):
+    # Get the project root directory
+    project_root = find_project_root()
+
+    # Set up paths and parameters
+    cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
+    executable = os.path.join(cpp_dir, "MotifsExtractionSelection")
+    dir_path = get_rfam14_sample_train_test_dir_path(dataset_size)
+
+        # check if the executable exists
+    if not os.path.exists(executable):
+        print(f"Error executable does not exists: {executable} not found in {cpp_dir}")
+        return
+    
+    # Prepare the command
+    test_name = "cm_len"
+    command = [
+        executable,
+        "-in", dir_path,
+        "-tn", test_name,
+        "-nf", str(dataset_size),
+        "-minl", str(min_length),
+        "-maxl", str(max_length),
+        "-d", "0", # no deletion of sub motifs
+        "-b", "0", # don't use beta
+        "-a", "-1", # don't use alpha
+        "-g", "1" # gamma = 1, no filtering on the number of occurences of the cm, at least we have 1 (the default)
+    ]
+
+    # Run the C++ program
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate()
+
+    # Extract execution time and number of motifs
+    time_match = re.search(r"Time taken by whole program is : (\d+\.\d+) sec", stdout)
+    execution_time = float(time_match.group(1)) if time_match else None
+
+    #  we have : cout<<" Total nb_motifs = "<<nb_motifs<<endl;
+
+    motifs_match = re.search(r"Total nb_motifs = (\d+)", stdout)
+    num_motifs = int(motifs_match.group(1)) if motifs_match else None
+
+    # get csv output file name
+    args = {
+        "-tn": test_name,
+        "-nf": dataset_size,
+        "-minl": min_length,
+        "-maxl": max_length,
+        "-d": 0,
+        "-b": 0,
+        "-a": -1,
+        "-g": 1
+    }
+
+    output_csv_file = generate_csv_output_filename(args)
+
+    # Perform classification
+    ext_accuracy, mlp_accuracy, classification_time = perform_classification(output_csv_file)
+
+    # Clean up the generated CSV file
+    os.remove(output_csv_file)
+
+    return {
+        'num_motifs': num_motifs,
+        'execution_time': execution_time,
+        'ext_accuracy': ext_accuracy,
+        'mlp_accuracy': mlp_accuracy,
+        'classification_time': classification_time,
+        'total_time': execution_time + classification_time
+    }
+
+
+def perform_classification(csv_file):
+    # Load data from CSV
+    data = pd.read_csv(csv_file)
+    X = data.iloc[:, :-1]  # All columns except the last one
+    y = data.iloc[:, -1]  # Last column as target
+
+    # Split the data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Scale the features
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    # ExtraTreeClassifier
+    ext = ExtraTreeClassifier(random_state=42)
+    ext.fit(X_train_scaled, y_train)
+    ext_accuracy = accuracy_score(y_test, ext.predict(X_test_scaled))
+
+    # MLPClassifier
+    mlp = MLPClassifier(random_state=42, max_iter=1000)
+    mlp.fit(X_train_scaled, y_train)
+    mlp_accuracy = accuracy_score(y_test, mlp.predict(X_test_scaled))
+
+    # Measure classification time (you might want to use a more precise timing method in practice)
+    classification_time = 0  # Placeholder, implement actual timing if needed
+
+    return ext_accuracy, mlp_accuracy, classification_time
+
+
+def generate_plots(results):
+    # Plot 1: Growth_NB_motifs.PNG
+    plt.figure(figsize=(10, 6))
+    for size in results['fixed_length']:
+        lengths = list(results['fixed_length'][size].keys())
+        num_motifs = [results['fixed_length'][size][l]['num_motifs'] for l in lengths]
+        plt.plot(lengths, num_motifs, marker='o', label=f'Dataset size {size}')
+    plt.xlabel('Motif Length')
+    plt.ylabel('Number of Motifs')
+    plt.title('Number of Generated Motifs (Fixed Length)')
+    plt.legend()
+    plt.savefig('results/Growth_NB_motifs.png')
+    plt.close()
+
+    # Plot 2: k-mer_EXT.PNG
+    plt.figure(figsize=(10, 6))
+    for size in results['fixed_length']:
+        lengths = list(results['fixed_length'][size].keys())
+        accuracies = [results['fixed_length'][size][l]['ext_accuracy'] for l in lengths]
+        plt.plot(lengths, accuracies, marker='o', label=f'Dataset size {size}')
+    plt.xlabel('Motif Length')
+    plt.ylabel('EXT Accuracy')
+    plt.title('EXT Accuracy for Fixed Length Motifs')
+    plt.legend()
+    plt.savefig('results/k-mer_EXT.png')
+    plt.close()
+
+    # Plot 3: k-mer_MLP.PNG
+    plt.figure(figsize=(10, 6))
+    for size in results['fixed_length']:
+        lengths = list(results['fixed_length'][size].keys())
+        accuracies = [results['fixed_length'][size][l]['mlp_accuracy'] for l in lengths]
+        plt.plot(lengths, accuracies, marker='o', label=f'Dataset size {size}')
+    plt.xlabel('Motif Length')
+    plt.ylabel('MLP Accuracy')
+    plt.title('MLP Accuracy for Fixed Length Motifs')
+    plt.legend()
+    plt.savefig('results/k-mer_MLP.png')
+    plt.close()
+
+    # Plot 4: Growth_NB_motifs_For_350_min_2_maxTo_20.PNG
+    plt.figure(figsize=(10, 6))
+    max_lengths = [max_len for _, max_len in results['combined_length'][350].keys()]
+    num_motifs = [results['combined_length'][350][(2, max_len)]['num_motifs'] for max_len in max_lengths]
+    plt.plot(max_lengths, num_motifs, marker='o')
+    plt.xlabel('Max Motif Length')
+    plt.ylabel('Number of Motifs')
+    plt.title('Number of Generated Motifs (Combined Length, Dataset Size 350)')
+    plt.savefig('results/Growth_NB_motifs_For_350_min_2_maxTo_20.png')
+    plt.close()
+
+    # Plot 5: EXT_NLP_nbF350_min2_max_variable.PNG
+    plt.figure(figsize=(10, 6))
+    max_lengths = [max_len for _, max_len in results['combined_length'][350].keys()]
+    ext_accuracies = [results['combined_length'][350][(2, max_len)]['ext_accuracy'] for max_len in max_lengths]
+    mlp_accuracies = [results['combined_length'][350][(2, max_len)]['mlp_accuracy'] for max_len in max_lengths]
+    plt.plot(max_lengths, ext_accuracies, marker='o', label='EXT')
+    plt.plot(max_lengths, mlp_accuracies, marker='o', label='MLP')
+    plt.xlabel('Max Motif Length')
+    plt.ylabel('Accuracy')
+    plt.title('EXT and MLP Accuracy (Combined Length, Dataset Size 350)')
+    plt.legend()
+    plt.savefig('results/EXT_NLP_nbF350_min2_max_variable.png')
+    plt.close()
+
+    # Plot 6: EXT_NLP_nbF350_min2_max_variable_time.PNG
+    plt.figure(figsize=(10, 6))
+    max_lengths = [max_len for _, max_len in results['combined_length'][350].keys() if max_len <= 10]
+    total_times = [results['combined_length'][350][(2, max_len)]['total_time'] for max_len in max_lengths]
+    plt.plot(max_lengths, total_times, marker='o')
+    plt.xlabel('Max Motif Length')
+    plt.ylabel('Total Time (seconds)')
+    plt.title('Total Processing Time (Combined Length, Dataset Size 350)')
+    plt.savefig('results/EXT_NLP_nbF350_min2_max_variable_time.png')
+    plt.close()
+
+
+# -------------------------------------------
 # -------------------------------------------
 
 # compile code_MotifsExtractionSelection: ------------------------------
 # Struct to store the parsed command-line arguments
-#struct Args {
+# struct Args {
 
 #    string dir_name;  // -in
 #    string test_name = "test"; // -tn
@@ -339,7 +585,7 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
 #    int Beta = 40; // -b
 #    int Alpha = -1; // -a   // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
 #    int nbOccrs_allowed = 1; // -g (gamma) , lower bound, 1 is defult
-#};
+# };
 #
 # then the output csv file name is constructed like:
 #     string output_csv_file = "del_No_nbF_";
@@ -356,6 +602,8 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
 # The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_beta_[-b]_alpha_[-a]_nbOccrs_[-g].csv.
 
 from typing import Dict, Union
+
+
 def generate_csv_output_filename(args: Dict[str, Union[str, int, bool]]) -> str:
     """
     Generate the output CSV filename based on the given arguments.
@@ -373,15 +621,14 @@ def generate_csv_output_filename(args: Dict[str, Union[str, int, bool]]) -> str:
         f"_alpha_{args['-a']}"  # Alpha
         f"_nbOccrs_{args['-g']}"  # nbOccrs_allowed (gamma)
     )
-    
+
     return output_csv_file + ".csv"
 
- 
 
 def compile_code_MotifsExtractionSelection():
     # Get the project root directory
     project_root = find_project_root()
-    
+
     cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
 
     executable_name = "MotifsExtractionSelection"
@@ -395,7 +642,7 @@ def compile_code_MotifsExtractionSelection():
         os.path.join(cpp_dir, "FastaFilesReader.cpp"),
         os.path.join(cpp_dir, "CommonMotifs.cpp")
     ]
-    
+
     try:
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print(f"Successfully compiled {executable_name}")
@@ -404,16 +651,101 @@ def compile_code_MotifsExtractionSelection():
     except Exception as e:
         print(f"An error occurred during compilation: {str(e)}")
 
+# -------------------------------------------
+# -------------------------------------------
+# run C++ code for motifs extraction and selection
+
+def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, min_length, max_length, is_delete_submotifs=0, beta=0, alpha=-1, gamma=1):
+    """
+    Run the motif extraction and selection process and return the results.
+
+    :param dir_path: Input directory path
+    :param test_name: Test name
+    :param dataset_size: number of families (Size of the dataset)
+    :param min_length: Minimum common motif length
+    :param max_length: Maximum common motif length
+    :param is_delete_submotifs: Whether to delete submotifs (0 or 1)
+    :param beta: Beta parameter
+    :param alpha: Alpha parameter
+    :param gamma: Gamma parameter
+    :return: A dictionary containing the results
+    """
+
+    # Get the project root directory
+    project_root = find_project_root()
+
+    cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
+
+    executable = os.path.join(cpp_dir, "MotifsExtractionSelection")
+
+    # check if the executable exists
+    if not os.path.exists(executable):
+        print(f"Error executable does not exists: {executable} not found in {cpp_dir}")
+        return
+
+    command = [
+        executable,
+        "-in", dir_path,
+        "-tn", test_name,
+        "-nf", str(dataset_size),
+        "-minl", str(min_length),
+        "-maxl", str(max_length),
+        "-d", str(is_delete_submotifs),
+        "-b", str(beta),
+        "-a", str(alpha),
+        "-g", str(gamma)
+    ]
+
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate()
+
+    if process.returncode != 0:
+        print(f"Error running C++ program. Return code: {process.returncode}")
+        print(f"Standard error output: {stderr}")
+        print(f"Standard output: {stdout}")
+        return None
+
+    # Extract execution time and number of motifs
+    time_match = re.search(r"Time taken by whole program is : (\d+\.\d+) sec", stdout)
+    execution_time = float(time_match.group(1)) if time_match else None
+
+    motifs_match = re.search(r"Total nb_motifs = (\d+)", stdout)
+    num_motifs = int(motifs_match.group(1)) if motifs_match else None
+
+    # Generate CSV output filename
+    args = {
+        "-tn": test_name,
+        "-nf": dataset_size,
+        "-minl": min_length,
+        "-maxl": max_length,
+        "-d": is_delete_submotifs,
+        "-b": beta,
+        "-a": alpha,
+        "-g": gamma
+    }
+    output_csv_file = generate_csv_output_filename(args)
+
+    # Get the size of the generated CSV file
+    file_size = os.path.getsize(output_csv_file) / (1024 * 1024 * 1024)  # Convert to GB
+
+    return {
+        'num_motifs': num_motifs,
+        'execution_time': execution_time,
+        'file_size_gb': file_size,
+        'output_csv_file': output_csv_file
+    }
+
+
 
 
 def main():
-    prepare_dataset() # unzip already pre-prepared datasets
-    
+    prepare_dataset()  # unzip already pre-prepared datasets
+
     # compile the c++ code for motifs extraction and selection
     compile_code_MotifsExtractionSelection()
 
     deletion_sub_motifs()
 
+
 if __name__ == "__main__":
     main()
-
