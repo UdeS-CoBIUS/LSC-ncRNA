@@ -148,16 +148,9 @@ def deletion_sub_motifs():
     # Get the project root directory
     project_root = find_project_root()
 
-    # Step 1: Define parameters and paths
-    cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
-    executable = os.path.join(cpp_dir, "MotifsExtractionSelection")
-
-    # check if the executable exists
-    if not os.path.exists(executable):
-        print(f"Error executable does not exists: {executable} not found in {cpp_dir}")
-        return
 
     dataset_sizes = [100, 200, 300, 400, 500, 600]
+    test_name = f"test_dnd"  # test delete no delete
     min_length, max_length = 2, 20
     beta = 0  # don't use beta (0 is the smallest value)
     alpha = -1  # don't use alpha
@@ -167,59 +160,35 @@ def deletion_sub_motifs():
 
     # Step 2: Iterate through dataset sizes and submotif deletion options
     for size in dataset_sizes:
+        # Step 3: Set up input file paths
+        dir_path = get_rfam14_sample_train_test_dir_path(size)
+
         for is_delete_submotifs in [0, 1]:
-            # Step 3: Set up input file paths
-            dir_path = get_rfam14_sample_train_test_dir_path(size)
-            test_name = f"test_dnd"  # test delete no delete
-
-            # Step 4: Prepare the command for running MotifsExtractionSelection
-            command = [
-                executable,
-                "-in", dir_path,  # dir_name
-                "-tn", test_name,
-                "-nf", str(size),
-                "-minl", str(min_length),
-                "-maxl", str(max_length),
-                "-d", str(is_delete_submotifs),
-                "-b", str(beta),
-                "-a", str(alpha),
-                "-g", str(gamma)
-            ]
-
-            # get csv output file name
-            args = {
-                "-tn": test_name,
-                "-nf": size,
-                "-minl": min_length,
-                "-maxl": max_length,
-                "-d": is_delete_submotifs,
-                "-b": beta,
-                "-a": alpha,
-                "-g": gamma
-            }
-
-            output_csv_file = generate_csv_output_filename(args)
-
+            
             try:
-                print(f'python file name: {output_csv_file}')
-                # Step 5: Run the C++ program and capture its output
-                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                stdout, stderr = process.communicate()
-                print(f'stdout: {stdout}')
+                # Step 4: Run the C++ program using the new function
+                result = run_cpp_motif_extraction_and_selection(
+                    dir_path=str(dir_path),  # Convert Path to string
+                    test_name=test_name,
+                    dataset_size=size,
+                    min_length=min_length,
+                    max_length=max_length,
+                    is_delete_submotifs=is_delete_submotifs,
+                    beta=beta,
+                    alpha=alpha,
+                    gamma=gamma
+                )
 
-                # Step 6: Extract execution time from stdout : in the program we have ( cout << "Time taken by whole program is : " << fixed << time_taken << setprecision(9) << " sec" << endl;)
-                time_match = re.search(r"Time taken by whole program is : (\d+\.\d+) sec", stdout)
-                execution_time = float(time_match.group(1)) if time_match else None
-
-                # Step 7: Get the size of the generated CSV file
-                file_size = os.path.getsize(output_csv_file) / (1024 * 1024 * 1024)  # Convert to GB
+                if result is None:
+                    print(f"Error processing dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
+                    continue
 
                 # Step 8: Store the results
                 results.append({
                     "dataset_size": size,
                     "is_delete_submotifs": bool(is_delete_submotifs),
-                    "execution_time": execution_time,
-                    "file_size_gb": file_size
+                    "execution_time": result['execution_time'],
+                    "file_size_gb": result['file_size_gb']
                 })
 
                 print(
@@ -239,8 +208,8 @@ def deletion_sub_motifs():
                 print(f"Results saved to {csv_path}")
 
                 # Step 10: Clean up the generated CSV file, since it will have big size
-                os.remove(output_csv_file)
-                print(f"Cleaned up {output_csv_file}")
+                os.remove(result['output_csv_file'])
+                print(f"Cleaned up {result['output_csv_file']}")
 
             except Exception as e:
                 print(
@@ -364,7 +333,7 @@ from sklearn.tree import ExtraTreeClassifier
 from sklearn.metrics import accuracy_score
 
 
-def run_motif_experiments():
+def run_motif_length_experiments():
     # Step 1: Define parameters
     dataset_sizes = [50, 150, 250, 350]
     fixed_lengths = range(1, 21)  # 1 to 20
@@ -393,70 +362,43 @@ def run_single_experiment(dataset_size, min_length, max_length):
     project_root = find_project_root()
 
     # Set up paths and parameters
-    cpp_dir = project_root / "LSC-ncRNA-our_method/MotifsExtractionSelection"
-    executable = os.path.join(cpp_dir, "MotifsExtractionSelection")
     dir_path = get_rfam14_sample_train_test_dir_path(dataset_size)
-
-        # check if the executable exists
-    if not os.path.exists(executable):
-        print(f"Error executable does not exists: {executable} not found in {cpp_dir}")
-        return
-    
-    # Prepare the command
     test_name = "cm_len"
-    command = [
-        executable,
-        "-in", dir_path,
-        "-tn", test_name,
-        "-nf", str(dataset_size),
-        "-minl", str(min_length),
-        "-maxl", str(max_length),
-        "-d", "0", # no deletion of sub motifs
-        "-b", "0", # don't use beta
-        "-a", "-1", # don't use alpha
-        "-g", "1" # gamma = 1, no filtering on the number of occurences of the cm, at least we have 1 (the default)
-    ]
 
-    # Run the C++ program
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout, stderr = process.communicate()
+    # Run the C++ program using run_cpp_motif_extraction_and_selection
+    result = run_cpp_motif_extraction_and_selection(
+        dir_path=str(dir_path),
+        test_name=test_name,
+        dataset_size=dataset_size,
+        min_length=min_length,
+        max_length=max_length,
+        is_delete_submotifs=0,  # no deletion of sub motifs
+        beta=0,  # don't use beta
+        alpha=-1,  # don't use alpha
+        gamma=1  # gamma = 1, no filtering on the number of occurrences of the cm, at least we have 1 (the default)
+    )
 
-    # Extract execution time and number of motifs
-    time_match = re.search(r"Time taken by whole program is : (\d+\.\d+) sec", stdout)
-    execution_time = float(time_match.group(1)) if time_match else None
-
-    #  we have : cout<<" Total nb_motifs = "<<nb_motifs<<endl;
-
-    motifs_match = re.search(r"Total nb_motifs = (\d+)", stdout)
-    num_motifs = int(motifs_match.group(1)) if motifs_match else None
-
-    # get csv output file name
-    args = {
-        "-tn": test_name,
-        "-nf": dataset_size,
-        "-minl": min_length,
-        "-maxl": max_length,
-        "-d": 0,
-        "-b": 0,
-        "-a": -1,
-        "-g": 1
-    }
-
-    output_csv_file = generate_csv_output_filename(args)
+    if result is None:
+        print(f"Error processing dataset size {dataset_size} with min_length {min_length} and max_length {max_length}")
+        return None
 
     # Perform classification
-    ext_accuracy, mlp_accuracy, classification_time = perform_classification(output_csv_file)
+    ext_accuracy, mlp_accuracy, classification_time = perform_classification(result['output_csv_file'])
 
     # Clean up the generated CSV file
-    os.remove(output_csv_file)
+    if os.path.exists(result['output_csv_file']):
+        os.remove(result['output_csv_file'])
+        print(f"Cleaned up {result['output_csv_file']}")
+    else:
+        print(f"Warning: Output file {result['output_csv_file']} not found")
 
     return {
-        'num_motifs': num_motifs,
-        'execution_time': execution_time,
+        'num_motifs': result['num_motifs'],
+        'execution_time': result['execution_time'],
         'ext_accuracy': ext_accuracy,
         'mlp_accuracy': mlp_accuracy,
         'classification_time': classification_time,
-        'total_time': execution_time + classification_time
+        'total_time': result['execution_time'] + classification_time
     }
 
 

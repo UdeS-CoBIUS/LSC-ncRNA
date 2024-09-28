@@ -175,6 +175,8 @@ void generate_save_random_matrix(string output_csv_file, int nb_families) {
 
     outFile.close();
     cout << "Random matrix saved to " << output_csv_file << endl;
+
+    cout<<" Total nb_motifs = "<<cols<<endl;
 }
 
 CommonMotifs generate_common_motifs_matrix(Args args){
