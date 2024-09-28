@@ -20,17 +20,17 @@ import pandas as pd
 from pathlib import Path
 
 # define a global variable to use debug datasets
-is_debug_datasets = True
-debug_datasets_size = [5, 10, 15, 20, 25, 30]
-dir_main_path_debug_datasets = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
+is_debug_datasets_global_var: bool = True
+debug_datasets_size_global_var: list[int] = [5, 10, 15, 20, 25, 30]
+dir_main_path_debug_datasets_global_var: str = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
 
-def find_project_root(project_name="LSC-ncRNA") -> Path:
+def find_project_root(project_name: str = "LSC-ncRNA") -> Path:
     """
     Find the project root directory by looking for a specific directory name.
     :param project_name: The name of the project directory
     :return: The absolute path to the project root directory as a Path object
     """
-    current_dir = Path(__file__).resolve().parent
+    current_dir: Path = Path(__file__).resolve().parent
 
     print(f"current_dir: {current_dir}")
 
@@ -52,21 +52,21 @@ def find_project_root(project_name="LSC-ncRNA") -> Path:
 
 def prepare_dataset():
     # Get the project root directory
-    project_root = find_project_root()
+    project_root: Path = find_project_root()
 
     # Define the directory containing the datasets
-    data_dir = project_root / "datasets/data"
+    data_dir: Path = project_root / "datasets/data"
 
     # List of dataset zip files
-    datasets = [
+    datasets: list[str] = [
         "Clans_ncRNA_from_Rfam_14.8.zip",
         "deep_ncrna_datasets.zip",
         "Rfam_14.1_dataset.zip"
     ]
 
     for dataset in datasets:
-        zip_path = os.path.join(data_dir, dataset)
-        extract_dir = os.path.join(data_dir, dataset[:-4])  # Remove .zip extension
+        zip_path: Path = os.path.join(data_dir, dataset)
+        extract_dir: Path = os.path.join(data_dir, dataset[:-4])  # Remove .zip extension
 
         print(f"Unzipping {dataset}...")
 
@@ -123,7 +123,7 @@ def prepare_dataset_from_scratch():
 # -d : <integer> (0: false, 1 or other: true), is delete sub-motifs
 
 
-def get_rfam14_sample_train_test_dir_path(size, is_debug_datasets=False):
+def get_rfam14_sample_train_test_dir_path(size: int, is_debug_datasets: bool = False) -> Path:
     """
     used:  datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample: 50, 100, 150, 200, 250, 300, 350, 400, 500, 600
     debug: datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test: 5, 10, 15, 20, 25, 30
@@ -133,18 +133,18 @@ def get_rfam14_sample_train_test_dir_path(size, is_debug_datasets=False):
     :return: The directory path as a Path object
     """
     # Get the project root directory
-    project_root = find_project_root()
+    project_root: Path = find_project_root()
 
     if is_debug_datasets:
         # Check for double subfolder (when unzipped by Python)
-        double_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        double_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
         # Check for single subfolder (when unzipped by other apps)
-        single_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        single_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
     else:
         # Check for double subfolder (when unzipped by Python)
-        double_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        double_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
         # Check for single subfolder (when unzipped by other apps)
-        single_subfolder_path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        single_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
 
     if double_subfolder_path.exists():
         return double_subfolder_path
@@ -155,24 +155,29 @@ def get_rfam14_sample_train_test_dir_path(size, is_debug_datasets=False):
             f"Directory not found for size {size}. Checked paths:\n{double_subfolder_path}\n{single_subfolder_path}")
 
 
-def deletion_sub_motifs():
+def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
     # Get the project root directory
-    project_root = find_project_root()
+    project_root: Path = find_project_root()
 
 
-    dataset_sizes = [100, 200, 300, 400, 500, 600]
-    test_name = f"test_dnd"  # test delete no delete
-    min_length, max_length = 2, 20
-    beta = 0  # don't use beta (0 is the smallest value)
-    alpha = -1  # don't use alpha
-    gamma = 1  # 1 is smallest value
+    dataset_sizes: list[int] = [100, 200, 300, 400, 500, 600]
+    
+    if is_debug_datasets:
+        dataset_sizes = debug_datasets_size_global_var
+    
+    test_name: str = f"test_dnd"  # test delete no delete
+    min_length: int = 2
+    max_length: int = 20
+    beta: int = 0  # don't use beta (0 is the smallest value)
+    alpha: int = -1  # don't use alpha
+    gamma: int = 1  # 1 is smallest value
 
-    results = []
+    results: list[dict[str, int | float | str]] = []
 
     # Step 2: Iterate through dataset sizes and submotif deletion options
     for size in dataset_sizes:
         # Step 3: Set up input file paths
-        dir_path = get_rfam14_sample_train_test_dir_path(size)
+        dir_path = get_rfam14_sample_train_test_dir_path(size, is_debug_datasets)
 
         for is_delete_submotifs in [0, 1]:
             
@@ -206,13 +211,13 @@ def deletion_sub_motifs():
                     f"Processed dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
 
                 # Step 9: Save results to a CSV file
-                results_dir = "results"
+                results_dir: Path = Path("results")
                 os.makedirs(results_dir, exist_ok=True)  # Create the directory if it doesn't exist
-                csv_path = os.path.join(results_dir, "deletion_sub_motifs_results.csv")
+                csv_path: Path = os.path.join(results_dir, "deletion_sub_motifs_results.csv")
 
                 with open(csv_path, "w", newline="") as csvfile:
-                    fieldnames = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]
-                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    fieldnames: list[str] = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]
+                    writer: csv.DictWriter = csv.DictWriter(csvfile, fieldnames=fieldnames)
                     writer.writeheader()
                     for row in results:
                         writer.writerow(row)
@@ -237,14 +242,14 @@ def deletion_sub_motifs():
     generate_result_sub_motifs_F_vs_NF_plots(csv_path)
 
 
-def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
+def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path: Path) -> None:
     # Read the CSV file into a DataFrame
-    df = pd.read_csv(csv_file_path)
+    df: pd.DataFrame = pd.read_csv(csv_file_path)
 
     # Plot 1: Evolution of the data size for F vs NF
     plt.figure(figsize=(10, 6))
     for is_delete, group in df.groupby('is_delete_submotifs'):
-        label = 'F' if is_delete else 'NF'
+        label: str = 'F' if is_delete else 'NF'
         plt.plot(group['dataset_size'], group['file_size_gb'], marker='o', label=label)
 
     plt.xlabel('Dataset Size')
@@ -259,7 +264,7 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path):
     # Plot 2: Evolution of processing time for F vs NF
     plt.figure(figsize=(10, 6))
     for is_delete, group in df.groupby('is_delete_submotifs'):
-        label = 'F' if is_delete else 'NF'
+        label: str = 'F' if is_delete else 'NF'
         plt.plot(group['dataset_size'], group['execution_time'] / 60, marker='o', label=label)
 
     plt.xlabel('Dataset Size')
@@ -344,15 +349,19 @@ from sklearn.tree import ExtraTreeClassifier
 from sklearn.metrics import accuracy_score
 
 
-def run_motif_length_experiments():
+def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
     # Step 1: Define parameters
-    dataset_sizes = [50, 150, 250, 350]
-    fixed_lengths = range(1, 21)  # 1 to 20
-    combined_lengths = [(2, max_len) for max_len in range(2, 21)]  # (2, 2) to (2, 20)
+    dataset_sizes: list[int] = [50, 150, 250, 350]
+    
+    if is_debug_datasets:
+        dataset_sizes = debug_datasets_size_global_var
 
-    results = {
+    fixed_lengths: range = range(1, 21)  # 1 to 20
+    combined_lengths: list[tuple[int, int]] = [(2, max_len) for max_len in range(2, 21)]  # (2, 2) to (2, 20)
+
+    results: dict[str, dict[int, dict[int | tuple[int, int], dict[str, int | float | str]]]] = {
         'fixed_length': {size: {} for size in dataset_sizes},
-        'combined_length': {350: {}}
+        'combined_length': {dataset_sizes[-1]: {}} # take only last size, so 350 or 30 in debug datasets
     }
 
     # Step 2: Run experiments for fixed-length motifs
