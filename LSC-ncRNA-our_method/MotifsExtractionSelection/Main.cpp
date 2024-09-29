@@ -267,17 +267,18 @@ int main(int argc, char *argv[]) {
     //FastaFilesReader::groupALLFamiliesSeqsInOneFile(dir_name);
 
     // generate the common motifs matrix: desactivated for debug
-    // CommonMotifs cms = generate_common_motifs_matrix(args);
+    CommonMotifs cms = generate_common_motifs_matrix(args);
     
     auto end_before_saving = chrono::high_resolution_clock::now();
 
-    // cms.print_infos(); // for debug, need to reactivate this line of code
+    cms.print_infos(); // for debug, need to reactivate this line of code
 
     // save the common motifs matrix to csv file
-    // save_common_motifs_matrix_to_csv(cms, output_csv_file); // desactivated for debug
+    save_common_motifs_matrix_to_csv(cms, output_csv_file); // desactivated for debug
 
+    // only for debug:
     // generate random matrix of nb_families x 20 and save it in csv file output_csv_file
-    generate_save_random_matrix(output_csv_file, args.nb_families);
+    /// generate_save_random_matrix(output_csv_file, args.nb_families);
 
 
 

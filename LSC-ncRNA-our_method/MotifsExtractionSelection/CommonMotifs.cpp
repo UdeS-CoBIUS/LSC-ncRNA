@@ -1084,7 +1084,8 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
     }
 
     //-------------------------------------------------------------------
-    string dir_path = file_output+".csv";
+    // string dir_path = file_output+".csv";
+    string dir_path = file_output; // the file_output already have the .csv extension
     file_csv.open (dir_path);
     cout<<" file_csv.open (\"matrix_motifs_seqIds.csv\"); "<<endl;
 
