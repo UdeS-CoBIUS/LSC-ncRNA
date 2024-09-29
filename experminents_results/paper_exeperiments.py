@@ -701,12 +701,18 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
 
 
 def main():
-    prepare_dataset()  # unzip already pre-prepared datasets
+
+    is_debug_datasets: bool = is_debug_datasets_global_var
+
+    # unzip already pre-prepared datasets
+    prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
     compile_code_MotifsExtractionSelection()
-
-    deletion_sub_motifs()
+    
+    # run the sub motifs deletion experiments
+    deletion_sub_motifs(is_debug_datasets)
+    
 
 
 if __name__ == "__main__":
