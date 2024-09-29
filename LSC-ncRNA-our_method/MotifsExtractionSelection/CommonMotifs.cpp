@@ -17,6 +17,8 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int bet
     //nb_unique_child = 0;
 
     vec_flist.resize(gst.getMaxLengthMotif()+1,forward_list<uint32_t>()); //+1 to simplify the access, to avoid -1 (str.lenght vs str.lenght-1)
+    
+    this->nb_all_sequences = gst.getNbAllSequences();
 }
 
 CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta, int alpha) : gst(gst), Beta(beta), Alpha(alpha)
@@ -27,11 +29,15 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int bet
     //nb_unique_child = 0;
 
     vec_flist.resize(gst.getMaxLengthMotif()+1,forward_list<uint32_t>()); //+1 to simplify the access, to avoid -1 (str.lenght vs str.lenght-1)
+
+    this->nb_all_sequences = gst.getNbAllSequences();
 }
 
 CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta, int alpha, unsigned int nbOccrs_allowed) : gst(gst), Beta(beta), Alpha(alpha), nbOccrs_allowed(nbOccrs_allowed)
 {
     vec_flist.resize(gst.getMaxLengthMotif()+1,forward_list<uint32_t>()); //+1 to simplify the access, to avoid -1 (str.lenght vs str.lenght-1)
+
+    this->nb_all_sequences = gst.getNbAllSequences();
 }
 
 void CommonMotifs::cmsExtractionSelection()
@@ -698,8 +704,13 @@ void CommonMotifs::cleanUnnecessaryMemoryUsage()
 
 void CommonMotifs::generateMatrixCmsSeqs()
 {
-    uint32_t nb_total_seqs = this->gst.getNbAllSequences();
+    uint32_t nb_total_seqs = this->nb_all_sequences;
     uint32_t nb_total_cms = this->list_cms.size(); // the same of : list_cm_umap_seqId_nbOccs.size();
+
+    std::cout << "CommonMotifs::generateMatrixCmsSeqs" << std::endl;
+    std::cout << "uint32_t nb_total_seqs = this->gst.getNbAllSequences(): " << this->gst.getNbAllSequences() << std::endl;
+    std::cout << "nb_total_seqs: " << nb_total_seqs << std::endl;
+    std::cout << "nb_total_cms: " << nb_total_cms << std::endl;
 
     /*
     this->matrix_nbOcrrs_cmsSeqsIds.reserve(nb_total_cms);
@@ -733,6 +744,17 @@ void CommonMotifs::generateMatrixCmsSeqs()
             this->matrix_nbOcrrs_cmsSeqsIds[idx_seq][idx_cm]=nb_occrs;
         }
     }
+
+    // for debug:
+    std::cout << "matrix_nbOcrrs_cmsSeqsIds size: " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
+    std::cout << "matrix_nbOcrrs_cmsSeqsIds[0] size: " << matrix_nbOcrrs_cmsSeqsIds[0].size() << std::endl;
+
+    std::cout << "After populating the matrix" << std::endl;
+    std::cout << "Matrix dimensions:" << std::endl;
+    std::cout << "Number of rows (sequences): " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
+    std::cout << "Number of columns (common motifs): " << (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
+    std::cout << "Total elements: " << matrix_nbOcrrs_cmsSeqsIds.size() * (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
+
 }
 
 
@@ -820,7 +842,7 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_beta_nbOcrrs(
     }
 
     // here, meaning sequnces are not grouped, so they are supposed tu be all in the same family
-    nb_all_seqs_comparedTo = this->gst.getNbAllSequences();
+    nb_all_seqs_comparedTo = this->nb_all_sequences;
     return ( (double)(nb_seqs_have_cm*100)/(double)nb_all_seqs_comparedTo >= percentage_same_family );
 }
 
@@ -882,7 +904,7 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_alpha_beta(
     }
 
     // here, meaning sequnces are not grouped, so they are supposed tu be all in the same family
-    nb_all_seqs_comparedTo = this->gst.getNbAllSequences();
+    nb_all_seqs_comparedTo = this->nb_all_sequences;
 
     if ( (double)(nb_seqs_have_cm_with_alpha*100)/(double)nb_all_seqs_comparedTo >= percentage_same_family )
     {
@@ -975,7 +997,7 @@ void CommonMotifs::print_list_cm_umap_seqId_nbOccs() const
 
 void CommonMotifs::print_matrix_cms_seqsId() const
 {
-    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_seqs = nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     // 1) print the motifs
@@ -1002,24 +1024,34 @@ void CommonMotifs::print_matrix_cms_seqsId() const
 
 void CommonMotifs::print_infos() const
 {
-    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    std::cout << "Printing CommonMotifs infos:" << std::endl;
+
+    unsigned int nb_seqs = this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
     cout<<" Total nb_motifs = "<<nb_motifs<<endl;
     cout<<" sum_cm_nb_occrs_alpha = "<<sum_cm_nb_occrs_alpha<<endl;
     cout<<" Average nb_occres = "<<(double (sum_cm_nb_occrs_alpha) / double (nb_motifs))<<endl;
+    std::cout << "Number of rows (sequences): " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
+    std::cout << "Number of columns (common motifs): " << (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
 }
 
 // using buffer , and then use file "myfilestream << buffer".
 void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
 {
-    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_seqs= this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
+    std::cout << " in saveMatrixCMS_ToCsv_File: " << std::endl;
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
     cout<<" Total nb_motifs = "<<nb_motifs<<endl;
+    std::cout << "Number of rows (sequences): " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
+    std::cout << "Number of columns (common motifs): " << (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
 
+    // nb seqs in the matrix_nbOcrrs_cmsSeqsIds
+    nb_seqs = matrix_nbOcrrs_cmsSeqsIds.size(); // this work fine, the other I don't know why it give 1, and in other function it work fine
+   
     ofstream file_csv;
     const string csv_separator =",";
     string buffer;
@@ -1067,7 +1099,9 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
     {
         if(this->gst.isSequencesAreGroupedByFamilies())
         {
+            //std::cout << "this->gst.isSequencesAreGroupedByFamilies() = True, i: " << i << std::endl;
             auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            //std::cout << "pair_familyId_SeqId.first: " << pair_familyId_SeqId.first << std::endl;
             buffer+=util::to_string(pair_familyId_SeqId.first); //idx_family
         }
         else
@@ -1100,7 +1134,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
 // use std::to_string instead of util::to_string (my implemenation use ostringstream)
 void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring(string file_output) const
 {
-    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_seqs= this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
@@ -1187,7 +1221,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring(string file_output) cons
 // use the chatGPT idea form the other function, just give an istimated size
 void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring_size_estimated(string file_output) const
 {
-    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_seqs= this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
@@ -1254,7 +1288,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring_size_estimated(string fi
 // chatGPT: use  `std::ofstream::write` function instead of `operator<<`
 void CommonMotifs::saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) const
 {
-    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_seqs= this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
@@ -1341,7 +1375,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) c
 // chatGPT: save dirctly to the file stream
 void CommonMotifs::saveMatrixCMS_ToCsv_File_dircrly(string file_output) const
 {
-    unsigned int nb_seqs= this->gst.getNbAllSequences();
+    unsigned int nb_seqs= this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
@@ -1395,7 +1429,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_dircrly(string file_output) const
 // take the code generated by chatGPT directly
 void CommonMotifs::saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const
 {
-    unsigned int nb_seqs = this->gst.getNbAllSequences();
+    unsigned int nb_seqs = this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
@@ -1447,7 +1481,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const
 // save matrix by chunks
 // todo: check this, I am not sure that is correct.
 void CommonMotifs::saveMatrixCMS_ToCsv_File_Chunked(string file_output, unsigned int chunk_size) const {
-    unsigned int nb_seqs = this->gst.getNbAllSequences();
+    unsigned int nb_seqs = this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
     cout << " Total nb_seqs = " << nb_seqs << endl;
@@ -1497,3 +1531,15 @@ const unsigned int CommonMotifs::get_nb_totals_cms() const
 {
     return this->list_cms.size();
 }
+
+// the total number of sequences 
+// is the same thing as 
+// the number of row in the matrix_nbOcrrs_cmsSeqsIds
+unsigned int CommonMotifs::get_nb_all_sequences() const
+{
+    return this->nb_all_sequences;
+
+    // number of row in the matrix_nbOcrrs_cmsSeqsIds
+    // return this->matrix_nbOcrrs_cmsSeqsIds.size();
+}
+

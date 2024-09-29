@@ -15,11 +15,9 @@
 #include <tuple>
 #include <cstring>
 
-#include <filesystem>
 #include <vector>
 #include <string>
 
-namespace fs = std::filesystem;
 
 
 #ifdef _WIN32
@@ -29,14 +27,22 @@ namespace fs = std::filesystem;
 // must verify the end line to be \n
 const char FastaFilesReader::newline = '\n'; // be careful on that, depending on the file \r\n, \r, \n ; you can see: https://stackoverflow.com/questions/6864759/determining-the-newline-character-for-the-environment-a-c-program-is-being-com
 
+/*
 vector<string> FastaFilesReader::getListSequences(const string &file_name)
 {
+    std::cout << "getListSequences --------- "<< std::endl;
+    std::cout << "file_name: " << file_name << std::endl;
+
     vector<string> list_sequences;
 
     std::ifstream input(file_name);
 
-    if(!input.good())
+    if(!input.good()){
+        std::cout << " !input.good() -> return an empty vector" << std::endl;
         return list_sequences; // return an empty vector
+    }
+
+    std::cout << "input.good() " << std::endl;
 
     std::string line, name, content;
 
@@ -57,8 +63,64 @@ vector<string> FastaFilesReader::getListSequences(const string &file_name)
 
     input.close();
 
+    std::cout << "list_sequences size: " << list_sequences.size() << std::endl;
+
     return list_sequences;
 }
+*/
+
+vector<string> FastaFilesReader::getListSequences(const string &file_name)
+{
+    std::cout << "getListSequences --------- " << std::endl;
+    std::cout << "file_name: " << file_name << std::endl;
+
+    vector<string> list_sequences;
+
+    std::ifstream input(file_name, std::ios::binary);  // Open in binary mode
+
+    if (!input.good()) {
+        std::cout << " !input.good() -> return an empty vector" << std::endl;
+        return list_sequences; // return an empty vector
+    }
+
+    std::cout << "input.good() " << std::endl;
+
+    std::string line, sequence;
+    char c;
+    bool new_sequence = true;
+
+    while (input.get(c)) {
+        if (c == '>') {
+            if (!sequence.empty()) {
+                list_sequences.push_back(sequence);
+                sequence.clear();
+            }
+            // Skip the rest of the header line
+            std::getline(input, line);
+            new_sequence = true;
+        } else if (c != '\r' && c != '\n') {
+            if (new_sequence) {
+                sequence = c;
+                new_sequence = false;
+            } else {
+                sequence += c;
+            }
+        }
+    }
+
+    // Add the last sequence if it exists
+    if (!sequence.empty()) {
+        list_sequences.push_back(sequence);
+    }
+
+    input.close();
+
+    std::cout << "list_sequences size: " << list_sequences.size() << std::endl;
+
+    return list_sequences;
+}
+
+
 
 vector<vector<string>> FastaFilesReader::getListFamiliesSequences(const vector<string> &list_families_files_names)
 {
@@ -68,6 +130,8 @@ vector<vector<string>> FastaFilesReader::getListFamiliesSequences(const vector<s
     for (const auto & file_name : list_families_files_names) {
         list_families_sequences.push_back(getListSequences(file_name));
     }
+
+    std::cout << "list_families_sequences size: " << list_families_sequences.size() << std::endl;
 
     return list_families_sequences;
 }
@@ -88,6 +152,7 @@ vector<vector<string>> FastaFilesReader::getListFamiliesSequences(const string &
 
     auto list_families_files_names = getListFiles(path_dir_families_files_names);
 
+    cout << "list_families_files_names size: " << list_families_files_names.size() << endl;
     for (const auto &file_name : list_families_files_names) {
         cout << "file_name: " << file_name << endl;
     }

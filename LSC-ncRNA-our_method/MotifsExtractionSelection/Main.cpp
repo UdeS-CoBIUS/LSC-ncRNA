@@ -181,19 +181,29 @@ void generate_save_random_matrix(string output_csv_file, int nb_families) {
 
 CommonMotifs generate_common_motifs_matrix(Args args){
 
+    std::cout << "we are in generate_common_motifs_matrix" << std::endl;
+
     //auto list_families_files_names = FastaFilesReader::get_First_N_Files(dir_name,nb_families);
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(list_families_files_names);
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles(dir_name,nb_families,max_nb_seqs_allowed);
     //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(dir_name,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
     auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(args.dir_name);
 
+    for (const auto& list_seq : list_families_sequences) {
+        std::cout << "Fam list seq size = " << list_seq.size() << std::endl;
+    }
+
     // this construction for no max no min (default min is 1, max is the length of the sequnces)
     SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);
 
     
     gst.GenerateGeneralizedSuffixTree(list_families_sequences);
+    
+    // print nb_all_sequences
+    std::cout << "nb_all_sequences after gst.GenerateGeneralizedSuffixTree: " << gst.getNbAllSequences() << std::endl;
 
-    //PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
+    // Print the suffix tree
+    ///PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
 
     CommonMotifs cms(gst, args.Beta, args.Alpha, args.nbOccrs_allowed);
 
@@ -210,6 +220,9 @@ CommonMotifs generate_common_motifs_matrix(Args args){
     /// list_families_sequences.clear();
     //} // end loop for to generate all matrix at the same time.
 
+    // debug print nb all sequences
+    std::cout << "nb_all_sequences after cms.generateMatrixCmsSeqs: gst.getNbAllSequences() " << gst.getNbAllSequences() << std::endl;
+    
     return cms;
 }
 
@@ -217,6 +230,12 @@ void save_common_motifs_matrix_to_csv(CommonMotifs cms, string output_csv_file){
     // according to test results, we will use saveMatrixCMS_ToCsv_File_dircrly
     /// cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
     
+    // print number of seqs, for debug:
+    // we can't access cms->gst.getNbAllSequences(), because gst is private refernce in cms.
+    // but when we access in cms.saveMatrixCMS_ToCsv_File, we get wrong answer 1.
+    // when we access the same in cms.generateMatrixCmsSeqs() we get a correct answer.
+    // it is the same object cms. I don't know where is the pbm.
+
     cms.saveMatrixCMS_ToCsv_File(output_csv_file);
 
         /*

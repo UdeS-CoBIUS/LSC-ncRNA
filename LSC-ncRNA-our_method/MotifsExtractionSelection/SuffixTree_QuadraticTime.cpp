@@ -238,6 +238,10 @@ void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<strin
             nb_all_sequences+=list_family_seqs.size();
         }
 
+        // debug:
+        std::cout << "sequence_id: " << sequence_id << std::endl;
+        std::cout << "nb_all_sequences: " << nb_all_sequences << std::endl;
+        
         this->setIndexFamilies();// ibra, we can integrate this function here,
                                     // because they have the same loop, sauf si on vaut laisser la visibilite.
     } else{
@@ -289,6 +293,9 @@ pair<unsigned int, unsigned int>
 SuffixTree_QuadraticTime::get_FamilyId_And_SeqId_IndexBased(const vector<unsigned int> &list_sum_nb_elements,
                                                             unsigned int seq_id) const
 {
+    //std::cout << "we are in get_FamilyId_And_SeqId_IndexBased" << std::endl;
+    //std::cout << "seq_id in: " << seq_id << std::endl;
+
     unsigned int idx_family=0; // idx vector
     unsigned int idx_seq_in_family=0;
 
@@ -300,6 +307,10 @@ SuffixTree_QuadraticTime::get_FamilyId_And_SeqId_IndexBased(const vector<unsigne
     else{
         idx_seq_in_family = seq_id-list_sum_nb_elements.at(idx_family-1)-1;
     }
+
+    // Print the result for debugging
+    //std::cout << "idx_family: " << idx_family << std::endl;
+    //std::cout << "idx_seq_in_family: " << idx_seq_in_family << std::endl;
 
     return make_pair(idx_family,idx_seq_in_family);
 }

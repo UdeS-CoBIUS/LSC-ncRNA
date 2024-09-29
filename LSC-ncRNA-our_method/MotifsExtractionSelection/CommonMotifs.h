@@ -20,6 +20,8 @@ class CommonMotifs {
 
     vector<string> list_cms; // list of all common Motifs
 
+    unsigned int nb_all_sequences; // local copy of gst (nb_all_sequences) to avoid using  the reference to gst.getNbAllSequences(), because it could give inconsistent value (I don't know why).
+
     vector<vector<uint32_t >> matrix_nbOcrrs_cmsSeqsIds; // M[i][j]=M[row][clm]=M[seqId][CMs]==nb_occurrences
 
     //std::map<unsigned int,unsigned int> map_str_len_idx; // map<str_lenght, str_idx>, the goal is to retrive the idx of all str, that are lower or upper bound to a given str lenght.
@@ -114,6 +116,8 @@ public:
     inline uint32_t get_nb_elements_in_vec_flist();
 
     void print_infos() const;
+
+    inline unsigned int get_nb_all_sequences() const;
 };
 
 
