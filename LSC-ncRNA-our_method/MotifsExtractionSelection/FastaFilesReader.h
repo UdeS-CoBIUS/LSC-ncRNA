@@ -34,6 +34,8 @@ public:
 
     static vector<string> getListFiles(const string &path_dir);
 
+    //static vector<string> getListFiles(const string &path_dir, const string &extension = ".fasta.txt");
+
     static inline char separator();
 
     static vector<string> get_Random_N_Files(const string &path_dir, unsigned int nb_files);

@@ -15,6 +15,13 @@
 #include <tuple>
 #include <cstring>
 
+#include <filesystem>
+#include <vector>
+#include <string>
+
+namespace fs = std::filesystem;
+
+
 #ifdef _WIN32
 #include <direct.h>
 #endif
@@ -77,9 +84,18 @@ inline char FastaFilesReader::separator()
 
 vector<vector<string>> FastaFilesReader::getListFamiliesSequences(const string &path_dir_families_files_names)
 {
+    cout << "path_dir_families_files_names: " << path_dir_families_files_names << endl;
+
     auto list_families_files_names = getListFiles(path_dir_families_files_names);
 
+    for (const auto &file_name : list_families_files_names) {
+        cout << "file_name: " << file_name << endl;
+    }
+    
     auto list_families_sequences = getListFamiliesSequences(list_families_files_names);
+
+    // nb of sequences:
+    cout << "list_families_sequences size: " << list_families_sequences.size() << endl;
 
     return list_families_sequences;
 }
@@ -101,6 +117,7 @@ std::string FastaFilesReader::getFileName(const std::string filePath, bool withE
     }
     return "";
 }
+
 
 // I use C++14, for that i don't use the solution of (std::filesystem) of C++17
 // https://stackoverflow.com/questions/612097/how-can-i-get-the-list-of-files-in-a-directory-using-c-or-c
@@ -125,6 +142,9 @@ vector<string> FastaFilesReader::getListFiles(const string &path_dir)
     // get all the files within directory
     while ((entry = readdir (dir)) != nullptr)
     {
+        // Skip hidden files and directories
+        if (entry->d_name[0] == '.')
+            continue;
         path_tmp=path_dir+FastaFilesReader::separator()+entry->d_name;
 
         if( stat(path_tmp.c_str(),&file_stat) <0) // get the stat
@@ -146,6 +166,26 @@ vector<string> FastaFilesReader::getListFiles(const string &path_dir)
     return list_files;
 }
 
+
+/*
+// use c++17 // this looke like cause error...
+vector<string> FastaFilesReader::getListFiles(const string &path_dir, const string &extension)
+{
+    vector<string> list_files;
+
+    for (const auto & entry : fs::directory_iterator(path_dir))
+    {
+        if (fs::is_regular_file(entry) && entry.path().extension() == extension)
+        {
+            list_files.push_back(entry.path().string());
+        }
+    }
+
+    std::sort(list_files.begin(), list_files.end());
+
+    return list_files;
+}
+*/
 
 
 vector<string> FastaFilesReader::get_Random_N_Files(const string &path_dir, unsigned int nb_files)

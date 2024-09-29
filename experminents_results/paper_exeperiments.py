@@ -224,8 +224,8 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
                 print(f"Results saved to {csv_path}")
 
                 # Step 10: Clean up the generated CSV file, since it will have big size
-                os.remove(result['output_csv_file'])
-                print(f"Cleaned up {result['output_csv_file']}")
+                ## os.remove(result['output_csv_file'])
+                ## print(f"Cleaned up {result['output_csv_file']}")
 
             except Exception as e:
                 print(
@@ -596,7 +596,7 @@ def compile_code_MotifsExtractionSelection():
     executable_name = "MotifsExtractionSelection"
     command = [
         "g++",
-        "-std=c++17",
+        "-std=c++14", # c++17
         "-o", os.path.join(cpp_dir, executable_name),
         os.path.join(cpp_dir, "Main.cpp"),
         os.path.join(cpp_dir, "SuffixTree_QuadraticTime.cpp"),
@@ -661,10 +661,11 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
 
+    print(f"Standard error output: {stderr}")
+    print(f"Standard output: {stdout}")
+
     if process.returncode != 0:
         print(f"Error running C++ program. Return code: {process.returncode}")
-        print(f"Standard error output: {stderr}")
-        print(f"Standard output: {stdout}")
         return None
 
     # Extract execution time and number of motifs
