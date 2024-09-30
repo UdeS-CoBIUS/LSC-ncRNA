@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <functional>
 #include "SuffixTree_QuadraticTime.h"
+#include "SequenceIdManager.h"
 
 SuffixTree_QuadraticTime::SuffixTree_QuadraticTime()
 {
@@ -220,7 +221,7 @@ void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<strin
     this->list_families_seqs=list_grouped_strings;
     this->are_sequences_grouped_in_families = true;
 
-    //this->set_Use_OrNot_IndexForSeqsId(); // for Rfam, we know that we can use dirctly the integer based id
+    //this->check_and_set_sequential_indexing_strategy(); // used to set 'is_use_seq_sequential_global_indexing' automaticlly. for Rfam, we know that we can use dirctly the integer based id
     is_use_seq_sequential_global_indexing=true; // simple global indexing (for now we use index, to just debuging
 
     unsigned int global_sequence_id=0; // global sequence id = index of the seq in all sequences of all families. just incrementing by one for each sequence
@@ -248,13 +249,13 @@ void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<strin
         
         this->build_family_seq_global_index_map();// ibra, we can integrate this function here,
                                     // because they have the same loop, sauf si on vaut laisser la visibilite.
-    } else{
+    } else{ // we use binary composition of idx_family and idx_seq_in_family
 
         for (unsigned int i=0; i < list_families_seqs.size(); ++i)
         {
             for (unsigned int j=0; j < list_families_seqs.at(i).size(); ++j)
             {
-                global_sequence_id = SuffixTree_QuadraticTime::generate_global_seq_id_from_family_and_local_ids(i, j);
+                global_sequence_id = SequenceIdManager::compose_binary_global_seq_id(i, j);
 
                 //this->AddString(list_families_seqs.at(i).at(j), sequence_id);
                 this->addAllSubMotifMinMax(list_families_seqs.at(i).at(j), global_sequence_id);
@@ -275,6 +276,14 @@ void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<strin
     cout << endl;
 }
 
+void SuffixTree_QuadraticTime::build_family_seq_global_index_map()
+{
+    vector<unsigned int> list_nb_elements_per_family;
+    for (const auto& family : list_families_seqs) {
+        list_nb_elements_per_family.push_back(family.size());
+    }
+    this->list_sum_nb_seqs = SequenceIdManager::generate_list_sum_nb_elements(list_nb_elements_per_family);
+}
 
 bool SuffixTree_QuadraticTime::CheckGST(vector<string> &listStrings) const
 {
@@ -296,67 +305,7 @@ const vector<vector<string>> &SuffixTree_QuadraticTime::getListFamiliesSeqs() co
     return list_families_seqs;
 }
 
-/**
- *
- * @param global_seq_id global sequence id
- * @return the position of the sequence in wich families (the index of vector) in vector<vector<string>>
- * and its index in its own local family, which mean in vector<string>
- */
-pair<unsigned int, unsigned int>
-SuffixTree_QuadraticTime::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(const vector<unsigned int> &list_sum_nb_elements,
-                                                            unsigned int global_seq_id)
-{
-    //std::cout << "we are in get_FamilyId_And_SeqId_IndexBased" << std::endl;
-    //std::cout << "seq_id in: " << seq_id << std::endl;
 
-    unsigned int idx_family=0; // idx vector
-    unsigned int idx_seq_in_family=0;
-
-    // we dont't need to check the result of lower_bound, because all global_seq_id are (must be) valid, they exist in the range of list_sum_nb_seq
-    idx_family = std::lower_bound(list_sum_nb_elements.begin(),list_sum_nb_elements.end(),global_seq_id)
-                    - list_sum_nb_elements.begin();
-
-    if(idx_family==0) idx_seq_in_family=global_seq_id;
-    else{
-        idx_seq_in_family = global_seq_id-list_sum_nb_elements.at(idx_family-1)-1;
-    }
-
-    // Print the result for debugging
-    //std::cout << "idx_family: " << idx_family << std::endl;
-    //std::cout << "idx_seq_in_family: " << idx_seq_in_family << std::endl;
-
-    return make_pair(idx_family,idx_seq_in_family);
-}
-
-/**
- * given a seq id, access the sequence in vector<vector<string>>.
- * where all seqs have id from 0 to n (n is the total number of all seqs in all families)
- * how we can acheave this:
- * index the sequences id by families (vector),
- * by putting the last seq id of each vector in bucket, from the first to the last vector
- * after we use getFamilyId to retrive the index of the vector acoording to seq id
- * we use decotomy search (the function lower_bound).
- *
- * we need -1 at first, since it will be used as index for seq by family, the size give the size number of seqs, but we begin from 0, so last seq is size -1 (for 1st family), then for others, we just add size. after given family id, and local seq id in family, we can retrive global index using list_sum
- *
- */
-void SuffixTree_QuadraticTime::build_family_seq_global_index_map() // createCumulativeSequenceCountsPerFamily
-{
-    int n=list_families_seqs.size();
-    this->list_sum_nb_seqs.clear();
-    this->list_sum_nb_seqs.reserve(n);
-
-    unsigned int sum=0;
-
-    sum+=list_families_seqs.at(0).size()-1;
-    this->list_sum_nb_seqs.push_back(sum);
-
-    for (unsigned int i=1;i<list_families_seqs.size();++i)
-    {
-        sum+=list_families_seqs.at(i).size();
-        this->list_sum_nb_seqs.push_back(sum);
-    }
-}
 
 /**
  *
@@ -379,61 +328,16 @@ bool SuffixTree_QuadraticTime::isSequencesAreGroupedByFamilies() const {
     return are_sequences_grouped_in_families;
 }
 
-/**
- * return a id for sequence composed by idx_family and idx_seq_in_family
- * the seq id is unsigned int which is composed by tow part:
- * the first 16 bits stor the idx_family
- * the second 16 bits stor the idx_seq_in_family
- *
- * important: we use this method when:
- * 1) the number of sequence in each family <= 65,536 (2^16)
- * 2) the number of all family <= 65,536 (2^16)
- *
- * in practice, for now, these number is very suficient to holde the information
- * because, the number of sequence or family is << 65,536
- * for now Rfam 14.1 (January 2019, 3016 families)
- *
- * ofcourse, we supose the use of 32 bits for int. which the case for machine of now days.
- *
- * @param idx_family the id of the family, or the vector where the sequence is stored
- * @param idx_seq_in_family the id of the seq in the family (in the vector)
- * @return a unique id for seq
- */
-unsigned int SuffixTree_QuadraticTime::generate_global_seq_id_from_family_and_local_ids(unsigned int idx_family, unsigned int idx_seq_in_family) const
-{
-    // i will not cast the value for (uint32_t), because all variable are: unsigned int
-    // and by definition uint_32 in stdint.h is (typedef unsigned		uint32_t;)
-    // the shift by 16 must be unsigned hence 16u
-    // https://stackoverflow.com/questions/1294649/cleanest-way-to-combine-two-shorts-to-an-int
-    // https://stackoverflow.com/questions/50399090/use-of-a-signed-integer-operand-with-a-binary-bitwise-operator-when-using-un
 
-    //uint32_t seq_id = (uint32_t)((uint32_t)((uint32_t)idx_family<<16) | (uint32_t)idx_seq_in_family);
-    //unsigned int seq_id = (idx_family<<16u) | idx_seq_in_family;
-    //return seq_id;
-
-    return (idx_family<<16u) | idx_seq_in_family;
-}
-
-
-pair<unsigned int, unsigned int>
-SuffixTree_QuadraticTime::decompose_global_seq_id_to_family_and_local_seq_ids(unsigned int global_seq_id) const
-{
-    // this code comment for more explanation
-    //unsigned int idx_family= (seq_id & 0xFFFF0000u)>>16u;
-    //unsigned int idx_seq_in_family=(seq_id & 0x0000FFFFu);
-    //return make_pair(idx_family,idx_seq_in_family);
-
-    return make_pair((global_seq_id & 0xFFFF0000u)>>16u, (global_seq_id & 0x0000FFFFu));
-}
 
 //pair<unsigned int, unsigned int> SuffixTree_QuadraticTime::get_FamilyId_And_SeqId(unsigned int seq_id) const
 pair<unsigned int, unsigned int> SuffixTree_QuadraticTime::get_FamilyId_And_SeqId(unsigned int global_seq_id) const
 {
     // check if we use index to get id or not (depending on the number of families and sequnces in eache family)
     if(this->is_use_seq_sequential_global_indexing)
-        return SuffixTree_QuadraticTime::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(this->list_sum_nb_seqs, global_seq_id);
+        return SequenceIdManager::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(this->list_sum_nb_seqs, global_seq_id);
 
-    return SuffixTree_QuadraticTime::decompose_global_seq_id_to_family_and_local_seq_ids(global_seq_id);
+    return SequenceIdManager::decompose_binary_global_seq_id(global_seq_id);
 }
 
 bool SuffixTree_QuadraticTime::isUseIndexForSeqsId() const

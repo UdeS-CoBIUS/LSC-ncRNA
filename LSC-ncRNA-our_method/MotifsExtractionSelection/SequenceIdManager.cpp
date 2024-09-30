@@ -109,7 +109,7 @@ unsigned int SequenceIdManager::compose_binary_global_seq_id(unsigned int idx_fa
 
 
 std::pair<unsigned int, unsigned int>
-SequenceIdManager::decompose_binary_global_seq_id_to_family_and_localSeqIds(unsigned int binary_global_seq_id)
+SequenceIdManager::decompose_binary_global_seq_id(unsigned int binary_global_seq_id)
 {
     // this code comment for more explanation
     //unsigned int idx_family= (seq_id & 0xFFFF0000u)>>16u;

@@ -22,5 +22,5 @@ public:
    
     static unsigned int compose_binary_global_seq_id(unsigned int idx_family, unsigned int idx_seq_in_family);
     // based on the global id, it returns the family and the local id in the family
-    static std::pair<unsigned int, unsigned int> decompose_binary_global_seq_id_to_family_and_localSeqIds(unsigned int binary_global_seq_id) noexcept;
+    static std::pair<unsigned int, unsigned int> decompose_binary_global_seq_id(unsigned int binary_global_seq_id);
 };
