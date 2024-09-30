@@ -711,6 +711,14 @@ void CommonMotifs::generateMatrixCmsSeqs()
     std::cout << "uint32_t nb_total_seqs = this->gst.getNbAllSequences(): " << this->gst.getNbAllSequences() << std::endl;
     std::cout << "nb_total_seqs: " << nb_total_seqs << std::endl;
     std::cout << "nb_total_cms: " << nb_total_cms << std::endl;
+    std::cout << "list_cm_umap_seqId_nbOccs.size(): " << this->list_cm_umap_seqId_nbOccs.size() << std::endl;    
+    std::cout << "list_cms.size(): " << this->list_cms.size() << std::endl;
+    std::cout << "list_families_seqs.size(): " << this->gst.getListFamiliesSeqs().size() << std::endl;
+    std::cout << "list_sum_nb_seqs: ";
+    std::cout << std::endl;
+
+
+
 
     /*
     this->matrix_nbOcrrs_cmsSeqsIds.reserve(nb_total_cms);
