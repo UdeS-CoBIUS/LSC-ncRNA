@@ -42,20 +42,6 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int bet
     
     this->list_sum_nb_seqs = gst.getListSumNbSeqs();
 
-    std::cout << "in CommonMotifs constructor" << std::endl;
-    std::cout << "nb_all_sequences: " << this->nb_all_sequences << std::endl;
-    std::cout << "gst.getNbAllSequences(): " << gst.getNbAllSequences() << std::endl;
-    this->get_FamilyId_And_SeqId(1);
-    this->get_FamilyId_And_SeqId(40);
-    this->get_FamilyId_And_SeqId(60);
-    this->get_FamilyId_And_SeqId(65); 
-    std::cout << "local copy list_sum_nb_seqs: ";
-    for (const auto &sum : this->list_sum_nb_seqs) {
-        std::cout << sum << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "end CommonMotifs constructor" << std::endl;
-
 }
 
 
@@ -726,19 +712,6 @@ void CommonMotifs::generateMatrixCmsSeqs()
     uint32_t nb_total_seqs = this->nb_all_sequences;
     uint32_t nb_total_cms = this->list_cms.size(); // the same of : list_cm_umap_seqId_nbOccs.size();
 
-    std::cout << "CommonMotifs::generateMatrixCmsSeqs" << std::endl;
-    std::cout << "uint32_t nb_total_seqs = this->gst.getNbAllSequences(): " << this->gst.getNbAllSequences() << std::endl;
-    std::cout << "nb_total_seqs: " << nb_total_seqs << std::endl;
-    std::cout << "nb_total_cms: " << nb_total_cms << std::endl;
-    std::cout << "list_cm_umap_seqId_nbOccs.size(): " << this->list_cm_umap_seqId_nbOccs.size() << std::endl;    
-    std::cout << "list_cms.size(): " << this->list_cms.size() << std::endl;
-    std::cout << "list_families_seqs.size(): " << this->gst.getListFamiliesSeqs().size() << std::endl;
-    std::cout << "list_sum_nb_seqs: ";
-    std::cout << std::endl;
-
-
-
-
     /*
     this->matrix_nbOcrrs_cmsSeqsIds.reserve(nb_total_cms);
 
@@ -771,16 +744,6 @@ void CommonMotifs::generateMatrixCmsSeqs()
             this->matrix_nbOcrrs_cmsSeqsIds[idx_seq][idx_cm]=nb_occrs;
         }
     }
-
-    // for debug:
-    std::cout << "matrix_nbOcrrs_cmsSeqsIds size: " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
-    std::cout << "matrix_nbOcrrs_cmsSeqsIds[0] size: " << matrix_nbOcrrs_cmsSeqsIds[0].size() << std::endl;
-
-    std::cout << "After populating the matrix" << std::endl;
-    std::cout << "Matrix dimensions:" << std::endl;
-    std::cout << "Number of rows (sequences): " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
-    std::cout << "Number of columns (common motifs): " << (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
-    std::cout << "Total elements: " << matrix_nbOcrrs_cmsSeqsIds.size() * (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
 
 }
 
@@ -1070,12 +1033,6 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
     unsigned int nb_seqs= this->nb_all_sequences;
     unsigned int nb_motifs = this->list_cms.size();
 
-    std::cout << " in saveMatrixCMS_ToCsv_File: " << std::endl;
-    cout<<" Total nb_seqs = "<<nb_seqs<<endl;
-    cout<<" Total nb_motifs = "<<nb_motifs<<endl;
-    std::cout << "Number of rows (sequences): " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
-    std::cout << "Number of columns (common motifs): " << (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
-
     // nb seqs in the matrix_nbOcrrs_cmsSeqsIds
     nb_seqs = matrix_nbOcrrs_cmsSeqsIds.size(); // this work fine, the other I don't know why it give 1, and in other function it work fine
    
@@ -1148,12 +1105,11 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
     // string dir_path = file_output+".csv";
     string dir_path = file_output; // the file_output already have the .csv extension
     file_csv.open (dir_path);
-    cout<<" file_csv.open (\"matrix_motifs_seqIds.csv\"); "<<endl;
-
     file_csv<<buffer;
 
     file_csv.close();
-    cout<<"file_csv.close();"<<endl;
+
+    cout << "Matrix has been saved to " << dir_path << endl;
 }
 
 
@@ -1412,7 +1368,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_dircrly(string file_output) const
     const string csv_separator =",";
     
     // Open the file
-    file_csv.open(file_output+".csv", ios::out);
+    file_csv.open(file_output, ios::out);
 
 
     // the column names: // Write the header row
@@ -1573,5 +1529,56 @@ unsigned int CommonMotifs::get_nb_all_sequences() const
 pair<unsigned int, unsigned int> CommonMotifs::get_FamilyId_And_SeqId(unsigned int global_seq_id) const
 {   
     return SequenceIdManager::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(this->list_sum_nb_seqs, global_seq_id);
+}
+
+// ----------------------------------------------------------------------------
+// more save to csv functions
+// ----------------------------------------------------------------------------
+
+void CommonMotifs::saveMatrixCMS_ToCsv_File_Optimized(const std::string& file_output) const {
+    const unsigned int nb_seqs = this->nb_all_sequences;
+    const unsigned int nb_motifs = this->list_cms.size();
+    const std::string csv_separator = ",";
+
+    std::ofstream file_csv(file_output, std::ios::out | std::ios::binary);
+    if (!file_csv) {
+        throw std::runtime_error("Unable to open file for writing: " + file_output);
+    }
+
+    // Write header
+    file_csv << "familyId";
+    for (const auto& motif : this->list_cms) {
+        file_csv << csv_separator << motif;
+    }
+    file_csv << '\n';
+
+    // Prepare buffer for rows
+    const size_t row_buffer_size = nb_motifs * 10 + 100; // Estimate size
+    std::string row_buffer;
+    row_buffer.reserve(row_buffer_size);
+
+    // Write matrix rows
+    for (unsigned int i = 0; i < nb_seqs; ++i) {
+        row_buffer.clear();
+
+        // Add family ID
+        if (this->gst.isSequencesAreGroupedByFamilies()) {
+            auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i);
+            row_buffer += std::to_string(pair_familyId_SeqId.first);
+        } else {
+            row_buffer += '0'; // idx_family is 0, we have one family
+        }
+
+        // Add motif occurrences
+        for (unsigned int j = 0; j < nb_motifs; ++j) {
+            row_buffer += csv_separator;
+            row_buffer += std::to_string(matrix_nbOcrrs_cmsSeqsIds[i][j]);
+        }
+        row_buffer += '\n';
+
+        file_csv.write(row_buffer.c_str(), row_buffer.size());
+    }
+
+    file_csv.close();
 }
 

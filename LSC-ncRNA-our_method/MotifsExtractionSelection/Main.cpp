@@ -179,64 +179,15 @@ void generate_save_random_matrix(string output_csv_file, int nb_families) {
     cout<<" Total nb_motifs = "<<cols<<endl;
 }
 
-CommonMotifs generate_common_motifs_matrix(Args args){
 
-    std::cout << "we are in generate_common_motifs_matrix" << std::endl;
-
-    //auto list_families_files_names = FastaFilesReader::get_First_N_Files(dir_name,nb_families);
-    //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(list_families_files_names);
-    //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles(dir_name,nb_families,max_nb_seqs_allowed);
-    //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(dir_name,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
-    auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(args.dir_name);
-
-    for (const auto& list_seq : list_families_sequences) {
-        std::cout << "Fam list seq size = " << list_seq.size() << std::endl;
-    }
-
-    // this construction for no max no min (default min is 1, max is the length of the sequnces)
-    SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);
-
-    
-    gst.GenerateGeneralizedSuffixTree(list_families_sequences);
-    
-    // print nb_all_sequences
-    std::cout << "nb_all_sequences after gst.GenerateGeneralizedSuffixTree: " << gst.getNbAllSequences() << std::endl;
-
-    // Print the suffix tree
-    ///PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
-
-    CommonMotifs cms(gst, args.Beta, args.Alpha, args.nbOccrs_allowed);
-
-
-    if (args.is_delete_subMotifs) {
-        cms.cmsExtractionSelectionDeletionCSMs();
-    } else {
-        cms.cmsExtractionSelection();
-    }
-
-    cms.generateMatrixCmsSeqs();
-
-    // this is special delete, used when we have a loop in the suffix tree
-    /// list_families_sequences.clear();
-    //} // end loop for to generate all matrix at the same time.
-
-    // debug print nb all sequences
-    std::cout << "nb_all_sequences after cms.generateMatrixCmsSeqs: gst.getNbAllSequences() " << gst.getNbAllSequences() << std::endl;
-    
-    return cms;
-}
-
-void save_common_motifs_matrix_to_csv(CommonMotifs cms, string output_csv_file){
+inline void save_common_motifs_matrix_to_csv(const CommonMotifs& cms, const string& output_csv_file) {
     // according to test results, we will use saveMatrixCMS_ToCsv_File_dircrly
     /// cms.saveMatrixCMS_ToCsv_File_dircrly(output_csv_file);
     
-    // print number of seqs, for debug:
-    // we can't access cms->gst.getNbAllSequences(), because gst is private refernce in cms.
-    // but when we access in cms.saveMatrixCMS_ToCsv_File, we get wrong answer 1.
-    // when we access the same in cms.generateMatrixCmsSeqs() we get a correct answer.
-    // it is the same object cms. I don't know where is the pbm.
 
-    cms.saveMatrixCMS_ToCsv_File(output_csv_file);
+    //cms.saveMatrixCMS_ToCsv_File(output_csv_file);
+
+    cms.saveMatrixCMS_ToCsv_File_Optimized(output_csv_file);
 
         /*
     if(save_csv_mode == "0"){ // default
@@ -273,33 +224,67 @@ int main(int argc, char *argv[]) {
 
     // the output matrix in the csv file 
 
-    string output_csv_file = generate_output_csv_file_name(args);
-    cout << "C++ output_csv_file: " << output_csv_file << endl;
+    string output_csv_file_name = generate_output_csv_file_name(args);
+    cout << "C++ output_csv_file: " << output_csv_file_name << endl;
     
-    auto start = chrono::high_resolution_clock::now();
-
-    // sleep for 10 seconds, for debug only, to be removed
-    sleep(3);
+    
+    // --------------------------------------
+    // method utilities used as needed -------
 
     //FastaFilesReader::getSaveInfosRNAFamiliesCSVFile(dir_name);
-
     //FastaFilesReader::groupALLFamiliesSeqsInOneFile(dir_name);
 
-    // generate the common motifs matrix: desactivated for debug
-    CommonMotifs cms = generate_common_motifs_matrix(args);
+    // --------------------------------------
+    // generate the common motifs matrix: gst and cms
+
+    auto start = chrono::high_resolution_clock::now();
+
+    // step 1: get the list of families sequences:
+    //auto list_families_files_names = FastaFilesReader::get_First_N_Files(dir_name,nb_families);
+    //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(list_families_files_names);
+    //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles(dir_name,nb_families,max_nb_seqs_allowed);
+    //auto list_families_sequences = FastaFilesReader::getListFamiliesSequences_FirstNFiles_MinMax(dir_name,nb_families,min_nb_seqs_allowed,max_nb_seqs_allowed);
+    auto list_families_sequences = FastaFilesReader::getListFamiliesSequences(args.dir_name);
+
+    // step 2: generate the gst ------------------
+    // this construction for no max no min (default min is 1, max is the length of the sequnces)
+    SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);
+
+    gst.GenerateGeneralizedSuffixTree(list_families_sequences);
     
+    // Print the suffix tree
+    ///PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
+
+    // step 3: generate the cms ------------------
+    CommonMotifs cms(gst, args.Beta, args.Alpha, args.nbOccrs_allowed);
+
+
+    if (args.is_delete_subMotifs) {
+        cms.cmsExtractionSelectionDeletionCSMs();
+    } else {
+        cms.cmsExtractionSelection();
+    }
+
+    cms.generateMatrixCmsSeqs();
+
+    // this is special delete, used when we have a loop in the suffix tree
+    /// list_families_sequences.clear();
+    //} // end loop for to generate all matrix at the same time.
+
+    // --------------------------------------
     auto end_before_saving = chrono::high_resolution_clock::now();
 
-    cms.print_infos(); // for debug, need to reactivate this line of code
+    cms.print_infos();
 
-    // save the common motifs matrix to csv file
-    save_common_motifs_matrix_to_csv(cms, output_csv_file); // desactivated for debug
+    // step 4: save the common motifs matrix to csv file
+    save_common_motifs_matrix_to_csv(cms, output_csv_file_name); // desactivated for debug
 
     // only for debug:
     // generate random matrix of nb_families x 20 and save it in csv file output_csv_file
     /// generate_save_random_matrix(output_csv_file, args.nb_families);
 
 
+    // step 5: calculate the time taken by the program  
 
     auto end = chrono::high_resolution_clock::now();
 

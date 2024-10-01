@@ -14,7 +14,7 @@ using umap_seqId_nbOccs_ = unordered_map<unsigned int, unsigned int>;
 
 class CommonMotifs {
 
-    const SuffixTree_QuadraticTime &gst; // reference to Generalized Suffix Tree
+    const SuffixTree_QuadraticTime &gst; // reference to Generalized Suffix Tree | the gst object must live as long as the CommonMotifs object, otherwise it will be a dangling pointer = bug and pbm.
 
     vector< umap_seqId_nbOccs_ > list_cm_umap_seqId_nbOccs; // contain all the umap for extracted motifs
 
@@ -22,8 +22,18 @@ class CommonMotifs {
 
     unsigned int nb_all_sequences; // local copy of gst (nb_all_sequences) to avoid using  the reference to gst.getNbAllSequences(), because it could give inconsistent value (I don't know why).
 
-    vector<unsigned int> list_sum_nb_seqs; // local copy from gst (for indexing sequences by family)
 
+    // local copy from gst (for indexing sequences by family)
+    // Local copy of gst's list_sum_nb_seqs for faster access and independence.
+    // Copied once at construction (~20KB for 5000 entries), then used thousands
+    // of times locally (for each sequence). 
+    // This approach significantly improves
+    // performance over repeated access to gst. Prefer over reference for speed
+    // and encapsulation, unless real-time sync with gst is required.
+    vector<unsigned int> list_sum_nb_seqs;
+
+
+    
     vector<vector<uint32_t >> matrix_nbOcrrs_cmsSeqsIds; // M[i][j]=M[row][clm]=M[seqId][CMs]==nb_occurrences
 
     //std::map<unsigned int,unsigned int> map_str_len_idx; // map<str_lenght, str_idx>, the goal is to retrive the idx of all str, that are lower or upper bound to a given str lenght.
@@ -112,6 +122,7 @@ public:
     void saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const;
     void saveMatrixCMS_ToCsv_File_Chunked(string file_output, unsigned int chunk_size) const;
 
+    void saveMatrixCMS_ToCsv_File_Optimized(const std::string& file_output) const;
     ///bool can_delete_subMotif_hash(unsigned int idx_sm, unsigned int idx_lm);
     void
     flist_erase_all_idx_of_subMotif_of_ncm(string &ncm, umap_seqId_nbOccs_ &ncm_umap,

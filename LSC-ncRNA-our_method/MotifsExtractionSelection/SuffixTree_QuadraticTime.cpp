@@ -14,7 +14,6 @@ SuffixTree_QuadraticTime::SuffixTree_QuadraticTime()
     this->max_length_motif=0; // this mean we don't use max, we use for each sequences its length.
     this->min_length_motif=1; // the default. only one char
 
-    cout<<"default constructor"<<endl;
 }
 
 SuffixTree_QuadraticTime::SuffixTree_QuadraticTime(uint32_t maxLengthMotif, uint32_t minLengthMotif) : max_length_motif(
@@ -234,18 +233,8 @@ void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<strin
         nb_all_sequences+=list_single_family_seqs.size();
     }
     
-    this->build_family_seq_global_index_map();// ibra, we can integrate this function here,
-                                // because they have the same loop, sauf si on vaut laisser la visibilite.
+    this->build_family_seq_global_index_map();
 
-
-    cout << "nb_all_sequences after GenerateGeneralizedSuffixTree: " << nb_all_sequences << endl;
-    cout << "list_families_seqs.size(): " << list_families_seqs.size() << endl;
-    cout << "list_sum_nb_seqs.size(): " << list_sum_nb_seqs.size() << endl;
-    cout << "list_sum_nb_seqs: ";
-    for (const auto &sum : list_sum_nb_seqs) {
-        cout << sum << " ";
-    }
-    cout << endl;
 }
 
 void SuffixTree_QuadraticTime::build_family_seq_global_index_map()
@@ -304,18 +293,7 @@ bool SuffixTree_QuadraticTime::isSequencesAreGroupedByFamilies() const {
 
 //pair<unsigned int, unsigned int> SuffixTree_QuadraticTime::get_FamilyId_And_SeqId(unsigned int seq_id) const
 pair<unsigned int, unsigned int> SuffixTree_QuadraticTime::get_FamilyId_And_SeqId(unsigned int global_seq_id) const
-{
-    // here list_sum_nb_seqs is empty, I don't know why ??? 
-    std::cout << "in SuffixTree_QuadraticTime::get_FamilyId_And_SeqId" << std::endl;
-    std::cout << "global_seq_id: " << global_seq_id << std::endl;
-    std::cout << "list_sum_nb_seqs size: " << this->list_sum_nb_seqs.size() << std::endl;
-    std::cout << "list_sum_nb_seqs: ";
-    for (const auto &elem : this->list_sum_nb_seqs) {
-        std::cout << elem << " ";
-    }
-    std::cout << std::endl;
-    std::cout << " just befor call map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased" << std::endl;
-    
+{   
     return SequenceIdManager::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(this->list_sum_nb_seqs, global_seq_id);
 }
 

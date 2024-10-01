@@ -71,9 +71,7 @@ vector<string> FastaFilesReader::getListSequences(const string &file_name)
 
 vector<string> FastaFilesReader::getListSequences(const string &file_name)
 {
-    std::cout << "getListSequences --------- " << std::endl;
-    std::cout << "file_name: " << file_name << std::endl;
-
+    // get all the sequences in the file
     vector<string> list_sequences;
 
     std::ifstream input(file_name, std::ios::binary);  // Open in binary mode
@@ -82,8 +80,6 @@ vector<string> FastaFilesReader::getListSequences(const string &file_name)
         std::cout << " !input.good() -> return an empty vector" << std::endl;
         return list_sequences; // return an empty vector
     }
-
-    std::cout << "input.good() " << std::endl;
 
     std::string line, sequence;
     char c;
@@ -115,8 +111,6 @@ vector<string> FastaFilesReader::getListSequences(const string &file_name)
 
     input.close();
 
-    std::cout << "list_sequences size: " << list_sequences.size() << std::endl;
-
     return list_sequences;
 }
 
@@ -130,8 +124,6 @@ vector<vector<string>> FastaFilesReader::getListFamiliesSequences(const vector<s
     for (const auto & file_name : list_families_files_names) {
         list_families_sequences.push_back(getListSequences(file_name));
     }
-
-    std::cout << "list_families_sequences size: " << list_families_sequences.size() << std::endl;
 
     return list_families_sequences;
 }
@@ -148,19 +140,10 @@ inline char FastaFilesReader::separator()
 
 vector<vector<string>> FastaFilesReader::getListFamiliesSequences(const string &path_dir_families_files_names)
 {
-    cout << "path_dir_families_files_names: " << path_dir_families_files_names << endl;
-
+    // get all the files in the directory
     auto list_families_files_names = getListFiles(path_dir_families_files_names);
-
-    cout << "list_families_files_names size: " << list_families_files_names.size() << endl;
-    for (const auto &file_name : list_families_files_names) {
-        cout << "file_name: " << file_name << endl;
-    }
     
     auto list_families_sequences = getListFamiliesSequences(list_families_files_names);
-
-    // nb of sequences:
-    cout << "list_families_sequences size: " << list_families_sequences.size() << endl;
 
     return list_families_sequences;
 }
