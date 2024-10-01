@@ -24,20 +24,18 @@ private:
 
     bool are_sequences_grouped_in_families; // true if sequences are grouped in families, which means that each sequence have family id and local seq id.
 
-    bool is_use_seq_sequential_global_indexing; // use a unique index for all sequences, either all sequences or all sequences in all families. simply incrementing by one for each sequence.
-
     unsigned int nb_all_sequences; // total number of sequences (either all sequences or all sequences in all families)
 
     uint32_t max_length_motif; // max length of motifs [1.. sequence_length], if 0, we use for each separate sequences its length.
     uint32_t min_length_motif;
+
+    // min length of motifs [1..(sequence_length-1)]. min_length < max_length
+    bool is_use_min_max_length_motif;
+
 public:
     uint32_t getMinLengthMotif() const;
     uint32_t getMaxLengthMotif() const;
 
-private:
-    // min length of motifs [1..(sequence_length-1)]. min_length < max_length
-
-    bool is_use_min_max_length_motif;
 
 private:
     void AddString(string str, unsigned int idx_seq);
@@ -45,14 +43,7 @@ private:
     void addAllSubMotifMin(const string &str, uint32_t idx_str);
     inline void addSubStr(const string &str, uint32_t idx_str, uint32_t from, uint32_t to);
 
-    void check_and_set_sequential_indexing_strategy();
     void build_family_seq_global_index_map();
-
-    pair<unsigned int, unsigned int> decompose_global_seq_id_to_family_and_local_seq_ids(unsigned int seq_id) const;
-    static pair<unsigned int, unsigned int> map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(const vector<unsigned int> &list_sum_nb_elements, unsigned int global_seq_id);
-    // what the difference between the two functions ??
-
-    unsigned int generate_global_seq_id_from_family_and_local_ids(unsigned int idx_family, unsigned int idx_seq_in_family) const;// generate global sequence id (id in all sequences) based on family id and local sequence id in family
 
     int get_num_char(char my_char) const;
 
@@ -71,7 +62,6 @@ public:
     const vector<vector<string>> &getListFamiliesSeqs() const;
 
     bool isSequencesAreGroupedByFamilies() const;
-    bool isUseIndexForSeqsId() const;
 
     const string &getSeq(unsigned int global_seq_id) const;
 
