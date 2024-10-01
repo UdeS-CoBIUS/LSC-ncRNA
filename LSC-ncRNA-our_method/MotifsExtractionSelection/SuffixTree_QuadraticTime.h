@@ -77,6 +77,8 @@ public:
     bool CheckGST(vector<string> &listStrings) const;
 
     unsigned int getNbAllSequences() const;
+
+    const vector<unsigned int> getListSumNbSeqs() const;
 };
 
 

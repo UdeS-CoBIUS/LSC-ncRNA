@@ -1,5 +1,6 @@
 #include "SequenceIdManager.h"
 
+#include <iostream>
 
 // implementation of the methods
 
@@ -61,9 +62,17 @@ SequenceIdManager::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(c
     }
 
     // Print the result for debugging
-    //std::cout << "idx_family: " << idx_family << std::endl;
-    //std::cout << "idx_seq_in_family: " << idx_seq_in_family << std::endl;
-
+    /*
+    std::cout << " in SequenceIdManager::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased" << std::endl;
+    std::cout << "list_sum_nb_elements size : " << list_sum_nb_elements.size() << std::endl;
+    for (const auto &elem : list_sum_nb_elements) {
+        std::cout << elem << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "global_seq_id: " << global_seq_id << std::endl;
+    std::cout << "idx_family: " << idx_family << std::endl;
+    std::cout << "idx_seq_in_family: " << idx_seq_in_family << std::endl;
+    */
     return make_pair(idx_family,idx_seq_in_family);
 }
 

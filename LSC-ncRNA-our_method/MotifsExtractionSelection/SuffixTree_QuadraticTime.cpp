@@ -305,6 +305,17 @@ bool SuffixTree_QuadraticTime::isSequencesAreGroupedByFamilies() const {
 //pair<unsigned int, unsigned int> SuffixTree_QuadraticTime::get_FamilyId_And_SeqId(unsigned int seq_id) const
 pair<unsigned int, unsigned int> SuffixTree_QuadraticTime::get_FamilyId_And_SeqId(unsigned int global_seq_id) const
 {
+    // here list_sum_nb_seqs is empty, I don't know why ??? 
+    std::cout << "in SuffixTree_QuadraticTime::get_FamilyId_And_SeqId" << std::endl;
+    std::cout << "global_seq_id: " << global_seq_id << std::endl;
+    std::cout << "list_sum_nb_seqs size: " << this->list_sum_nb_seqs.size() << std::endl;
+    std::cout << "list_sum_nb_seqs: ";
+    for (const auto &elem : this->list_sum_nb_seqs) {
+        std::cout << elem << " ";
+    }
+    std::cout << std::endl;
+    std::cout << " just befor call map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased" << std::endl;
+    
     return SequenceIdManager::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(this->list_sum_nb_seqs, global_seq_id);
 }
 
@@ -399,4 +410,8 @@ uint32_t SuffixTree_QuadraticTime::getMinLengthMotif() const {
 
 uint32_t SuffixTree_QuadraticTime::getMaxLengthMotif() const {
     return this->max_length_motif;
+}
+
+const vector<unsigned int> SuffixTree_QuadraticTime::getListSumNbSeqs() const {
+    return list_sum_nb_seqs;
 }

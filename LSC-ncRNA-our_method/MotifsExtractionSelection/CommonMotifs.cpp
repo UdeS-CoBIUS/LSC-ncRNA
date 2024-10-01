@@ -8,6 +8,7 @@
 #include "CommonMotifs.h"
 #include "hasher_Container.h"
 #include "SubSetDistancePercentage.h"
+#include "SequenceIdManager.h"
 
 CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta) : gst(gst), Beta(beta)
 {
@@ -38,7 +39,25 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int bet
     vec_flist.resize(gst.getMaxLengthMotif()+1,forward_list<uint32_t>()); //+1 to simplify the access, to avoid -1 (str.lenght vs str.lenght-1)
 
     this->nb_all_sequences = gst.getNbAllSequences();
+    
+    this->list_sum_nb_seqs = gst.getListSumNbSeqs();
+
+    std::cout << "in CommonMotifs constructor" << std::endl;
+    std::cout << "nb_all_sequences: " << this->nb_all_sequences << std::endl;
+    std::cout << "gst.getNbAllSequences(): " << gst.getNbAllSequences() << std::endl;
+    this->get_FamilyId_And_SeqId(1);
+    this->get_FamilyId_And_SeqId(40);
+    this->get_FamilyId_And_SeqId(60);
+    this->get_FamilyId_And_SeqId(65); 
+    std::cout << "local copy list_sum_nb_seqs: ";
+    for (const auto &sum : this->list_sum_nb_seqs) {
+        std::cout << sum << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "end CommonMotifs constructor" << std::endl;
+
 }
+
 
 void CommonMotifs::cmsExtractionSelection()
 {
@@ -963,7 +982,7 @@ unordered_map<uint32_t , uint32_t > CommonMotifs::groupeCountSeqsByFamily(const 
     for (const auto & pair_cm_seqId_nbOcc : cm_umap_seqId_nbOccs)
     {
         global_seqId = pair_cm_seqId_nbOcc.first;
-        family_id = this->gst.get_FamilyId_And_SeqId(global_seqId).first; //(idx_family,idx_seq_in_family)
+        family_id = this->get_FamilyId_And_SeqId(global_seqId).first; //(idx_family,idx_seq_in_family)
 
         if(umap_familyId_ndSeqs.find(family_id)==umap_familyId_ndSeqs.end())
         {
@@ -1108,7 +1127,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File(string file_output) const
         if(this->gst.isSequencesAreGroupedByFamilies())
         {
             //std::cout << "this->gst.isSequencesAreGroupedByFamilies() = True, i: " << i << std::endl;
-            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
             //std::cout << "pair_familyId_SeqId.first: " << pair_familyId_SeqId.first << std::endl;
             buffer+=util::to_string(pair_familyId_SeqId.first); //idx_family
         }
@@ -1195,7 +1214,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring(string file_output) cons
     {
         if(this->gst.isSequencesAreGroupedByFamilies())
         {
-            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
             buffer+=std::to_string(pair_familyId_SeqId.first); //idx_family
         }
         else
@@ -1266,7 +1285,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_stdtostring_size_estimated(string fi
     {
         if(this->gst.isSequencesAreGroupedByFamilies())
         {
-            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
             buffer+=std::to_string(pair_familyId_SeqId.first); //idx_family
         }
         else
@@ -1349,7 +1368,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_ofstream_write(string file_output) c
     {
         if(this->gst.isSequencesAreGroupedByFamilies())
         {
-            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
             buffer+=util::to_string(pair_familyId_SeqId.first); //idx_family
         }
         else
@@ -1409,7 +1428,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_dircrly(string file_output) const
     {
         if(this->gst.isSequencesAreGroupedByFamilies())
         {
-            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
             file_csv << pair_familyId_SeqId.first; //idx_family, // chatGPT std::ofstream has an operator << that accepts integers as well as other data types and it writes them to the file as a string, it internally converts the integer to string before it writes to the file. So it's not an error, it's a built-in feature of std::ofstream.
         }
         else
@@ -1465,7 +1484,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_rowByrow(string file_output) const
         buffer.clear();
         if(this->gst.isSequencesAreGroupedByFamilies())
         {
-            auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
+            auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i); //(idx_family,idx_seq_in_family)
             buffer+=std::to_string(pair_familyId_SeqId.first); //idx_family
         }
         else
@@ -1516,7 +1535,7 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_Chunked(string file_output, unsigned
         buffer.clear();
         for (unsigned int j = 0; j < chunk_size && (i + j) < nb_seqs; ++j) {
             if (this->gst.isSequencesAreGroupedByFamilies()) {
-                auto pair_familyId_SeqId = this->gst.get_FamilyId_And_SeqId(i + j); //(idx_family,idx_seq_in_family)
+                auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i + j); //(idx_family,idx_seq_in_family)
                 buffer += std::to_string(pair_familyId_SeqId.first); //idx_family
             } else {
                 buffer += "0"; //idx_family is 0, we have one family
@@ -1549,5 +1568,10 @@ unsigned int CommonMotifs::get_nb_all_sequences() const
 
     // number of row in the matrix_nbOcrrs_cmsSeqsIds
     // return this->matrix_nbOcrrs_cmsSeqsIds.size();
+}
+
+pair<unsigned int, unsigned int> CommonMotifs::get_FamilyId_And_SeqId(unsigned int global_seq_id) const
+{   
+    return SequenceIdManager::map_globalSeqId_To_FamilyAndLocalIds_Incremental_IndexBased(this->list_sum_nb_seqs, global_seq_id);
 }
 

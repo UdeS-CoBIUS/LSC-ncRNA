@@ -22,6 +22,8 @@ class CommonMotifs {
 
     unsigned int nb_all_sequences; // local copy of gst (nb_all_sequences) to avoid using  the reference to gst.getNbAllSequences(), because it could give inconsistent value (I don't know why).
 
+    vector<unsigned int> list_sum_nb_seqs; // local copy from gst (for indexing sequences by family)
+
     vector<vector<uint32_t >> matrix_nbOcrrs_cmsSeqsIds; // M[i][j]=M[row][clm]=M[seqId][CMs]==nb_occurrences
 
     //std::map<unsigned int,unsigned int> map_str_len_idx; // map<str_lenght, str_idx>, the goal is to retrive the idx of all str, that are lower or upper bound to a given str lenght.
@@ -80,6 +82,8 @@ private: // methods
     // ------------------------------------ Utils Methods
     static void umapMerge(umap_seqId_nbOccs_ &des, umap_seqId_nbOccs_ &src);
     unordered_map<uint32_t , uint32_t > groupeCountSeqsByFamily(const unordered_map<unsigned int, unsigned int> &cm_umap_seqId_nbOccs);
+
+    pair<unsigned int, unsigned int> get_FamilyId_And_SeqId(unsigned int global_seq_id) const; // a copy of the method in SuffixTree_QuadraticTime.h, to use local list_sum_nb_seqs, since we have pbm using the refrence this->gst.get_FamilyId_And_SeqId which give 0....
 
 public:
     CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta);
