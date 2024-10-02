@@ -662,3 +662,78 @@ if __name__ == "__main__":
 - The `MatrixCmsNStrNbOccs` executable is available in the current working directory.
 
 Make sure to adjust paths and parameters as necessary for your specific environment and data.
+
+
+
+# Compilation and configuration
+  
+## Python environment
+
+We use python3 , at least python 3.6
+
+### Create a virtual environment
+
+- 1. Create a virtual environment
+```bash
+python -m venv rna_env
+```
+
+- 2. Activate the virtual environment
+  - On Unix or MacOS:
+```bash
+source rna_env/bin/activate
+```
+  - On Windows:
+```bash
+rna_env\Scripts\activate
+```
+
+- 3. Upgrade pip
+```bash
+python -m pip install --upgrade pip
+```
+
+- 4. Install the required packages
+```bash
+pip install -r requirements.txt
+```
+
+- 5. Deactivate the virtual environment
+```bash
+deactivate
+```
+
+### Install the required packages
+
+All the required packages are in the `requirements.txt` file. To install the required packages, you can use the following command:
+```bash
+pip install -r requirements.txt
+```
+
+The individual packages used in this project are :
+install individually:
+```bash
+pip install <package_name>
+```
+
+- `biopython` : https://biopython.org/wiki/Download
+- `datatable` : https://datatable.readthedocs.io/en/latest/start/install.html 
+  on windows and linux, the package worked fine for me after the installation using thecommnd `pip install datatable`. But on mac os, i had to install the package using the command `pip install git+https://github.com/h2oai/datatable` (build from source).
+- `scikit-learn` : https://scikit-learn.org/stable/install.html 
+- `pandas` : https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html
+- `numpy` : https://numpy.org/install/
+- `portalocker` : https://pypi.org/project/portalocker/ , to install it use `pip install "portalocker[redis]"`
+
+
+note:
+- fcntl : is built-in library on linux and mac os only. Alternative : portalocker.
+
+
+
+
+## C++
+
+  __`C++14`__
+  
+
+

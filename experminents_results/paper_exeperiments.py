@@ -21,8 +21,8 @@ from pathlib import Path
 
 # define a global variable to use debug datasets
 is_debug_datasets_global_var: bool = True
-## debug_datasets_size_global_var: list[int] = [5, 10, 15, 20, 25, 30]
-debug_datasets_size_global_var: list[int] = [30]
+debug_datasets_size_global_var: list[int] = [5, 10, 15, 20, 25, 30]
+## debug_datasets_size_global_var: list[int] = [30]
 dir_main_path_debug_datasets_global_var: str = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
 
 def find_project_root(project_name: str = "LSC-ncRNA") -> Path:
@@ -225,8 +225,8 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
                 print(f"Results saved to {csv_path}")
 
                 # Step 10: Clean up the generated CSV file, since it will have big size
-                ## os.remove(result['output_csv_file'])
-                ## print(f"Cleaned up {result['output_csv_file']}")
+                os.remove(result['output_csv_file'])
+                print(f"Cleaned up {result['output_csv_file']}")
 
             except Exception as e:
                 print(

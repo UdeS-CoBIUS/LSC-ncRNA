@@ -1562,12 +1562,16 @@ void CommonMotifs::saveMatrixCMS_ToCsv_File_Optimized(const std::string& file_ou
         row_buffer.clear();
 
         // Add family ID
+        ///* // no need to check.
         if (this->gst.isSequencesAreGroupedByFamilies()) {
             auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i);
             row_buffer += std::to_string(pair_familyId_SeqId.first);
         } else {
             row_buffer += '0'; // idx_family is 0, we have one family
         }
+        //*/
+       //auto pair_familyId_SeqId = this->get_FamilyId_And_SeqId(i);
+       //row_buffer += std::to_string(pair_familyId_SeqId.first);
 
         // Add motif occurrences
         for (unsigned int j = 0; j < nb_motifs; ++j) {

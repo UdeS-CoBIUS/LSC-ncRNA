@@ -901,14 +901,16 @@ class Model:
         return list_classes
 
     def write_results_to_csv_file(self, file_out, family_name):
-        my_file = open(file_out, "a+")
+        import portalocker
+
         separator = ','
         line_result = family_name + separator + str(self.time_train) + separator + str(
             self.score_train) + separator + str(self.train_pred_score) + separator + str(
             self.time_test) + separator + str(self.accuracy) + separator + str(self.Precision) + separator + str(
             self.Recall) + separator + str(self.Fbs) + separator + "\n"
 
-        fcntl.flock(my_file, fcntl.LOCK_EX) # because i use multi processing to write to the same file.
-        my_file.write(line_result)
-        fcntl.flock(my_file, fcntl.LOCK_UN)
-        my_file.close()
+        lock = portalocker.RedisLock('csv_write_lock')
+
+        with lock:
+            with open(file_out, "a+") as my_file:
+                my_file.write(line_result)
