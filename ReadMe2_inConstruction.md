@@ -723,10 +723,9 @@ pip install <package_name>
 - `pandas` : https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html
 - `numpy` : https://numpy.org/install/
 - `portalocker` : https://pypi.org/project/portalocker/ , to install it use `pip install "portalocker[redis]"`
-
-
-note:
-- fcntl : is built-in library on linux and mac os only. Alternative : portalocker.
+- `xgboost` : https://xgboost.readthedocs.io/en/latest/install.html  this is not necessary, We didn't use this model in our study.
+- `pyahocorasick` : https://pypi.org/project/pyahocorasick/
+- `suffix-trees` : https://pypi.org/project/suffix-trees/
 
 
 

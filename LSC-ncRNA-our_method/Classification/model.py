@@ -1,7 +1,7 @@
 import os
 import time
-import fcntl
-
+## import fcntl # this is only on linux and mac os, not on windows. we use portalocker instead
+import portalocker # instead of fcntl, we use portalocker which is cross-platform compatible
 import pandas as pd
 import datatable as dt
 import numpy as np
@@ -901,8 +901,7 @@ class Model:
         return list_classes
 
     def write_results_to_csv_file(self, file_out, family_name):
-        import portalocker
-
+        
         separator = ','
         line_result = family_name + separator + str(self.time_train) + separator + str(
             self.score_train) + separator + str(self.train_pred_score) + separator + str(
