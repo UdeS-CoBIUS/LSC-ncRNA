@@ -724,6 +724,7 @@ pip install <package_name>
 - `numpy` : https://numpy.org/install/
 - `portalocker` : https://pypi.org/project/portalocker/ , to install it use `pip install "portalocker[redis]"`
 - `xgboost` : https://xgboost.readthedocs.io/en/latest/install.html  this is not necessary, We didn't use this model in our study.
+-     + `brew install libomp` for mac os, we need to install libomp, it is required by xgboost.
 - `pyahocorasick` : https://pypi.org/project/pyahocorasick/
 - `suffix-trees` : https://pypi.org/project/suffix-trees/
 

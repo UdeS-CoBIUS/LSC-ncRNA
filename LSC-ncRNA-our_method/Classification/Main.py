@@ -12,7 +12,6 @@ import argparse
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="RNA Classification")
-    parser.add_argument("-h", "--help", action="store_true", help="Show this help message and exit")
     parser.add_argument("-m", "--mlm", choices=['EXT', 'MLP', 'VOT', 'RDF', 'XGB'], help="Choose machine learning model")
     parser.add_argument("-t", "--train-csv", help="Path to training CSV matrix")
     parser.add_argument("-d", "--test-dir", help="Path to test files directory")
@@ -51,7 +50,7 @@ def print_input_args(args):
 def main():
     args = parse_arguments()
     
-    if args.help or len(sys.argv) == 1:
+    if len(sys.argv) == 1:
         print_args_info()
         sys.exit(0)
     
