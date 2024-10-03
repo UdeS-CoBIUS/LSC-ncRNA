@@ -17,10 +17,12 @@ import construct_test_matrix as ctm
 
 from xgboost import XGBClassifier
 
-
 class Model:
+    def __init__(self, n_job=1, train_csv_path=None):
+        # ... (existing initialization code) ...
+        self.train_csv_path = train_csv_path
+        self.model_name = None
 
-    def __init__(self, n_job=1):
         local_n_estimators = 700
         self.ExTrCl = ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job)
         self.nlp = MLPClassifier(max_iter=800)
@@ -34,6 +36,8 @@ class Model:
             ('rdf', ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job))
         ], voting='soft', weights=[1, 1, 1], n_jobs=n_job)
 
+
+        self.full_test_name: str = f"{self.mlm}_{os.path.basename(self.train_csv_path)}"
         self.time_train = 0
         self.score_train = 0
         self.train_pred_score = 0
@@ -42,6 +46,40 @@ class Model:
         self.Precision = 0
         self.Recall = 0
         self.Fbs = 0
+
+
+    def train(self, model_name):
+        self.model_name = model_name
+        if model_name == 'EXT':
+            self.ext_train_with_dt(self.train_csv_path)
+        elif model_name == 'MLP':
+            self.nlp_train_with_dt(self.train_csv_path)
+        elif model_name == 'RDF':
+            self.rdf_train_with_dt(self.train_csv_path)
+        elif model_name == 'XGB':
+            self.xgb_train_with_dt(self.train_csv_path)
+        elif model_name == 'VOT':
+            self.train_voting(self.train_csv_path)
+        else:
+            raise ValueError(f"Unknown model name: {model_name}")
+
+    def test(self, test_dir, file_ext):
+        if not self.model_name:
+            raise ValueError("Model has not been trained yet. Call train() first.")
+        
+        if self.model_name == 'EXT':
+            self.test_group_score(test_dir, file_ext)
+        elif self.model_name == 'MLP':
+            self.nlp_test_group_score(test_dir, file_ext)
+        elif self.model_name == 'RDF':
+            self.rdf_test_group_score(test_dir, file_ext)
+        elif self.model_name == 'XGB':
+            self.xgb_test_group_score(test_dir, file_ext)
+        elif self.model_name == 'VOT':
+            self.test_voting(test_dir, file_ext)
+        else:
+            raise ValueError(f"Unknown model name: {self.model_name}")
+
 
     def train_test_from_one_CSV_file_pd(self, csv_file_path, test_size):
         start_time = time.time()
@@ -211,7 +249,7 @@ class Model:
         print(" score_train = ", score_train, " | Train score = ", train_score, " | Test score = ", test_score)
         # print(" Len list motifs : ",len(data_motif.names))
 
-    def train_with_dt(self, csv_file_path):
+    def ext_train_with_dt(self, csv_file_path):
         start_0_time = time.time()
         data_arn = dt.fread(csv_file_path)
         end_time = time.time()
@@ -900,10 +938,10 @@ class Model:
 
         return list_classes
 
-    def write_results_to_csv_file(self, file_out, family_name):
+    def write_results_to_csv_file(self, file_out):
         
         separator = ','
-        line_result = family_name + separator + str(self.time_train) + separator + str(
+        line_result = self.full_test_name + separator + str(self.time_train) + separator + str(
             self.score_train) + separator + str(self.train_pred_score) + separator + str(
             self.time_test) + separator + str(self.accuracy) + separator + str(self.Precision) + separator + str(
             self.Recall) + separator + str(self.Fbs) + separator + "\n"
@@ -913,3 +951,16 @@ class Model:
         with lock:
             with open(file_out, "a+") as my_file:
                 my_file.write(line_result)
+
+    def print_results(self):
+        print("EXPERIMENT_RESULTS_START")
+        print(f"Full_test_name: {self.full_test_name}")
+        print(f"Training_Time: {self.time_train}")
+        print(f"Training_Score: {self.score_train}")
+        print(f"Training_Prediction_Score: {self.train_pred_score}")
+        print(f"Classification_Time: {self.time_test}")
+        print(f"Accuracy: {self.accuracy}")
+        print(f"Precision: {self.Precision}")
+        print(f"Recall: {self.Recall}")
+        print(f"F1_Score: {self.Fbs}")
+        print("EXPERIMENT_RESULTS_END")

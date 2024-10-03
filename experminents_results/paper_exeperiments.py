@@ -702,6 +702,42 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
 
 
 
+# -------------------------------------------
+# -------------------------------------------
+# run the classification experiments
+
+def run_classification_experiments(mlm: str, train_csv: str, test_dir: str, file_ext: str = ".fasta.txt", n_job: int = -1):
+    # Get the project root directory
+    project_root = find_project_root()
+
+    # Set up paths
+    classification_script = project_root / "LSC-ncRNA-our_method/Classification/Main.py"
+    results_dir = project_root / "results"
+    os.makedirs(results_dir, exist_ok=True)
+
+    output_file = results_dir / f"classification_results_{mlm}.txt"
+    
+    command = [
+        "python", str(classification_script),
+        "-m", mlm,
+        "-t", train_csv,
+        "-d", test_dir,
+        "-e", file_ext,
+        "-j", str(n_job)
+    ]
+
+    print(f"Running classification for model {mlm}")
+    
+    try:
+        with open(output_file, 'w') as f:
+            subprocess.run(command, check=True, stdout=f, stderr=subprocess.STDOUT)
+        print(f"Classification completed. Results saved to {output_file}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error running classification for model {mlm}: {e}")
+        print(f"Check {output_file} for details")
+
+    print("Classification experiment completed.")
+
 
 def main():
 

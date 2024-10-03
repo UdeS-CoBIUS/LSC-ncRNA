@@ -59,74 +59,18 @@ def main():
         print_args_info()
         sys.exit(1)
 
-    choose_mlm = args.mlm
-    dir_in_train_csv_matrix = args.train_csv
-    dir_in_test_files = args.test_dir
-    file_ext = args.file_ext
-    n_job = args.n_job
-
     print_input_args(args)
-    # exit for debug
-    exit()
-    
-    clm = Model(n_job)
 
-    # clm.test_create_dt_df()
-    # return
+    clm = Model(args.n_job, args.train_csv)
 
-    # print(" train_test_from_one_CSV_file : ---------------------- ")
-    # clm.train_test_from_one_CSV_file(dir_in_train_test_csv_matrix,test_size)
-    # clm.train_test_from_one_CSV_file_dt(dir_in_train_test_csv_matrix,test_size)
+    print("\nTraining model...")
+    clm.train(args.mlm)
 
-    print("\n Train and then Test from real seqs : -----------------------")
-    print(" Train using matrix : -----------------------")
-    # clm.train(dir_in_train_csv_matrix)
+    print("\nTesting model...")
+    clm.test(args.mlm, args.test_dir, args.file_ext)
 
-    if choose_mlm == 'EXT':
-        print("train for EXT ")
-        clm.train_with_dt(dir_in_train_csv_matrix)
-    elif choose_mlm == 'NLP':
-        print("train for nlp ")
-        clm.nlp_train_with_dt(dir_in_train_csv_matrix)
-        # clm.train_motifs_oneChars_MLP(dir_in_train_csv_matrix,file_ext)
-    elif choose_mlm == 'RDF':
-        print("train for RDF ")
-        clm.rdf_train_with_dt(dir_in_train_csv_matrix)
-    elif choose_mlm == 'XGB':
-        print("train for XGB ")
-        clm.xgb_train_with_dt(dir_in_train_csv_matrix)
-    else:
-        print("train for voting model")
-        clm.train_voting(dir_in_train_csv_matrix)
-
-    # clm.train_motifs_oneChars(dir_in_train_files, file_ext)
-
-    # print("\n Pred Train by seqs in : ----------------------- ")
-    # clm.test_group_score(dir_in_train_files, file_ext)
-    # return 0
-
-    print("\n Pred Test by seqs in : ----------------------- ")
-
-    if choose_mlm == 'EXT':
-        print("test for EXT")
-        clm.test_group_score(dir_in_test_files, file_ext)
-    elif choose_mlm == 'NLP':
-        print("test for nlp")
-        clm.nlp_test_group_score(dir_in_test_files, file_ext)
-    elif choose_mlm == 'RDF':
-        print("test for RDF")
-        clm.rdf_test_group_score(dir_in_test_files, file_ext)
-    elif choose_mlm == "XGB":
-        print("test for Xgboost")
-        clm.xgb_test_group_score(dir_in_test_files, file_ext)
-    else:
-        print("test for voting model")
-        clm.test_voting(dir_in_test_files, file_ext)
-
-    file_out = "Secondary_noSecondary_trainTest_results.csv"
-    
-    test_name = f"{args.mlm}_{os.path.basename(args.train_csv)}"
-    clm.write_results_to_csv_file(file_out, test_name)
+    # clm.write_results_to_csv_file("Secondary_noSecondary_trainTest_results.csv")
+    clm.print_results()
 
     return 0
 
