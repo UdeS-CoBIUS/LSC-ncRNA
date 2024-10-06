@@ -38,7 +38,9 @@ class Model:
 
 
         self.full_test_name: str = f"{self.mlm}_{os.path.basename(self.train_csv_path)}"
-        self.time_train = 0
+        self.time_read_csv_datatable = 0 # time to read the csv file with datatable
+        self.time_fit_model = 0 # time to fit the model
+        self.total_time_train = 0 # total time train : read csv + fit model + save motifs
         self.score_train = 0
         self.train_pred_score = 0
         self.time_test = 0
@@ -79,6 +81,30 @@ class Model:
             self.test_voting(test_dir, file_ext)
         else:
             raise ValueError(f"Unknown model name: {self.model_name}")
+
+    def _train_with_dt(self, model):
+        start_0_time = time.time()
+        data_arn = dt.fread(self.train_csv_path)
+        self.time_read_csv_datatable = time.time() - start_0_time
+
+        data_classe = np.ravel(data_arn[:, "familyId"])
+        del data_arn[:, "familyId"]
+
+        start_time_train = time.time()
+        model.fit(data_arn, data_classe)
+        self.time_fit_model = time.time() - start_time_train
+     
+        self.list_motifs = data_arn.names  # save list of used motifs in classification
+        
+        # Total time train : read csv + train + save motifs
+        self.total_time_train = time.time() - start_0_time
+        
+        # statistics
+        self.score_train = model.score(data_arn, data_classe) # Calculate accuracy score on training data
+        pred_train = model.predict(data_arn) # Make predictions on training data for further evaluation
+        self.train_pred_score = accuracy_score(data_classe, pred_train) # Calculate accuracy score on training data predictions
+
+
 
 
     def train_test_from_one_CSV_file_pd(self, csv_file_path, test_size):
@@ -280,7 +306,7 @@ class Model:
         print(" Len list motifs : ", len(list(data_arn)))
         print("list motifs len : {}".format(len(self.list_motifs)))
 
-        self.time_train = end_time - start_0_time
+        self.total_time_train = end_time - start_0_time
 
     def nlp_train_with_dt(self, csv_file_path):
         start_0_time = time.time()
@@ -313,7 +339,7 @@ class Model:
         print(" Len list motifs : ", len(list(data_arn)))
         print("list motifs len : {}".format(len(self.list_motifs)))
 
-        self.time_train = end_time - start_0_time
+        self.total_time_train = end_time - start_0_time
 
 
     def rdf_train_with_dt(self, csv_file_path):
@@ -347,7 +373,7 @@ class Model:
         print(" Len list motifs : ", len(list(data_arn)))
         print("list motifs len : {}".format(len(self.list_motifs)))
 
-        self.time_train = end_time - start_0_time
+        self.total_time_train = end_time - start_0_time
 
 
     def xgb_train_with_dt(self, csv_file_path):
@@ -381,7 +407,7 @@ class Model:
         print(" Len list motifs : ", len(list(data_arn)))
         print("list motifs len : {}".format(len(self.list_motifs)))
 
-        self.time_train = end_time - start_0_time
+        self.total_time_train = end_time - start_0_time
 
 
 
@@ -783,7 +809,7 @@ class Model:
         print(" Len list motifs : ", len(list(dt_frame)))
         print("list motifs len : {}".format(len(self.list_motifs)))
 
-        self.time_train = end_time - start_0_time
+        self.total_time_train = end_time - start_0_time
         self.score_train = score_train
         self.train_pred_score = train_pred_score
 
@@ -820,7 +846,7 @@ class Model:
         print(" Len list motifs : ", len(list(data_arn)))
         print("list motifs len : {}".format(len(self.list_motifs)))
 
-        self.time_train = end_time - start_0_time
+        self.total_time_train = end_time - start_0_time
 
     def test_voting(self, dir_in_files, file_ext):
         start_time_test = time.time()
@@ -941,7 +967,7 @@ class Model:
     def write_results_to_csv_file(self, file_out):
         
         separator = ','
-        line_result = self.full_test_name + separator + str(self.time_train) + separator + str(
+        line_result = self.full_test_name + separator + str(self.total_time_train) + separator + str(
             self.score_train) + separator + str(self.train_pred_score) + separator + str(
             self.time_test) + separator + str(self.accuracy) + separator + str(self.Precision) + separator + str(
             self.Recall) + separator + str(self.Fbs) + separator + "\n"
@@ -955,7 +981,7 @@ class Model:
     def print_results(self):
         print("EXPERIMENT_RESULTS_START")
         print(f"Full_test_name: {self.full_test_name}")
-        print(f"Training_Time: {self.time_train}")
+        print(f"Training_Time: {self.total_time_train}")
         print(f"Training_Score: {self.score_train}")
         print(f"Training_Prediction_Score: {self.train_pred_score}")
         print(f"Classification_Time: {self.time_test}")
