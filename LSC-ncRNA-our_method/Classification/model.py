@@ -15,8 +15,6 @@ from sklearn.metrics import confusion_matrix
 
 import construct_test_matrix as ctm
 
-from xgboost import XGBClassifier
-
 class Model:
     def __init__(self, n_job=1, train_csv_path=None):
         # ... (existing initialization code) ...
@@ -28,7 +26,6 @@ class Model:
         self.nlp = MLPClassifier(max_iter=800)
         #self.rdf = RandomForestClassifier(n_jobs=n_job)
         self.rdf = RandomForestClassifier(n_estimators=local_n_estimators, n_jobs=n_job)
-        self.xgb = XGBClassifier(n_estimators=local_n_estimators, n_jobs=n_job)
         self.list_motifs = None
         self.voted_model = VotingClassifier(estimators=[
             ('ext', ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job)),
@@ -51,19 +48,31 @@ class Model:
 
 
     def train(self, model_name):
+
         self.model_name = model_name
-        if model_name == 'EXT':
-            self.ext_train_with_dt(self.train_csv_path)
-        elif model_name == 'MLP':
-            self.nlp_train_with_dt(self.train_csv_path)
-        elif model_name == 'RDF':
-            self.rdf_train_with_dt(self.train_csv_path)
-        elif model_name == 'XGB':
-            self.xgb_train_with_dt(self.train_csv_path)
-        elif model_name == 'VOT':
-            self.train_voting(self.train_csv_path)
-        else:
+        train_methods = {
+            'EXT': self.ExTrCl,
+            'MLP': self.nlp,
+            'RDF': self.rdf,
+            'VOT': self.voted_model
+        }
+    
+        if model_name not in train_methods:
             raise ValueError(f"Unknown model name: {model_name}")
+    
+        self._train_with_dt(train_methods[model_name])
+
+        # self.model_name = model_name
+        # if model_name == 'EXT':
+        #     self.ext_train_with_dt(self.train_csv_path)
+        # elif model_name == 'MLP':
+        #     self.nlp_train_with_dt(self.train_csv_path)
+        # elif model_name == 'RDF':
+        #     self.rdf_train_with_dt(self.train_csv_path)
+        # elif model_name == 'VOT':
+        #     self.train_voting(self.train_csv_path)
+        # else:
+        #     raise ValueError(f"Unknown model name: {model_name}")
 
     def test(self, test_dir, file_ext):
         if not self.model_name:
@@ -75,8 +84,6 @@ class Model:
             self.nlp_test_group_score(test_dir, file_ext)
         elif self.model_name == 'RDF':
             self.rdf_test_group_score(test_dir, file_ext)
-        elif self.model_name == 'XGB':
-            self.xgb_test_group_score(test_dir, file_ext)
         elif self.model_name == 'VOT':
             self.test_voting(test_dir, file_ext)
         else:
@@ -376,41 +383,6 @@ class Model:
         self.total_time_train = end_time - start_0_time
 
 
-    def xgb_train_with_dt(self, csv_file_path):
-        start_0_time = time.time()
-        data_arn = dt.fread(csv_file_path)
-        end_time = time.time()
-        print(" time Read_csv file : ", end_time - start_0_time, " s")
-
-        # start_time = time.time()
-        data_classe = np.ravel(data_arn[:, "familyId"])
-        # end_time = time.time()
-        # print(" time get class array = ", end_time - start_time)
-
-        del data_arn[:, "familyId"]
-
-        start_time_train = time.time()
-        self.xgb.fit(data_arn, data_classe)
-        end_time = time.time()
-
-        print(" train only time : ", end_time - start_time_train, " s")
-
-        self.list_motifs = data_arn.names  # save list of use motifs in classification
-
-        # statistics
-        self.score_train = self.xgb.score(data_arn, np.ravel(data_classe))
-        pred_train = self.xgb.predict(data_arn)
-        self.train_pred_score = accuracy_score(np.ravel(data_classe), pred_train)
-
-        print("all Time Train = ", end_time - start_0_time, " s")
-        print(" score_train = ", self.score_train, " | Train pred score = ", self.train_pred_score)
-        print(" Len list motifs : ", len(list(data_arn)))
-        print("list motifs len : {}".format(len(self.list_motifs)))
-
-        self.total_time_train = end_time - start_0_time
-
-
-
     def prediction_pd(self, test_matrix):
         start_0_time = time.time()
         dt_dftest = pd.DataFrame(test_matrix, columns=self.list_motifs)
@@ -471,16 +443,7 @@ class Model:
 
         return result
 
-    def xgb_prediction_numpy(self, test_matrix):
-
-        start_time = time.time()
-        result = self.xgb.predict(test_matrix)
-        end_time = time.time()
-
-        print(" Time pred only = ", end_time - start_time, " s")
-
-        return result
-
+    
     def test_groupe_score_dt(self, test_matrix, list_classes):
         start_0_time = time.time()
         dt_dftest = dt.Frame(np.array(test_matrix), names=self.list_motifs)
@@ -680,63 +643,7 @@ class Model:
             print("{} = Accuracy: {} | {} ".format(id_cls_di, per_class_accuracies[id_cls_di], res_cla_reprot[id_cls_di]))
 
 
-    def xgb_test_group_score(self, dir_in_files, file_ext):
-        start_time_test = time.time()
-        list_all_seqs = self.get_all_seqs(dir_in_files, file_ext)
-
-        start_time_ctm = time.time()
-        matrix_test = ctm.get_matrix_nbOcrrs_listStr_AhoCorasick(self.list_motifs, list_all_seqs)
-
-        # added to slove xgb pbm
-        np_matrix_test = np.array(matrix_test)
-        dt_df_test = dt.Frame(np_matrix_test, names=self.list_motifs)
-
-        end_time_ctm = time.time()
-
-        #result_pred = self.xgb_prediction_numpy(matrix_test)
-        result_pred = self.xgb_prediction_numpy(dt_df_test)
-
-        end_time_test = time.time()
-
-        # check the score accuracy
-        list_all_classes_ids = self.get_all_classes_ids(dir_in_files, file_ext)
-        score_test = accuracy_score(list_all_classes_ids, result_pred)
-        result_scores = precision_recall_fscore_support(list_all_classes_ids, result_pred, average='macro')
-
-        # printing:
-        print("list all seqs len: ", len(list_all_seqs))
-        print(" time matrix construction By AC :", end_time_ctm - start_time_ctm, " s")
-        print(" --> time test (all):", end_time_test - start_time_test, " s")
-        print(" Accuracy score test = ", score_test)
-        print(" Other test score = ", result_scores)
-
-        self.time_test = end_time_test - start_time_test
-        self.accuracy = score_test
-        self.Precision = result_scores[0]
-        self.Recall = result_scores[1]
-        self.Fbs = result_scores[2]
-
-        print("-----------------------------------------------------")
-
-        list_all_classes_names = self.get_all_classes_names(dir_in_files, file_ext)
-        res_cla_reprot = classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4, output_dict=True)
-
-        per_class_accuracies = self.get_accuracy_for_individeul_class(list_all_classes_ids, list_all_classes_names,
-                                                                      result_pred)
-
-        #print(classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4))
-        #print(res_cla_reprot)
-        id_cls_sh = "RF00906_328_seqs_shuffled.fasta"
-        id_cls_rd = "RF00906_328_random_seqs.fasta"
-        id_cls_di = "RF00906_328_seqs_dinucleotide.fasta"
-
-        if id_cls_sh in per_class_accuracies:
-            print("{} = Accuracy: {} | {} ".format(id_cls_sh, per_class_accuracies[id_cls_sh], res_cla_reprot[id_cls_sh]))
-        if id_cls_rd in per_class_accuracies:
-            print("{} = Accuracy: {} | {} ".format(id_cls_rd, per_class_accuracies[id_cls_rd], res_cla_reprot[id_cls_rd]))
-        if id_cls_di in per_class_accuracies:
-            print("{} = Accuracy: {} | {} ".format(id_cls_di, per_class_accuracies[id_cls_di], res_cla_reprot[id_cls_di]))
-
+    
     def get_accuracy_for_individeul_class(self, list_class_ids, list_class_names, result_pred):
 
         # Get the confusion matrix
