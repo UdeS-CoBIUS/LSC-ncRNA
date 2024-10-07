@@ -81,9 +81,11 @@ class Model:
         # check if the model is trained
         # this can be checked by sklearn.utils.validation.check_is_fitted
         # or see : https://stackoverflow.com/questions/39884009/whats-the-best-way-to-test-whether-an-sklearn-model-has-been-fitted
-        if not hasattr(model, 'is_fitted_') or not model.is_fitted_:
-            raise ValueError("Model is not trained. Call train() first.")
-        
+        ## if not hasattr(model, 'is_fitted_') or not model.is_fitted_:
+        ##    raise ValueError("Model is not trained. Call train() first.")
+        # According to Stack Overflow, generally 'check_is_fitted' is implemented inside predict, so it will raise the exception if needed. If we want, we can just surround the model.predict with a try-catch block.
+        # so here we do nothing.
+
         self._test(model)
 
     def _train_with_dt(self, model):
@@ -333,8 +335,8 @@ class Model:
         del data_arn[:, "familyId"]
 
         start_time_train = time.time()
-        nlp = self._get_model('NLP')
-        nlp.fit(data_arn, data_classe)
+        mlp = self._get_model('MLP')
+        mlp.fit(data_arn, data_classe)
         end_time = time.time()
 
         print(" train only time : ", end_time - start_time_train, " s")
@@ -342,8 +344,8 @@ class Model:
         self.list_motifs = data_arn.names  # save list of use motifs in classification
 
         # statistics
-        self.score_train = nlp.score(data_arn, np.ravel(data_classe))
-        pred_train = nlp.predict(data_arn)
+        self.score_train = mlp.score(data_arn, np.ravel(data_classe))
+        pred_train = mlp.predict(data_arn)
         self.train_pred_score = accuracy_score(np.ravel(data_classe), pred_train)
 
         print("all Time Train = ", end_time - start_0_time, " s")
@@ -444,8 +446,8 @@ class Model:
 
     def nlp_prediction_numpy(self, test_matrix):
         start_time = time.time()
-        nlp = self._get_model('NLP')
-        result = nlp.predict(test_matrix)
+        mpl = self._get_model('MLP')
+        result = mpl.predict(test_matrix)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -814,7 +816,7 @@ class Model:
 
         start_time_train = time.time()
 
-        voted_model = self._get_model('VOTED')
+        voted_model = self._get_model('VOT')
         voted_model.fit(data_arn, data_classe)
 
         end_time = time.time()
@@ -844,7 +846,7 @@ class Model:
         end_time_ctm = time.time()
 
         start_time = time.time()
-        voted_model = self._get_model('VOTED')
+        voted_model = self._get_model('VOT')
         result_pred = voted_model.predict(matrix_test)
         end_time = time.time()
         print(" Time pred only = ", end_time - start_time, " s")
@@ -1002,7 +1004,7 @@ class Model:
         return list_classes_ids
 
     @staticmethod
-    def get_all_seqs_and_thier_classes(dir_in, file_ext):
+    def get_all_seqs_and_their_classes(dir_in, file_ext):
 
         list_files = Model.get_all_fasta_files_in_the_dir(dir_in, file_ext)
 
@@ -1034,16 +1036,34 @@ class Model:
                 my_file.write(line_result)
 
     def print_results(self, is_detailed_report=True):
-        print("EXPERIMENT_RESULTS_START")
+        print("EXPERIMENT_RESULTS_START\n")
+        
+        # General Information
+        print("=== General Information ===")
         print(f"Full_test_name: {self.full_test_name}")
-        print(f"Training_Time: {self.total_time_train}")
-        print(f"Training_Score: {self.score_train}")
-        print(f"Training_Prediction_Score: {self.train_pred_score}")
-        print(f"Classification_Time: {self.total_time_test}")
-        print(f"Accuracy: {self.accuracy}")
-        print(f"Precision: {self.precision}")
-        print(f"Recall: {self.recall}")
-        print(f"F1_Score: {self.f1}")
+        print(f"Model_Name: {self.model_name}")
+        print(f"Number_Total_Motifs: {len(self.list_motifs)}")
+        print(f"Number_Tested_Classes: {len(set(self.list_all_classes_ids))}\n")
+        print(f"Number_Tested_Sequences: {self.number_test_seqs}")
+        
+        # Training Metrics
+        print("=== Training Metrics ===")
+        print(f"Training_Time: {self.total_time_train:.4f} seconds")
+        print(f"Time_Read_CSV_Datatable: {self.time_read_csv_datatable:.4f} seconds")
+        print(f"Time_Fit_Model: {self.time_fit_model:.4f} seconds")
+        print(f"Training_Score: {self.score_train:.4f}")
+        print(f"Training_Prediction_Score: {self.train_pred_score:.4f}\n")
+
+        # Testing Metrics
+        print("=== Testing Metrics ===")
+        print(f"Classification_Time: {self.total_time_test:.4f} seconds")
+        print(f"Time_Test_Matrix_Construction: {self.time_test_matrix_construction:.4f} seconds")
+        print(f"Time_Test_Prediction_Only: {self.time_test_prediction_only:.4f} seconds")
+        print(f"Accuracy: {self.accuracy:.4f}")
+        print(f"Precision: {self.precision:.4f}")
+        print(f"Recall: {self.recall:.4f}")
+        print(f"F1_Score: {self.f1:.4f}\n")
+        
         print("EXPERIMENT_RESULTS_END")
 
         if is_detailed_report:

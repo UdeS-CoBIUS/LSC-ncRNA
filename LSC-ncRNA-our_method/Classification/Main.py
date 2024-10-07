@@ -12,11 +12,11 @@ import argparse
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="RNA Classification")
-    parser.add_argument("-m", "--mlm", choices=['EXT', 'MLP', 'VOT', 'RDF', 'XGB'], help="Choose machine learning model")
+    parser.add_argument("-m", "--mlm", choices=['EXT', 'MLP', 'VOT', 'RDF'], help="Choose machine learning model")
     parser.add_argument("-t", "--train-csv", help="Path to training CSV matrix")
     parser.add_argument("-d", "--test-dir", help="Path to test files directory")
     parser.add_argument("-e", "--file-ext", default=".fasta.txt", help="File extension for test files")
-    parser.add_argument("-j", "--n-job", type=int, default=-1, help="Number of jobs to run in parallel. -1 means using all processors.")
+    parser.add_argument("-j", "--n-job", type=int, default=1, help="Number of jobs to run in parallel. -1 means using all processors.")
     parser.add_argument("-o", "--output-csv", help="Path to output CSV file for results")
     return parser.parse_args()
 
@@ -32,11 +32,10 @@ def print_args_info():
     print("                          MLP (Multi-Layer Perceptron)")
     print("                          VOT (Voting Classifier)")
     print("                          RDF (Random Forest)")
-    print("                          XGB (XGBoost)")
     print("  -t, --train-csv <file>: Path to the training CSV matrix file")
     print("  -d, --test-dir <dir>  : Path to the directory containing test files")
     print("  -e, --file-ext <ext>  : File extension for test files (default: .fasta.txt)")
-    print("  -j, --n-job <int>     : Number of jobs to run in parallel (-1 uses all processors, default: -1)")
+    print("  -j, --n-job <int>     : Number of jobs to run in parallel (-1 uses all processors, default: 1)")
     print("  -o, --output-csv <file>: Path to the output CSV file for results")
     print("\nExample:")
     print("  python Main.py -m EXT -t path/to/train.csv -d path/to/test/dir -e .fasta -j 4")
@@ -77,7 +76,7 @@ def main():
         print(f"\nWriting results to {args.output_csv}...")
         clm.write_results_to_csv_file(args.output_csv)
 
-    clm.print_results()
+    clm.print_results(is_detailed_report=False)
 
     return 0
 
