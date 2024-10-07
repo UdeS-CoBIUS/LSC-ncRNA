@@ -36,7 +36,7 @@ class Model:
         self.dir_test_files = None # directory of the test files
         self.test_file_ext = None # extension of the test files
 
-        self.full_test_name: str = None # full name of the test, will be set later in train()
+        self.full_test_name = None # full name of the test, will be set later in train()
         self.time_read_csv_datatable = 0 # time to read the csv file with datatable
         self.time_fit_model = 0 # time to fit the model
         self.total_time_train = 0 # total time train : read csv + fit model + save motifs
@@ -52,7 +52,6 @@ class Model:
         self.time_test_prediction_only = 0 # during the test, the prediction is made by the model
         self.test_result_pred = None # during the test, the prediction is made by the model
         self.list_all_classes_ids = None # list of all classes ids in the test set
-        self.list_all_classes_names = None # list of all classes names in the test set
 
     def _get_model(self, model_name):
             if model_name not in self.models:
@@ -188,7 +187,8 @@ class Model:
         data_motif = data_arn.drop(['Classe'], axis=1)
 
         start_time_train = time.time()
-        self.ExTrCl.fit(data_motif, data_classe)
+        ext = self._get_model('EXT')
+        ext.fit(data_motif, data_classe)
         end_time = time.time()
 
         print(" train only time : ", end_time - start_time_train, " s")
@@ -196,8 +196,8 @@ class Model:
         self.list_motifs = list(data_motif)  # save list of use motifs in classification
 
         # statistics
-        score_train = self.ExTrCl.score(data_motif, data_classe)
-        pred_train = self.ExTrCl.predict(data_motif)
+        score_train = ext.score(data_motif, data_classe)
+        pred_train = ext.predict(data_motif)
         train_pred_score = accuracy_score(data_classe, pred_train)
 
         print("all Time Train = ", end_time - start_time, " s")
@@ -210,7 +210,8 @@ class Model:
 
         print(dftest)
 
-        result = self.ExTrCl.predict(dftest)
+        ext = self._get_model('EXT')
+        result = ext.predict(dftest)
         print(result)
 
     def test_groupe_pd(self, test_matrix):
@@ -218,7 +219,8 @@ class Model:
 
         print(dftest)
 
-        result = self.ExTrCl.predict(dftest)
+        ext = self._get_model('EXT')
+        result = ext.predict(dftest)
         print(result)
 
     def test_groupe_score_pd(self, test_matrix, list_classes):
@@ -228,7 +230,9 @@ class Model:
         print(" time creating DataFrame = ", end_time - start_time_0)
 
         start_time = time.time()
-        result = self.ExTrCl.predict(dftest)
+        
+        ext = self._get_model('EXT')
+        result = ext.predict(dftest)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -294,7 +298,9 @@ class Model:
         del data_arn[:, "familyId"]
 
         start_time_train = time.time()
-        self.ExTrCl.fit(data_arn, data_classe)
+        
+        ext = self._get_model('EXT')
+        ext.fit(data_arn, data_classe)
         end_time = time.time()
 
         print(" train only time : ", end_time - start_time_train, " s")
@@ -302,8 +308,8 @@ class Model:
         self.list_motifs = data_arn.names  # save list of use motifs in classification
 
         # statistics
-        self.score_train = self.ExTrCl.score(data_arn, np.ravel(data_classe))
-        pred_train = self.ExTrCl.predict(data_arn)
+        self.score_train = ext.score(data_arn, np.ravel(data_classe))
+        pred_train = ext.predict(data_arn)
         self.train_pred_score = accuracy_score(np.ravel(data_classe), pred_train)
 
         print("all Time Train = ", end_time - start_0_time, " s")
@@ -327,7 +333,8 @@ class Model:
         del data_arn[:, "familyId"]
 
         start_time_train = time.time()
-        self.nlp.fit(data_arn, data_classe)
+        nlp = self._get_model('NLP')
+        nlp.fit(data_arn, data_classe)
         end_time = time.time()
 
         print(" train only time : ", end_time - start_time_train, " s")
@@ -335,8 +342,8 @@ class Model:
         self.list_motifs = data_arn.names  # save list of use motifs in classification
 
         # statistics
-        self.score_train = self.nlp.score(data_arn, np.ravel(data_classe))
-        pred_train = self.nlp.predict(data_arn)
+        self.score_train = nlp.score(data_arn, np.ravel(data_classe))
+        pred_train = nlp.predict(data_arn)
         self.train_pred_score = accuracy_score(np.ravel(data_classe), pred_train)
 
         print("all Time Train = ", end_time - start_0_time, " s")
@@ -361,7 +368,8 @@ class Model:
         del data_arn[:, "familyId"]
 
         start_time_train = time.time()
-        self.rdf.fit(data_arn, data_classe)
+        rdf = self._get_model('RDF')
+        rdf.fit(data_arn, data_classe)
         end_time = time.time()
 
         print(" train only time : ", end_time - start_time_train, " s")
@@ -369,8 +377,8 @@ class Model:
         self.list_motifs = data_arn.names  # save list of use motifs in classification
 
         # statistics
-        self.score_train = self.rdf.score(data_arn, np.ravel(data_classe))
-        pred_train = self.rdf.predict(data_arn)
+        self.score_train = rdf.score(data_arn, np.ravel(data_classe))
+        pred_train = rdf.predict(data_arn)
         self.train_pred_score = accuracy_score(np.ravel(data_classe), pred_train)
 
         print("all Time Train = ", end_time - start_0_time, " s")
@@ -389,7 +397,8 @@ class Model:
         print(" time creating DataFrame = ", end_time - start_0_time)
 
         start_time = time.time()
-        result = self.ExTrCl.predict(dt_dftest)
+        ext = self._get_model('EXT')
+        result = ext.predict(dt_dftest)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -405,7 +414,8 @@ class Model:
         print(" time creatind Fram dt = ", end_time - start_0_time)
 
         start_time = time.time()
-        result = self.ExTrCl.predict(dt_dftest)
+        ext = self._get_model('EXT')
+        result = ext.predict(dt_dftest)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -415,7 +425,8 @@ class Model:
 
     def ext_prediction_numpy(self, test_matrix):
         start_time = time.time()
-        result = self.ExTrCl.predict(test_matrix)
+        ext = self._get_model('EXT')
+        result = ext.predict(test_matrix)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -433,7 +444,8 @@ class Model:
 
     def nlp_prediction_numpy(self, test_matrix):
         start_time = time.time()
-        result = self.nlp.predict(test_matrix)
+        nlp = self._get_model('NLP')
+        result = nlp.predict(test_matrix)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -443,7 +455,8 @@ class Model:
 
     def rdf_prediction_numpy(self, test_matrix):
         start_time = time.time()
-        result = self.rdf.predict(test_matrix)
+        rdf = self._get_model('RDF')
+        result = rdf.predict(test_matrix)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -459,7 +472,8 @@ class Model:
         print(" time creatind Fram dt = ", end_time - start_0_time)
 
         start_time = time.time()
-        result = self.ExTrCl.predict(dt_dftest)
+        ext = self._get_model('EXT')
+        result = ext.predict(dt_dftest)
         end_time = time.time()
 
         score_test = accuracy_score(list_classes, result)
@@ -490,7 +504,8 @@ class Model:
         start_0_time = time.time()
         start_time = time.time()
         # result = self.ExTrCl.predict(dt_dftest)
-        result = self.ExTrCl.predict(test_matrix)
+        ext = self._get_model('EXT')
+        result = ext.predict(test_matrix)
         end_time = time.time()
 
         score_test = accuracy_score(list_classes, result)
@@ -739,13 +754,14 @@ class Model:
 
         dt_frame = dt.Frame(np.array(matrix_test), names=self.list_motifs)
 
-        self.ExTrCl.fit(dt_frame, list_all_classes)
+        ext = self._get_model('EXT')
+        ext.fit(dt_frame, list_all_classes)
 
         end_time = time.time()
 
         # statistics
-        score_train = self.ExTrCl.score(dt_frame, list_all_classes)
-        pred_train = self.ExTrCl.predict(dt_frame)
+        score_train = ext.score(dt_frame, list_all_classes)
+        pred_train = ext.predict(dt_frame)
         train_pred_score = accuracy_score(list_all_classes, pred_train)
 
         print("all Time Train = ", end_time - start_0_time, " s")
@@ -764,13 +780,14 @@ class Model:
 
         dt_frame = dt.Frame(np.array(matrix_test), names=self.list_motifs)
 
-        self.nlp.fit(dt_frame, list_all_classes)
+        nlp = self._get_model('NLP')
+        nlp.fit(dt_frame, list_all_classes)
 
         end_time = time.time()
 
         # statistics
-        score_train = self.nlp.score(dt_frame, list_all_classes)
-        pred_train = self.nlp.predict(dt_frame)
+        score_train = nlp.score(dt_frame, list_all_classes)
+        pred_train = nlp.predict(dt_frame)
         train_pred_score = accuracy_score(list_all_classes, pred_train)
 
         print("all Time Train = ", end_time - start_0_time, " s")
@@ -797,7 +814,8 @@ class Model:
 
         start_time_train = time.time()
 
-        self.voted_model.fit(data_arn, data_classe)
+        voted_model = self._get_model('VOTED')
+        voted_model.fit(data_arn, data_classe)
 
         end_time = time.time()
 
@@ -806,8 +824,8 @@ class Model:
         self.list_motifs = data_arn.names  # save list of use motifs in classification
 
         # statistics
-        self.score_train = self.voted_model.score(data_arn, np.ravel(data_classe))
-        pred_train = self.voted_model.predict(data_arn)
+        self.score_train = voted_model.score(data_arn, np.ravel(data_classe))
+        pred_train = voted_model.predict(data_arn)
         self.train_pred_score = accuracy_score(np.ravel(data_classe), pred_train)
 
         print("all Time Train = ", end_time - start_0_time, " s")
@@ -826,7 +844,8 @@ class Model:
         end_time_ctm = time.time()
 
         start_time = time.time()
-        result_pred = self.voted_model.predict(matrix_test)
+        voted_model = self._get_model('VOTED')
+        result_pred = voted_model.predict(matrix_test)
         end_time = time.time()
         print(" Time pred only = ", end_time - start_time, " s")
 
@@ -914,8 +933,8 @@ class Model:
                            "RF00906_328_seqs_dinucleotide.fasta"]
         print("\nSpecial Classes Report:")
         for cls in special_classes:
-            if cls in per_class_accuracies and cls in self.classification_report:
-                print(f"{cls} = Accuracy: {per_class_accuracies[cls]:.4f} | {self.classification_report[cls]}")
+            if cls in per_class_accuracies and cls in classification_report:
+                print(f"{cls} = Accuracy: {per_class_accuracies[cls]:.4f} | {classification_report[cls]}")
 
         
 
