@@ -17,77 +17,75 @@ import construct_test_matrix as ctm
 
 class Model:
     def __init__(self, n_job=1, train_csv_path=None):
-        # ... (existing initialization code) ...
+
         self.train_csv_path = train_csv_path
         self.model_name = None
 
         local_n_estimators = 700
-        self.ExTrCl = ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job)
-        self.nlp = MLPClassifier(max_iter=800)
-        #self.rdf = RandomForestClassifier(n_jobs=n_job)
-        self.rdf = RandomForestClassifier(n_estimators=local_n_estimators, n_jobs=n_job)
-        self.list_motifs = None
-        self.voted_model = VotingClassifier(estimators=[
-            ('ext', ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job)),
-            ('nlp', MLPClassifier(max_iter=800)),
-            ('rdf', ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job))
-        ], voting='soft', weights=[1, 1, 1], n_jobs=n_job)
+        self.models = {
+            'EXT': ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job),
+            'MLP': MLPClassifier(max_iter=800),
+            'RDF': RandomForestClassifier(n_estimators=local_n_estimators, n_jobs=n_job),
+            'VOT': VotingClassifier(estimators=[
+                ('EXT', ExtraTreesClassifier(n_estimators=local_n_estimators, n_jobs=n_job)),
+                ('MLP', MLPClassifier(max_iter=800)),
+                ('RDF', RandomForestClassifier(n_estimators=local_n_estimators, n_jobs=n_job))
+            ], voting='soft', weights=[1, 1, 1], n_jobs=n_job)
+        }
 
+        self.dir_test_files = None # directory of the test files
+        self.test_file_ext = None # extension of the test files
 
-        self.full_test_name: str = f"{self.mlm}_{os.path.basename(self.train_csv_path)}"
+        self.full_test_name: str = None # full name of the test, will be set later in train()
         self.time_read_csv_datatable = 0 # time to read the csv file with datatable
         self.time_fit_model = 0 # time to fit the model
         self.total_time_train = 0 # total time train : read csv + fit model + save motifs
         self.score_train = 0
         self.train_pred_score = 0
-        self.time_test = 0
-        self.accuracy = 0
-        self.Precision = 0
-        self.Recall = 0
-        self.Fbs = 0
+        self.total_time_test = 0 # total time test = time read seqs + time matrix construction + time prediction
+        self.accuracy = 0 # accuracy score test
+        self.precision = 0 # precision score test
+        self.recall = 0 # recall score test
+        self.f1 = 0 # f1-score score test
+        self.number_test_seqs = 0 # number of total sequences in the test set
+        self.time_test_matrix_construction = 0 # during the test, the matrix (vectors) is constructed from the test input sequences: nbOccurrences of each motif in each sequence.
+        self.time_test_prediction_only = 0 # during the test, the prediction is made by the model
+        self.test_result_pred = None # during the test, the prediction is made by the model
+        self.list_all_classes_ids = None # list of all classes ids in the test set
+        self.list_all_classes_names = None # list of all classes names in the test set
 
+    def _get_model(self, model_name):
+            if model_name not in self.models:
+                raise ValueError(f"Unknown model name: {model_name}")
+            return self.models[model_name]
 
     def train(self, model_name):
+            if model_name not in self.models:
+                raise ValueError(f"Unknown model name: {model_name}. Available models are: {', '.join(self.models.keys())}")
+            self.model_name = model_name
+            self.full_test_name = f"{self.model_name}_{os.path.basename(self.train_csv_path)}"
+            self._train_with_dt(self._get_model(model_name))
 
-        self.model_name = model_name
-        train_methods = {
-            'EXT': self.ExTrCl,
-            'MLP': self.nlp,
-            'RDF': self.rdf,
-            'VOT': self.voted_model
-        }
-    
-        if model_name not in train_methods:
-            raise ValueError(f"Unknown model name: {model_name}")
-    
-        self._train_with_dt(train_methods[model_name])
-
-        # self.model_name = model_name
-        # if model_name == 'EXT':
-        #     self.ext_train_with_dt(self.train_csv_path)
-        # elif model_name == 'MLP':
-        #     self.nlp_train_with_dt(self.train_csv_path)
-        # elif model_name == 'RDF':
-        #     self.rdf_train_with_dt(self.train_csv_path)
-        # elif model_name == 'VOT':
-        #     self.train_voting(self.train_csv_path)
-        # else:
-        #     raise ValueError(f"Unknown model name: {model_name}")
-
+            
     def test(self, test_dir, file_ext):
         if not self.model_name:
             raise ValueError("Model has not been trained yet. Call train() first.")
         
-        if self.model_name == 'EXT':
-            self.test_group_score(test_dir, file_ext)
-        elif self.model_name == 'MLP':
-            self.nlp_test_group_score(test_dir, file_ext)
-        elif self.model_name == 'RDF':
-            self.rdf_test_group_score(test_dir, file_ext)
-        elif self.model_name == 'VOT':
-            self.test_voting(test_dir, file_ext)
-        else:
-            raise ValueError(f"Unknown model name: {self.model_name}")
+        if self.model_name not in self.models:
+            raise ValueError(f"Unknown model name: {self.model_name}. Available models are: {', '.join(self.models.keys())}")
+        
+        self.dir_test_files = test_dir # to be used later in _test(), and in print_detailed_results()
+        self.test_file_ext = file_ext # to be used later in _test(), and in print_detailed_results()
+
+        model = self._get_model(self.model_name)
+        
+        # check if the model is trained
+        # this can be checked by sklearn.utils.validation.check_is_fitted
+        # or see : https://stackoverflow.com/questions/39884009/whats-the-best-way-to-test-whether-an-sklearn-model-has-been-fitted
+        if not hasattr(model, 'is_fitted_') or not model.is_fitted_:
+            raise ValueError("Model is not trained. Call train() first.")
+        
+        self._test(model)
 
     def _train_with_dt(self, model):
         start_0_time = time.time()
@@ -383,7 +381,7 @@ class Model:
         self.total_time_train = end_time - start_0_time
 
 
-    def prediction_pd(self, test_matrix):
+    def ext_prediction_pd(self, test_matrix):
         start_0_time = time.time()
         dt_dftest = pd.DataFrame(test_matrix, columns=self.list_motifs)
         end_time = time.time()
@@ -399,7 +397,7 @@ class Model:
 
         return result
 
-    def prediction_dt(self, test_matrix):
+    def ext_prediction_dt(self, test_matrix):
         start_0_time = time.time()
         dt_dftest = dt.Frame(np.array(test_matrix), names=self.list_motifs)
         end_time = time.time()
@@ -415,9 +413,18 @@ class Model:
 
         return result
 
-    def prediction_numpy(self, test_matrix):
+    def ext_prediction_numpy(self, test_matrix):
         start_time = time.time()
         result = self.ExTrCl.predict(test_matrix)
+        end_time = time.time()
+
+        print(" Time pred only = ", end_time - start_time, " s")
+
+        return result
+    
+    def _prediction(self, test_matrix, model):
+        start_time = time.time()
+        result = model.predict(test_matrix)
         end_time = time.time()
 
         print(" Time pred only = ", end_time - start_time, " s")
@@ -492,7 +499,7 @@ class Model:
         print(" Time pred + creat = ", end_time - start_0_time, " s")
         print(" score test = ", score_test)
 
-    def test_group_score(self, dir_in_files, file_ext, method='np'):
+    def ext_test_group_score(self, dir_in_files, file_ext, method='np'):
         
         start_time_test = time.time()
         list_all_seqs = self.get_all_seqs(dir_in_files, file_ext)
@@ -502,11 +509,11 @@ class Model:
         end_time_ctm = time.time()
 
         if method == 'pd':
-            result_pred = self.prediction_pd(matrix_test)
+            result_pred = self.ext_prediction_pd(matrix_test)
         elif method == 'dt':
-            result_pred = self.prediction_dt(matrix_test)
+            result_pred = self.ext_prediction_dt(matrix_test)
         else:
-            result_pred = self.prediction_numpy(matrix_test)
+            result_pred = self.ext_prediction_numpy(matrix_test)
 
         end_time_test = time.time()
 
@@ -526,11 +533,11 @@ class Model:
         print(" Accuracy score test = ", score_test)
         print(" Other test score = ", result_scores)
 
-        self.time_test = end_time_test - start_time_test
+        self.total_time_test = end_time_test - start_time_test
         self.accuracy = score_test
-        self.Precision = result_scores[0]
-        self.Recall = result_scores[1]
-        self.Fbs = result_scores[2]
+        self.precision = result_scores[0]
+        self.recall = result_scores[1]
+        self.f1 = result_scores[2]
 
     def nlp_test_group_score(self, dir_in_files, file_ext, method='np'):
         start_time_test = time.time()
@@ -560,18 +567,18 @@ class Model:
         print(" Accuracy score test = ", score_test)
         print(" Other test score = ", result_scores)
 
-        self.time_test = end_time_test - start_time_test
+        self.total_time_test = end_time_test - start_time_test
         self.accuracy = score_test
-        self.Precision = result_scores[0]
-        self.Recall = result_scores[1]
-        self.Fbs = result_scores[2]
+        self.precision = result_scores[0]
+        self.recall = result_scores[1]
+        self.f1 = result_scores[2]
 
         print("-----------------------------------------------------")
 
         list_all_classes_names = self.get_all_classes_names(dir_in_files, file_ext)
         res_cla_reprot = classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4, output_dict=True)
 
-        per_class_accuracies = self.get_accuracy_for_individeul_class(list_all_classes_ids, list_all_classes_names,
+        per_class_accuracies = self.get_accuracy_for_individual_class(list_all_classes_ids, list_all_classes_names,
                                                                       result_pred)
 
         #print(classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4))
@@ -586,6 +593,61 @@ class Model:
             print("{} = Accuracy: {} | {} ".format(id_cls_rd, per_class_accuracies[id_cls_rd], res_cla_reprot[id_cls_rd]))
         if id_cls_di in per_class_accuracies:
             print("{} = Accuracy: {} | {} ".format(id_cls_di, per_class_accuracies[id_cls_di], res_cla_reprot[id_cls_di]))
+
+    def _test_group_score(self, dir_in_files, file_ext, model):
+            start_time_test = time.time()
+            list_all_seqs = self.get_all_seqs(dir_in_files, file_ext)
+
+            start_time_ctm = time.time()
+            matrix_test = ctm.get_matrix_nbOcrrs_listStr_AhoCorasick(self.list_motifs, list_all_seqs)
+            end_time_ctm = time.time()
+
+            result_pred = self._prediction(matrix_test, model)
+
+            end_time_test = time.time()
+
+            # check the score accuracy
+            list_all_classes_ids = self.get_all_classes_ids(dir_in_files, file_ext)
+            score_test = accuracy_score(list_all_classes_ids, result_pred)
+            result_scores = precision_recall_fscore_support(list_all_classes_ids, result_pred, average='macro')
+
+            # add classification_report only global average score
+            self.compute_classification_report_global_average(list_all_classes_ids, result_pred)
+
+
+            # printing:
+            print("list all seqs len: ", len(list_all_seqs))
+            print(" time matrix construction By AC :", end_time_ctm - start_time_ctm, " s")
+            print(" --> time test (all):", end_time_test - start_time_test, " s")
+            print(" Accuracy score test = ", score_test)
+            print(" Other test score = ", result_scores)
+
+            self.total_time_test = end_time_test - start_time_test
+            self.accuracy = score_test
+            self.precision = result_scores[0]
+            self.recall = result_scores[1]
+            self.f1 = result_scores[2]
+
+            print("-----------------------------------------------------")
+
+            list_all_classes_names = self.get_all_classes_names(dir_in_files, file_ext)
+            res_cla_reprot = classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4, output_dict=True)
+
+            per_class_accuracies = self.get_accuracy_for_individual_class(list_all_classes_ids, list_all_classes_names,
+                                                                        result_pred)
+
+            #print(classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4))
+            #print(res_cla_reprot)
+            id_cls_sh = "RF00906_328_seqs_shuffled.fasta"
+            id_cls_rd = "RF00906_328_random_seqs.fasta"
+            id_cls_di = "RF00906_328_seqs_dinucleotide.fasta"
+
+            if id_cls_sh in per_class_accuracies:
+                print("{} = Accuracy: {} | {} ".format(id_cls_sh, per_class_accuracies[id_cls_sh], res_cla_reprot[id_cls_sh]))
+            if id_cls_rd in per_class_accuracies:
+                print("{} = Accuracy: {} | {} ".format(id_cls_rd, per_class_accuracies[id_cls_rd], res_cla_reprot[id_cls_rd]))
+            if id_cls_di in per_class_accuracies:
+                print("{} = Accuracy: {} | {} ".format(id_cls_di, per_class_accuracies[id_cls_di], res_cla_reprot[id_cls_di]))
 
 
     def rdf_test_group_score(self, dir_in_files, file_ext):
@@ -615,18 +677,18 @@ class Model:
         print(" Accuracy score test = ", score_test)
         print(" Other test score = ", result_scores)
 
-        self.time_test = end_time_test - start_time_test
+        self.total_time_test = end_time_test - start_time_test
         self.accuracy = score_test
-        self.Precision = result_scores[0]
-        self.Recall = result_scores[1]
-        self.Fbs = result_scores[2]
+        self.precision = result_scores[0]
+        self.recall = result_scores[1]
+        self.f1 = result_scores[2]
 
         print("-----------------------------------------------------")
 
         list_all_classes_names = self.get_all_classes_names(dir_in_files, file_ext)
         res_cla_reprot = classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4, output_dict=True)
 
-        per_class_accuracies = self.get_accuracy_for_individeul_class(list_all_classes_ids, list_all_classes_names,
+        per_class_accuracies = self.get_accuracy_for_individual_class(list_all_classes_ids, list_all_classes_names,
                                                                       result_pred)
 
         #print(classification_report(list_all_classes_ids, result_pred, target_names=list_all_classes_names, digits=4))
@@ -644,7 +706,7 @@ class Model:
 
 
     
-    def get_accuracy_for_individeul_class(self, list_class_ids, list_class_names, result_pred):
+    def get_accuracy_for_individual_class(self, list_class_ids, list_class_names, result_pred):
 
         # Get the confusion matrix
         cm = confusion_matrix(list_class_ids, result_pred)
@@ -785,11 +847,78 @@ class Model:
         print(" Accuracy score test = ", score_test)
         print(" Other test score = ", result_scores)
 
-        self.time_test = end_time_test - start_time_test
+        self.total_time_test = end_time_test - start_time_test
         self.accuracy = score_test
-        self.Precision = result_scores[0]
-        self.Recall = result_scores[1]
-        self.Fbs = result_scores[2]
+        self.precision = result_scores[0]
+        self.recall = result_scores[1]
+        self.f1 = result_scores[2]
+
+    def _test(self, model):
+        start_time_test = time.time()
+        list_all_seqs = self.get_all_seqs(self.dir_test_files, self.test_file_ext)
+
+        start_time_ctm = time.time()
+        matrix_test = ctm.get_matrix_nbOcrrs_listStr_AhoCorasick(self.list_motifs, list_all_seqs)
+        end_time_ctm = time.time()
+        
+        start_time_pred_only = time.time()
+        self.test_result_pred = model.predict(matrix_test)
+        end_time_pred_only = time.time()
+        
+
+        end_time_test = time.time()
+        
+        # Check the score accuracy
+        self.list_all_classes_ids = self.get_all_classes_ids(self.dir_test_files, self.test_file_ext)
+        
+        # Compute and store basic metrics
+        self.accuracy = accuracy_score(self.list_all_classes_ids, self.test_result_pred)
+        self.precision, self.recall, self.f1, _ = precision_recall_fscore_support(self.list_all_classes_ids, self.test_result_pred, average='macro')
+
+        # Store results
+        self.number_test_seqs = len(list_all_seqs)
+        self.time_test_matrix_construction = end_time_ctm - start_time_ctm
+        self.time_test_prediction_only = end_time_pred_only - start_time_pred_only
+        self.total_time_test = end_time_test - start_time_test # total time test = time read seqs + time matrix construction + time prediction
+
+
+    def print_detailed_results(self):
+        list_all_classes_names = self.get_all_classes_names(self.dir_test_files, self.test_file_ext)
+        
+        # Generate the classification report as a string for printing
+        report_str = classification_report(self.list_all_classes_ids, self.test_result_pred, 
+                                           target_names=list_all_classes_names, digits=4)
+        
+        # Generate the classification report as a dictionary for further processing
+        classification_report = classification_report(self.list_all_classes_ids, self.test_result_pred, 
+                                                           target_names=list_all_classes_names, 
+                                                           digits=4, output_dict=True)
+
+        print("\nDetailed Classification Report:")
+        print(report_str)
+
+        print("\nConfusion Matrix:")
+        cm = confusion_matrix(self.list_all_classes_ids, self.test_result_pred)
+        print(cm)
+
+        per_class_accuracies = self.get_accuracy_for_individual_class(self.list_all_classes_ids, 
+                                                                      list_all_classes_names, 
+                                                                      self.test_result_pred)
+        print("\nPer-class Accuracies:")
+        for cls, acc in per_class_accuracies.items():
+            print(f"{cls}: {acc:.4f}")
+
+        # Special classes reporting
+        special_classes = ["RF00906_328_seqs_shuffled.fasta", 
+                           "RF00906_328_random_seqs.fasta", 
+                           "RF00906_328_seqs_dinucleotide.fasta"]
+        print("\nSpecial Classes Report:")
+        for cls in special_classes:
+            if cls in per_class_accuracies and cls in self.classification_report:
+                print(f"{cls} = Accuracy: {per_class_accuracies[cls]:.4f} | {self.classification_report[cls]}")
+
+        
+
 
     # ---------------------------------------------------------------
     # ---------------------------------------------------------------
@@ -876,8 +1005,8 @@ class Model:
         separator = ','
         line_result = self.full_test_name + separator + str(self.total_time_train) + separator + str(
             self.score_train) + separator + str(self.train_pred_score) + separator + str(
-            self.time_test) + separator + str(self.accuracy) + separator + str(self.Precision) + separator + str(
-            self.Recall) + separator + str(self.Fbs) + separator + "\n"
+            self.total_time_test) + separator + str(self.accuracy) + separator + str(self.precision) + separator + str(
+            self.recall) + separator + str(self.f1) + separator + "\n"
 
         lock = portalocker.RedisLock('csv_write_lock')
 
@@ -885,15 +1014,18 @@ class Model:
             with open(file_out, "a+") as my_file:
                 my_file.write(line_result)
 
-    def print_results(self):
+    def print_results(self, is_detailed_report=True):
         print("EXPERIMENT_RESULTS_START")
         print(f"Full_test_name: {self.full_test_name}")
         print(f"Training_Time: {self.total_time_train}")
         print(f"Training_Score: {self.score_train}")
         print(f"Training_Prediction_Score: {self.train_pred_score}")
-        print(f"Classification_Time: {self.time_test}")
+        print(f"Classification_Time: {self.total_time_test}")
         print(f"Accuracy: {self.accuracy}")
-        print(f"Precision: {self.Precision}")
-        print(f"Recall: {self.Recall}")
-        print(f"F1_Score: {self.Fbs}")
+        print(f"Precision: {self.precision}")
+        print(f"Recall: {self.recall}")
+        print(f"F1_Score: {self.f1}")
         print("EXPERIMENT_RESULTS_END")
+
+        if is_detailed_report:
+            self.print_detailed_results()

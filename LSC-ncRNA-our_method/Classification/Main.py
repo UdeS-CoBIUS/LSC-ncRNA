@@ -71,7 +71,7 @@ def main():
     clm.train(args.mlm)
 
     print("\nTesting model...")
-    clm.test(args.mlm, args.test_dir, args.file_ext)
+    clm.test(args.test_dir, args.file_ext)
 
     if args.output_csv:
         print(f"\nWriting results to {args.output_csv}...")
