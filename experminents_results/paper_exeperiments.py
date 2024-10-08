@@ -706,38 +706,80 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
 # -------------------------------------------
 # run the classification experiments
 
-def run_classification_experiments(mlm: str, train_csv: str, test_dir: str, file_ext: str = ".fasta.txt", n_job: int = -1):
-    # Get the project root directory
+def run_classification_experiment(
+    model: str,
+    train_csv: str,
+    test_dir: str,
+    file_ext: str = ".fasta.txt",
+    n_job: int = 1,
+    output_csv: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Runs a single classification experiment using Main.py and returns the results.
+
+    :param model: Machine learning model name (e.g., 'EXT', 'MLP', 'VOT', 'RDF')
+    :param train_csv: Path to the training CSV matrix file
+    :param test_dir: Path to the test files directory
+    :param file_ext: File extension for test files
+    :param n_job: Number of parallel jobs
+    :param output_csv: Path to the output CSV file for results. If None, a default path is used.
+    :return: Dictionary containing the experiment results
+    """
+    # Define project root and Main.py path
     project_root = find_project_root()
-
-    # Set up paths
     classification_script = project_root / "LSC-ncRNA-our_method/Classification/Main.py"
-    results_dir = project_root / "results"
-    os.makedirs(results_dir, exist_ok=True)
-
-    output_file = results_dir / f"classification_results_{mlm}.txt"
     
+    # Define default output_csv if not provided
+    if output_csv is None:
+        output_csv = Path("results") / f"classification_results_{model}.csv"
+    
+    # Ensure output directory exists
+    output_csv_path = Path(output_csv)
+    output_csv_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Command to run Main.py
     command = [
-        "python", str(classification_script),
-        "-m", mlm,
+        "python",
+        str(classification_script),
+        "-m", model,
         "-t", train_csv,
         "-d", test_dir,
         "-e", file_ext,
-        "-j", str(n_job)
+        "-j", str(n_job),
+        "-o", str(output_csv)
     ]
-
-    print(f"Running classification for model {mlm}")
+    
+    print(f"Running classification experiment for model: {model}")
     
     try:
-        with open(output_file, 'w') as f:
-            subprocess.run(command, check=True, stdout=f, stderr=subprocess.STDOUT)
-        print(f"Classification completed. Results saved to {output_file}")
+        # Execute the command
+        result = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        print(f"Experiment for model {model} completed successfully.")
+        
     except subprocess.CalledProcessError as e:
-        print(f"Error running classification for model {mlm}: {e}")
-        print(f"Check {output_file} for details")
-
-    print("Classification experiment completed.")
-
+        print(f"Error running classification experiment for model {model}: {e}")
+        print(f"stdout: {e.stdout}")
+        print(f"stderr: {e.stderr}")
+        return {"error": f"Subprocess failed: {e.stderr}"}
+    
+    # Read the output CSV and return the results
+    if output_csv_path.exists():
+        with open(output_csv_path, 'r') as csvfile:
+            reader = csv.DictReader(csvfile)
+            results = [row for row in reader]
+        return {
+            "model": model,
+            "results": results
+        }
+    else:
+        print(f"Output CSV file not found: {output_csv_path}")
+        return {"error": "Output CSV file not found."}
 
 def main():
 

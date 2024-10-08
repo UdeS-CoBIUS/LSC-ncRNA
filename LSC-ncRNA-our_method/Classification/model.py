@@ -1021,19 +1021,54 @@ class Model:
 
         return list_classes
 
-    def write_results_to_csv_file(self, file_out):
-        
-        separator = ','
-        line_result = self.full_test_name + separator + str(self.total_time_train) + separator + str(
-            self.score_train) + separator + str(self.train_pred_score) + separator + str(
-            self.total_time_test) + separator + str(self.accuracy) + separator + str(self.precision) + separator + str(
-            self.recall) + separator + str(self.f1) + separator + "\n"
+    def write_results_to_csv_file(self, output_csv: str, is_detailed_report: bool = False) -> None:
+        """
+        Write the classification results to a CSV file.
 
-        lock = portalocker.RedisLock('csv_write_lock')
+        :param output_csv: Path to the output CSV file
+        :param is_detailed_report: Flag to include detailed report information
+        """
+        results = {
+            "Model_Name": self.model_name,
+            "Training_Time_sec": self.total_time_train,
+            "Training_Score": self.score_train,
+            "Training_Prediction_Score": self.train_pred_score,
+            "Testing_Time_sec": self.total_time_test,
+            "Matrix_Construction_Time_sec": self.time_test_matrix_construction,
+            "Prediction_Time_sec": self.time_test_prediction_only,
+            "Accuracy": self.accuracy,
+            "Precision": self.precision,
+            "Recall": self.recall,
+            "F1_Score": self.f1,
+            "Number_Test_Sequences": self.number_test_seqs,
+            "Number_Total_Motifs": len(self.list_motifs),
+            "Number_Tested_Classes": len(set(self.list_all_classes_ids))
+        }
 
-        with lock:
-            with open(file_out, "a+") as my_file:
-                my_file.write(line_result)
+        if is_detailed_report:
+            # Add more detailed fields as necessary
+            results.update({
+                "Full_Test_Name": self.full_test_name,
+                "Time_Read_CSV_Datatable": self.time_read_csv_datatable,
+                "Time_Fit_Model": self.time_fit_model,
+                # Add any other detailed metrics you want to include
+            })
+
+        # Convert the results dictionary to a DataFrame
+        results_df = pd.DataFrame([results])
+
+        try:
+            with portalocker.Lock(output_csv, 'a') as csvfile:
+                # Check if the CSV file exists to determine if headers need to be written
+                file_exists = os.path.isfile(output_csv) and os.path.getsize(output_csv) > 0
+                
+                # Write to CSV (append if file exists, else create new)
+                results_df.to_csv(csvfile, mode='a', header=not file_exists, index=False)
+            
+            print(f"Results successfully written to {output_csv}")
+        except Exception as e:
+            print(f"Error writing to CSV: {str(e)}")
+
 
     def print_results(self, is_detailed_report=True):
         print("EXPERIMENT_RESULTS_START\n")

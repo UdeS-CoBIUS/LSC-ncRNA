@@ -74,9 +74,9 @@ def main():
 
     if args.output_csv:
         print(f"\nWriting results to {args.output_csv}...")
-        clm.write_results_to_csv_file(args.output_csv)
-
-    clm.print_results(is_detailed_report=False)
+        clm.write_results_to_csv_file(args.output_csv, is_detailed_report=False)
+    else:
+        clm.print_results(is_detailed_report=False)
 
     return 0
 
