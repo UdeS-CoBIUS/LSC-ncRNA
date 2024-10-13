@@ -18,6 +18,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from pathlib import Path
+from typing import Optional, Dict, Any
+
+import time 
+
+from dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
 
 # define a global variable to use debug datasets
 is_debug_datasets_global_var: bool = True
@@ -33,7 +38,7 @@ def find_project_root(project_name: str = "LSC-ncRNA") -> Path:
     """
     current_dir: Path = Path(__file__).resolve().parent
 
-    print(f"current_dir: {current_dir}")
+    # print(f"current_dir: {current_dir}") # just for debug...
 
     while current_dir != current_dir.parent:  # Stop at the root directory
         if current_dir.name == project_name:
@@ -124,28 +129,40 @@ def prepare_dataset_from_scratch():
 # -d : <integer> (0: false, 1 or other: true), is delete sub-motifs
 
 
-def get_rfam14_sample_train_test_dir_path(size: int, is_debug_datasets: bool = False) -> Path:
+def get_dir_path_rfam14_sample(size: int, data_type: str, is_debug_datasets: bool = False) -> Path:
     """
     used:  datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample: 50, 100, 150, 200, 250, 300, 350, 400, 500, 600
     debug: datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test: 5, 10, 15, 20, 25, 30
     Get the directory path for the given dataset size.
-    :param size: The size of the dataset
-    :param is_debug_datasets: Whether to use debug datasets
-    :return: The directory path as a Path object
+    
+     Args:
+        size: The size of the dataset
+        data_type: Either 'Train' or 'Test'
+        is_debug_datasets: Whether to use debug datasets
+    
+    Returns:
+        The directory path as a Path object
+    
+    Raises:
+        ValueError: If data_type is not 'Train' or 'Test'
+        FileNotFoundError: If the directory doesn't exist
     """
+    if data_type not in ['Train', 'Test']:
+        raise ValueError("data_type must be either 'Train' or 'Test'")
+    
     # Get the project root directory
     project_root: Path = find_project_root()
 
     if is_debug_datasets:
         # Check for double subfolder (when unzipped by Python)
-        double_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        double_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test" / data_type
         # Check for single subfolder (when unzipped by other apps)
-        single_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        single_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test" / data_type
     else:
         # Check for double subfolder (when unzipped by Python)
-        double_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        double_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test" / data_type
         # Check for single subfolder (when unzipped by other apps)
-        single_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test/Train"
+        single_subfolder_path: Path = project_root / f"datasets/data/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_{size}_Train_Test" / data_type
 
     if double_subfolder_path.exists():
         return double_subfolder_path
@@ -178,7 +195,7 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
     # Step 2: Iterate through dataset sizes and submotif deletion options
     for size in dataset_sizes:
         # Step 3: Set up input file paths
-        dir_path = get_rfam14_sample_train_test_dir_path(size, is_debug_datasets)
+        dir_path = get_dir_path_rfam14_sample(size=size, data_type='Train', is_debug_datasets=is_debug_datasets)
 
         for is_delete_submotifs in [0, 1]:
             
@@ -225,8 +242,8 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
                 print(f"Results saved to {csv_path}")
 
                 # Step 10: Clean up the generated CSV file, since it will have big size
-                os.remove(result['output_csv_file'])
-                print(f"Cleaned up {result['output_csv_file']}")
+                ## os.remove(result['output_csv_file'])
+                ## print(f"Cleaned up {result['output_csv_file']}")
 
             except Exception as e:
                 print(
@@ -336,20 +353,6 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path: Path) -> None:
 # plot the results: as explained before for 6 figures.
 
 
-import os
-import subprocess
-import re
-import csv
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import ExtraTreeClassifier
-from sklearn.metrics import accuracy_score
-
-
 def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
     # Step 1: Define parameters
     dataset_sizes: list[int] = [50, 150, 250, 350]
@@ -357,7 +360,9 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
     if is_debug_datasets:
         dataset_sizes = debug_datasets_size_global_var
 
-    fixed_lengths: range = range(1, 21)  # 1 to 20
+    #fixed_lengths: range = range(1, 21)  # for 1 we should use an intern python method to generate the dataset, the method exist already.
+    fixed_lengths: range = range(2, 21)  # 2 to 20, fro now from 2. to be changed later, we treat size min max = 1 seperatly.
+    # fixed_lengths: list[tuple[int, int]] = [(f-1, f) for f in range(2, 21)]  # (1, 2), (2,3) to (19, 20). we do this since in c++ program it implemented (min_len, max_len) like min_len<max_len begin min, stop before max. so 1,2 mean only one I have to check...
     combined_lengths: list[tuple[int, int]] = [(2, max_len) for max_len in range(2, 21)]  # (2, 2) to (2, 20)
 
     results: dict[str, dict[int, dict[int | tuple[int, int], dict[str, int | float | str]]]] = {
@@ -365,30 +370,55 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
         'combined_length': {dataset_sizes[-1]: {}} # take only last size, so 350 or 30 in debug datasets
     }
 
+    #print('inside run motif length experiments ... ')
+    #print('dataset_sizes:', dataset_sizes)
+    #print('fixed_lengths:', fixed_lengths)
+    #print('combined_lengths: ', combined_lengths)
+    #time.sleep(5) # give time to read for debug.
+
+
     # Step 2: Run experiments for fixed-length motifs
     for size in dataset_sizes:
+        print(f"Running experiments for dataset size {size}")
         for cm_length in fixed_lengths:
-            results['fixed_length'][size][cm_length] = run_single_experiment(size, cm_length, cm_length)
+            results['fixed_length'][size][cm_length] = run_single_experiment(size, cm_length-1, cm_length, is_debug_datasets)
 
     # Step 3: Run experiments for combined-length motifs (only for size 350)
     for min_len, max_len in combined_lengths:
-        results['combined_length'][350][(min_len, max_len)] = run_single_experiment(350, min_len, max_len)
+        size = 350
+        if is_debug_datasets:
+            size = 30
+        results['combined_length'][size][(min_len, max_len)] = run_single_experiment(size, min_len, max_len, is_debug_datasets)
 
     # Step 4: Generate plots
-    generate_plots(results)
+    plot_all_len_motifs_exp(results)
 
 
-def run_single_experiment(dataset_size, min_length, max_length):
-    # Get the project root directory
+def run_single_experiment(dataset_size: int, min_length: int, max_length: int, is_debug_datasets: bool = False) -> Optional[Dict[str, Any]]:
+    """
+    Runs a single experiment including motif extraction and classification.
+
+    :param dataset_size: Size of the dataset (number of families)
+    :param min_length: Minimum motif length
+    :param max_length: Maximum motif length
+    :return: Dictionary containing experiment results or None if failed
+    """
     project_root = find_project_root()
 
     # Set up paths and parameters
-    dir_path = get_rfam14_sample_train_test_dir_path(dataset_size)
+    train_dir_path = get_dir_path_rfam14_sample(size=dataset_size, data_type='Train', is_debug_datasets=is_debug_datasets)
+    test_dir_path = get_dir_path_rfam14_sample(size=dataset_size, data_type='Test', is_debug_datasets=is_debug_datasets)
+    
     test_name = "cm_len"
+
+    #print(' inside run single experiment ...')
+    #print('Train dir:', train_dir_path)
+    #print('Test dir:', test_dir_path)
+    #print(' run cpp program...')
 
     # Run the C++ program using run_cpp_motif_extraction_and_selection
     result = run_cpp_motif_extraction_and_selection(
-        dir_path=str(dir_path),
+        dir_path=str(train_dir_path),
         test_name=test_name,
         dataset_size=dataset_size,
         min_length=min_length,
@@ -399,137 +429,468 @@ def run_single_experiment(dataset_size, min_length, max_length):
         gamma=1  # gamma = 1, no filtering on the number of occurrences of the cm, at least we have 1 (the default)
     )
 
+    #print(' end cpp, results:')
+    #print(result)
+    #print(' go to classification setp...')
+    #time.sleep(5)
+
     if result is None:
         print(f"Error processing dataset size {dataset_size} with min_length {min_length} and max_length {max_length}")
         return None
 
-    # Perform classification
-    ext_accuracy, mlp_accuracy, classification_time = perform_classification(result['output_csv_file'])
+    # Initialize classification results
+    classification_results = {}
 
-    # Clean up the generated CSV file
-    if os.path.exists(result['output_csv_file']):
-        os.remove(result['output_csv_file'])
-        print(f"Cleaned up {result['output_csv_file']}")
-    else:
-        print(f"Warning: Output file {result['output_csv_file']} not found")
+    # Define models to run
+    models = ['EXT', 'MLP']
 
-    return {
-        'num_motifs': result['num_motifs'],
-        'execution_time': result['execution_time'],
-        'ext_accuracy': ext_accuracy,
-        'mlp_accuracy': mlp_accuracy,
-        'classification_time': classification_time,
-        'total_time': result['execution_time'] + classification_time
+    for model in models:
+        print(f"\nRunning classification with model: {model}")
+
+        # Define output CSV for classification results
+        classification_output_csv = os.path.join(
+            "results",
+            f"classification_results_{model}_dataset_{dataset_size}_min{min_length}_max{max_length}.csv"
+        )
+
+        #print('classification_output_csv: ', classification_output_csv)
+        #print('befor run classification ...')
+        #time.sleep(3)
+        # Run classification experiment
+        classification_output = run_classification_experiment(
+            model=model,
+            train_csv=result['output_csv_file'],
+            test_dir=str(test_dir_path),  # Adjust based on your test data directory structure
+            file_ext=".fasta.txt",
+            n_job=1,  # Adjust as needed
+            output_csv=classification_output_csv
+        )
+
+        #print('end classification')
+        #print('classification_output:')
+        #print(classification_output)
+        #time.sleep(3)
+
+        if "error" in classification_output:
+            print(f"Classification error for model {model}: {classification_output['error']}")
+            classification_results[model] = {
+                "accuracy": None,
+                "precision": None,
+                "recall": None,
+                "f1_score": None,
+                "training_time_sec": None,
+                "testing_time_sec": None
+            }
+            continue
+
+        # Store the extracted metrics
+        classification_results[model] = {
+            "accuracy": classification_output.get("accuracy"),
+            "precision": classification_output.get("precision"),
+            "recall": classification_output.get("recall"),
+            "f1_score": classification_output.get("f1_score"),
+            "training_time_sec": classification_output.get("training_time_sec"),
+            "testing_time_sec": classification_output.get("testing_time_sec")
+        }
+
+        print(f"Model: {model} | Accuracy: {classification_results[model]['accuracy']} | "
+              f"Training Time: {classification_results[model]['training_time_sec']} sec | "
+              f"Testing Time: {classification_results[model]['testing_time_sec']} sec")
+
+    # Combine C++ results with classification results
+    experiment_results = {
+        "dataset_size": dataset_size,
+        "min_length": min_length,
+        "max_length": max_length,
+        "num_motifs": result.get('num_motifs'),
+        "cpp_execution_time_sec": result.get('execution_time'),
+        "file_size_gb": result.get('file_size_gb'),
     }
 
+    # Merge classification_results into experiment_results
+    experiment_results.update(classification_results)
 
-def perform_classification(csv_file):
-    # Load data from CSV
-    data = pd.read_csv(csv_file)
-    X = data.iloc[:, :-1]  # All columns except the last one
-    y = data.iloc[:, -1]  # Last column as target
+    print(f"Completed experiment for dataset size {dataset_size}, min_length {min_length}, max_length {max_length}")
 
-    # Split the data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    return experiment_results 
+    
+    """
+    results = {
+    'fixed_length': {
+        50: {
+            1: { EXT: {acc:, f1:, train time:,...}
+            { MLP: {acc:, f1:, train time:,...}
+            },
+            2: { ... },
+            ...
+            20: { ... }
+        },
+        150: {
+            1: { ... },
+            2: { ... },
+            ...
+            20: { ... }
+        },
+        ...
+    },
+    'combined_length': {
+        350: {
+            (2, 2): { ... },
+            (2, 3): { ... },
+            ...
+            (2, 20): { ... }
+        }
+    }
+}
+    """
+    """
+    example:
+    classification_results = {
+    'EXT': {
+        "accuracy": 0.95,
+        "precision": 0.9,
+        "recall": 0.85,
+        "f1_score": 0.87,
+        "training_time_sec": 120,
+        "testing_time_sec": 30,
+    },
+    'MLP': {
+        "accuracy": 0.92,
+        "precision": 0.89,
+        "recall": 0.84,
+        "f1_score": 0.86,
+        "training_time_sec": 110,
+        "testing_time_sec": 25,
+    }
+}
 
-    # Scale the features
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+example:
+experiment_results = {
+    "dataset_size": dataset_size,
+    "min_length": min_length,
+    "max_length": max_length,
+    "num_motifs": result.get('num_motifs'),
+    "cpp_execution_time_sec": result.get('execution_time'),
+    "file_size_gb": result.get('file_size_gb'),
+    'EXT': { ... },  # metrics for EXT
+    'MLP': { ... },  # metrics for MLP
+}
 
-    # ExtraTreeClassifier
-    ext = ExtraTreeClassifier(random_state=42)
-    ext.fit(X_train_scaled, y_train)
-    ext_accuracy = accuracy_score(y_test, ext.predict(X_test_scaled))
-
-    # MLPClassifier
-    mlp = MLPClassifier(random_state=42, max_iter=1000)
-    mlp.fit(X_train_scaled, y_train)
-    mlp_accuracy = accuracy_score(y_test, mlp.predict(X_test_scaled))
-
-    # Measure classification time (you might want to use a more precise timing method in practice)
-    classification_time = 0  # Placeholder, implement actual timing if needed
-
-    return ext_accuracy, mlp_accuracy, classification_time
+    """
 
 
-def generate_plots(results):
-    # Plot 1: Growth_NB_motifs.PNG
+# -------------------------------------------
+# -------------------------------------------
+
+
+def plot_growth_nb_motifs_fixed_len(results, save_as_file=True, filename='Growth_NB_motifs.png'):
+    """
+    Plot the growth in the number of motifs for fixed-length motifs for various dataset sizes.
+
+    Args:
+    results (Dict[str, Any]): A dictionary containing experiment results.
+    save_as_file (bool): If True, save the plot as a file. If False, display the plot.
+    filename (str): The filename to save the plot if save_as_file is True.
+    """
     plt.figure(figsize=(10, 6))
-    for size in results['fixed_length']:
-        lengths = list(results['fixed_length'][size].keys())
-        num_motifs = [results['fixed_length'][size][l]['num_motifs'] for l in lengths]
-        plt.plot(lengths, num_motifs, marker='o', label=f'Dataset size {size}')
+    
+    # Extract dataset sizes from the results dictionary
+    dataset_sizes = results['fixed_length'].keys()
+    
+    for dataset in dataset_sizes:
+        lengths = []
+        num_motifs = []
+        
+        # Extract motif lengths and corresponding number of motifs for each dataset
+        for length, data in results['fixed_length'].get(dataset, {}).items():
+            lengths.append(length)
+            num_motifs.append(data.get('num_motifs', 0))  # Replace missing values with 0
+        
+        # Sort lengths and number of motifs by motif length
+        sorted_data = sorted(zip(lengths, num_motifs))
+        sorted_lengths, sorted_num_motifs = zip(*sorted_data)
+        
+        # Plot the growth of number of motifs for the current dataset size
+        plt.plot(sorted_lengths, sorted_num_motifs, marker='o', label=f'Dataset size {dataset}')
+    
+    # Customize the plot
     plt.xlabel('Motif Length')
     plt.ylabel('Number of Motifs')
     plt.title('Number of Generated Motifs (Fixed Length)')
-    plt.legend()
-    plt.savefig('results/Growth_NB_motifs.png')
-    plt.close()
+    # Set x-axis ticks dynamically based on the sorted motif lengths
+    plt.xticks(sorted_lengths)
 
-    # Plot 2: k-mer_EXT.PNG
-    plt.figure(figsize=(10, 6))
-    for size in results['fixed_length']:
-        lengths = list(results['fixed_length'][size].keys())
-        accuracies = [results['fixed_length'][size][l]['ext_accuracy'] for l in lengths]
-        plt.plot(lengths, accuracies, marker='o', label=f'Dataset size {size}')
-    plt.xlabel('Motif Length')
-    plt.ylabel('EXT Accuracy')
-    plt.title('EXT Accuracy for Fixed Length Motifs')
+    plt.grid(True)
     plt.legend()
-    plt.savefig('results/k-mer_EXT.png')
-    plt.close()
+    
+    # Save or display the plot
+    if save_as_file:
+        plt.savefig(filename)
+        plt.close()  # Close the plot to avoid display when saving
+    else:
+        plt.show()  # Display the plot if not saving
 
-    # Plot 3: k-mer_MLP.PNG
-    plt.figure(figsize=(10, 6))
-    for size in results['fixed_length']:
-        lengths = list(results['fixed_length'][size].keys())
-        accuracies = [results['fixed_length'][size][l]['mlp_accuracy'] for l in lengths]
-        plt.plot(lengths, accuracies, marker='o', label=f'Dataset size {size}')
-    plt.xlabel('Motif Length')
-    plt.ylabel('MLP Accuracy')
-    plt.title('MLP Accuracy for Fixed Length Motifs')
-    plt.legend()
-    plt.savefig('results/k-mer_MLP.png')
-    plt.close()
 
-    # Plot 4: Growth_NB_motifs_For_350_min_2_maxTo_20.PNG
+def plot_growth_nb_motifs_combined_len(results, save_as_file=True, filename='Growth_NB_motifs_combined.png'):
+    """
+    Plot the growth in the number of motifs for combined-length motifs for various dataset sizes.
+
+    Args:
+    results (Dict[str, Any]): A dictionary containing experiment results.
+    save_as_file (bool): If True, save the plot as a file. If False, display the plot.
+    filename (str): The filename to save the plot if save_as_file is True.
+    """
     plt.figure(figsize=(10, 6))
-    max_lengths = [max_len for _, max_len in results['combined_length'][350].keys()]
-    num_motifs = [results['combined_length'][350][(2, max_len)]['num_motifs'] for max_len in max_lengths]
-    plt.plot(max_lengths, num_motifs, marker='o')
-    plt.xlabel('Max Motif Length')
+    
+    # Extract dataset sizes from the results dictionary for 'combined_length'
+    combined_length_results = results.get('combined_length', {})
+    
+    for dataset_size, lengths_data in combined_length_results.items():
+        lengths = []
+        num_motifs = []
+        
+        # Extract motif (min_len, max_len) and corresponding number of motifs for each dataset
+        for (min_len, max_len), data in lengths_data.items():
+            lengths.append((min_len, max_len))  # Store as a tuple for sorting
+            num_motifs.append(data.get('num_motifs', 0))  # Replace missing values with 0
+        
+        # Sort the lengths and number of motifs by max_len, since min_len is always the same
+        sorted_data = sorted(zip(lengths, num_motifs), key=lambda x: x[0][1])  # Sort by max_len
+        sorted_lengths, sorted_num_motifs = zip(*sorted_data)
+        
+        # Create formatted x-axis labels (min_len, max_len) after sorting
+        sorted_labels = [f'({min_len},{max_len})' for min_len, max_len in sorted_lengths]
+        
+        # Plot the growth of number of motifs for the current dataset size
+        plt.plot(sorted_labels, sorted_num_motifs, marker='o', label=f'Dataset size {dataset_size}')
+    
+    # Customize the plot
+    plt.xlabel('Motif Length (min_len, max_len)')
     plt.ylabel('Number of Motifs')
-    plt.title('Number of Generated Motifs (Combined Length, Dataset Size 350)')
-    plt.savefig('results/Growth_NB_motifs_For_350_min_2_maxTo_20.png')
-    plt.close()
-
-    # Plot 5: EXT_NLP_nbF350_min2_max_variable.PNG
-    plt.figure(figsize=(10, 6))
-    max_lengths = [max_len for _, max_len in results['combined_length'][350].keys()]
-    ext_accuracies = [results['combined_length'][350][(2, max_len)]['ext_accuracy'] for max_len in max_lengths]
-    mlp_accuracies = [results['combined_length'][350][(2, max_len)]['mlp_accuracy'] for max_len in max_lengths]
-    plt.plot(max_lengths, ext_accuracies, marker='o', label='EXT')
-    plt.plot(max_lengths, mlp_accuracies, marker='o', label='MLP')
-    plt.xlabel('Max Motif Length')
-    plt.ylabel('Accuracy')
-    plt.title('EXT and MLP Accuracy (Combined Length, Dataset Size 350)')
+    plt.title('Number of Generated Motifs (Combined Length)')
+    plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+    plt.grid(True)
     plt.legend()
-    plt.savefig('results/EXT_NLP_nbF350_min2_max_variable.png')
-    plt.close()
-
-    # Plot 6: EXT_NLP_nbF350_min2_max_variable_time.PNG
-    plt.figure(figsize=(10, 6))
-    max_lengths = [max_len for _, max_len in results['combined_length'][350].keys() if max_len <= 10]
-    total_times = [results['combined_length'][350][(2, max_len)]['total_time'] for max_len in max_lengths]
-    plt.plot(max_lengths, total_times, marker='o')
-    plt.xlabel('Max Motif Length')
-    plt.ylabel('Total Time (seconds)')
-    plt.title('Total Processing Time (Combined Length, Dataset Size 350)')
-    plt.savefig('results/EXT_NLP_nbF350_min2_max_variable_time.png')
-    plt.close()
+    
+    # Save or display the plot
+    if save_as_file:
+        plt.savefig(filename)
+        plt.close()  # Close the plot to avoid display when saving
+    else:
+        plt.show()  # Display the plot if not saving
 
 
+def plot_accuracy_fixed_len(results, save_as_file=True):
+    """
+    Plot the accuracy of models for fixed-length motifs for various dataset sizes.
+
+    Args:
+    results (Dict[str, Any]): A dictionary containing experiment results.
+    save_as_file (bool): If True, save the plots as files. If False, display the plots.
+    """
+    # List of models to plot
+    models = ['EXT', 'MLP']  # Example models, adjust as needed
+
+    for model in models:
+        plt.figure(figsize=(10, 6))
+        
+        # Loop over dataset sizes
+        for dataset, dataset_data in results['fixed_length'].items():
+            lengths = []
+            accuracies = []
+
+            # Extract motif lengths and corresponding accuracies for the model
+            for length, data in dataset_data.items():
+                model_data = data.get(model)
+                
+                if model_data is not None:  # Ensure model data exists
+                    accuracy = model_data.get('accuracy', 0)  # Default to 0 if 'accuracy' is missing
+                    lengths.append(length)
+                    accuracies.append(accuracy)
+
+            # Sort lengths and accuracies by motif length
+            if lengths and accuracies:  # Ensure we have data to plot
+                sorted_lengths, sorted_accuracies = zip(*sorted(zip(lengths, accuracies)))
+                plt.plot(sorted_lengths, sorted_accuracies, marker='o', label=f'Dataset size {dataset}')
+
+        # Customize the plot
+        plt.xlabel('Motif Length')
+        plt.ylabel('Accuracy')
+        plt.title(f'Accuracy for Model {model} (Fixed Length)')
+        if lengths:  # Use sorted_lengths for dynamic x-axis if available
+            plt.xticks(sorted_lengths)
+        
+        plt.ylim(0, 1)  # Set y-axis limits for accuracy
+
+        plt.grid(True)
+        plt.legend()
+
+        # Save or display the plot
+        filename = f'accuracy_fixed_len_{model}.png'
+        if save_as_file:
+            plt.savefig(filename)
+            plt.close()
+        else:
+            plt.show()
+
+
+
+def plot_accuracy_combined_len(results, save_as_file=True, filename='Accuracy_combined_len_EXT_MLP.png'):
+    """
+    Plot the accuracy of EXT and MLP models for combined-length motifs for various dataset sizes.
+
+    Args:
+    results (Dict[str, Any]): A dictionary containing experiment results.
+    save_as_file (bool): If True, save the plot as a file. If False, display the plot.
+    filename (str): The filename to save the plot if save_as_file is True.
+    """
+    plt.figure(figsize=(12, 6))
+    
+    # Extract dataset sizes from the results dictionary for 'combined_length'
+    combined_length_results = results.get('combined_length', {})
+    
+    models = ['EXT', 'MLP']
+    markers = ['o', 's']  # Different markers for EXT and MLP
+    colors = ['blue', 'red']  # Different colors for EXT and MLP
+    
+    for dataset_size, lengths_data in combined_length_results.items():
+        lengths = []
+        ext_accuracies = []
+        mlp_accuracies = []
+        
+        # Extract motif (min_len, max_len) and corresponding accuracies for each dataset
+        for (min_len, max_len), data in lengths_data.items():
+            lengths.append((min_len, max_len))  # Store as a tuple for sorting
+            ext_accuracies.append(data.get('EXT', {}).get('accuracy', 0) if isinstance(data.get('EXT'), dict) else 0)
+            mlp_accuracies.append(data.get('MLP', {}).get('accuracy', 0) if isinstance(data.get('MLP'), dict) else 0)
+        
+        # Sort the lengths and accuracies by max_len, since min_len is always the same
+        sorted_data = sorted(zip(lengths, ext_accuracies, mlp_accuracies), key=lambda x: x[0][1])  # Sort by max_len
+        sorted_lengths, sorted_ext_accuracies, sorted_mlp_accuracies = zip(*sorted_data)
+        
+        # Create formatted x-axis labels (min_len, max_len) after sorting
+        sorted_labels = [f'({min_len},{max_len})' for min_len, max_len in sorted_lengths]
+        
+        # Plot the accuracies for both models
+        plt.plot(sorted_labels, sorted_ext_accuracies, marker=markers[0], color=colors[0], linestyle='-', 
+                 label=f'EXT (Dataset size {dataset_size})')
+        plt.plot(sorted_labels, sorted_mlp_accuracies, marker=markers[1], color=colors[1], linestyle='--', 
+                 label=f'MLP (Dataset size {dataset_size})')
+    
+    # Customize the plot
+    plt.xlabel('Motif Length (min_len, max_len)')
+    plt.ylabel('Accuracy')
+    plt.title('Accuracy of EXT and MLP Models (Combined Length)')
+    plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+    plt.ylim(0, 1)  # Set y-axis limits for accuracy
+    plt.grid(True)
+    plt.legend()
+    
+    # Adjust layout to prevent cutoff of labels
+    plt.tight_layout()
+    
+    # Save or display the plot
+    if save_as_file:
+        plt.savefig(filename)
+        plt.close()  # Close the plot to avoid display when saving
+    else:
+        plt.show()  # Display the plot if not saving
+
+import matplotlib.pyplot as plt
+from typing import Dict, Any
+
+def plot_total_time_combined_len(results, save_as_file=True, filename='Total_time_combined_len_EXT_MLP.png'):
+    """
+    Plot the total execution time of EXT and MLP models for combined-length motifs for various dataset sizes.
+
+    Args:
+    results (Dict[str, Any]): A dictionary containing experiment results.
+    save_as_file (bool): If True, save the plot as a file. If False, display the plot.
+    filename (str): The filename to save the plot if save_as_file is True.
+    """
+    plt.figure(figsize=(12, 6))
+    
+    # Extract dataset sizes from the results dictionary for 'combined_length'
+    combined_length_results = results.get('combined_length', {})
+    
+    models = ['EXT', 'MLP']
+    markers = ['o', 's']  # Different markers for EXT and MLP
+    colors = ['blue', 'red']  # Different colors for EXT and MLP
+    
+    for dataset_size, lengths_data in combined_length_results.items():
+        lengths = []
+        ext_total_times = []
+        mlp_total_times = []
+        
+        # Extract motif (min_len, max_len) and corresponding total execution times for each dataset
+        for (min_len, max_len), data in lengths_data.items():
+            lengths.append((min_len, max_len))  # Store as a tuple for sorting
+            
+            # Calculate total execution time for EXT and MLP
+            cpp_time = data.get('cpp_execution_time_sec', 0)
+            ext_training_time = data.get('EXT', {}).get('training_time_sec', 0)
+            ext_testing_time = data.get('EXT', {}).get('testing_time_sec', 0)
+            mlp_training_time = data.get('MLP', {}).get('training_time_sec', 0)
+            mlp_testing_time = data.get('MLP', {}).get('testing_time_sec', 0)
+            
+            ext_total_time = cpp_time + ext_training_time + ext_testing_time
+            mlp_total_time = cpp_time + mlp_training_time + mlp_testing_time
+            
+            ext_total_times.append(ext_total_time)
+            mlp_total_times.append(mlp_total_time)
+        
+        # Sort the lengths and total times by max_len, since min_len is always the same
+        sorted_data = sorted(zip(lengths, ext_total_times, mlp_total_times), key=lambda x: x[0][1])  # Sort by max_len
+        sorted_lengths, sorted_ext_total_times, sorted_mlp_total_times = zip(*sorted_data)
+        
+        # Create formatted x-axis labels (min_len, max_len) after sorting
+        sorted_labels = [f'({min_len},{max_len})' for min_len, max_len in sorted_lengths]
+        
+        # Plot the total execution times for both models
+        plt.plot(sorted_labels, sorted_ext_total_times, marker=markers[0], color=colors[0], linestyle='-', 
+                 label=f'EXT (Dataset size {dataset_size})')
+        plt.plot(sorted_labels, sorted_mlp_total_times, marker=markers[1], color=colors[1], linestyle='--', 
+                 label=f'MLP (Dataset size {dataset_size})')
+    
+    # Customize the plot
+    plt.xlabel('Motif Length (min_len, max_len)')
+    plt.ylabel('Total Execution Time (seconds)')
+    plt.title('Total Execution Time of EXT and MLP Models (Combined Length)')
+    plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+    plt.grid(True)
+    plt.legend()
+    
+    # Adjust layout to prevent cutoff of labels
+    plt.tight_layout()
+    
+    # Save or display the plot
+    if save_as_file:
+        plt.savefig(filename)
+        plt.close()  # Close the plot to avoid display when saving
+    else:
+        plt.show()  # Display the plot if not saving
+
+
+def plot_all_len_motifs_exp(results):
+    
+    print('plot_growth_nb_motifs_fixed_len: ...')
+    plot_growth_nb_motifs_fixed_len(results, save_as_file=True)
+    print('plot_growth_nb_motifs_combined_len: ...')
+    plot_growth_nb_motifs_combined_len(results, save_as_file=True)
+
+    print(' Accuracy for models ...')
+    plot_accuracy_fixed_len(results)
+
+    print(' Accuracy combined len ...')
+    plot_accuracy_combined_len(results)
+
+    print(" Total time for combined len...")
+    plot_total_time_combined_len(results)
+
+    print(' Finish exp len motifs :) ')
+
+# Assuming your results are stored in a dictionary called 'results'
+# generate_all_plots(results)
 # -------------------------------------------
 # -------------------------------------------
 
@@ -715,7 +1076,7 @@ def run_classification_experiment(
     output_csv: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Runs a single classification experiment using Main.py and returns the results.
+    Runs a classification experiment using Main.py and retrieves results from the output CSV.
 
     :param model: Machine learning model name (e.g., 'EXT', 'MLP', 'VOT', 'RDF')
     :param train_csv: Path to the training CSV matrix file
@@ -731,12 +1092,17 @@ def run_classification_experiment(
     
     # Define default output_csv if not provided
     if output_csv is None:
-        output_csv = Path("results") / f"classification_results_{model}.csv"
+        output_csv = Path("results") / f"classification_results_{model}_{os.getpid()}.csv"
     
     # Ensure output directory exists
     output_csv_path = Path(output_csv)
     output_csv_path.parent.mkdir(parents=True, exist_ok=True)
     
+    #print(' inside run classification ...')
+    #print('train_csv: ', train_csv)
+    #print('output_csv_path: ', output_csv_path)
+    #time.sleep(3)
+
     # Command to run Main.py
     command = [
         "python",
@@ -753,7 +1119,7 @@ def run_classification_experiment(
     
     try:
         # Execute the command
-        result = subprocess.run(
+        subprocess.run(
             command,
             check=True,
             stdout=subprocess.PIPE,
@@ -768,33 +1134,131 @@ def run_classification_experiment(
         print(f"stderr: {e.stderr}")
         return {"error": f"Subprocess failed: {e.stderr}"}
     
-    # Read the output CSV and return the results
+    #time.sleep(3)
+    #print('Read the output CSV and extract results...')
+    # Read the output CSV and extract results
     if output_csv_path.exists():
-        with open(output_csv_path, 'r') as csvfile:
-            reader = csv.DictReader(csvfile)
-            results = [row for row in reader]
-        return {
-            "model": model,
-            "results": results
-        }
+        try:
+            df = pd.read_csv(output_csv_path)
+            
+            # Extract necessary metrics
+            # Adjust the column names based on your CSV structure
+            # Assuming columns like 'Training_Time_sec', 'Testing_Time_sec', 'Accuracy', etc.
+            training_time = df.get('Training_Time_sec', [None])[0]
+            testing_time = df.get('Testing_Time_sec', [None])[0]
+            accuracy = df.get('Accuracy', [None])[0]
+            precision = df.get('Precision', [None])[0]
+            recall = df.get('Recall', [None])[0]
+            f1_score = df.get('F1_Score', [None])[0]
+            num_test_sequences = df.get('Number_Test_Sequences', [None])[0]
+            num_total_motifs = df.get('Number_Total_Motifs', [None])[0]
+            num_tested_classes = df.get('Number_Tested_Classes', [None])[0]
+            
+            return {
+                "model": model,
+                "training_time_sec": training_time,
+                "testing_time_sec": testing_time,
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1_score,
+                "num_test_sequences": num_test_sequences,
+                "num_total_motifs": num_total_motifs,
+                "num_tested_classes": num_tested_classes
+            }
+        
+        except Exception as e:
+            print(f"Error reading classification output CSV for model {model}: {e}")
+            return {"error": f"CSV read failed: {str(e)}"}
     else:
         print(f"Output CSV file not found: {output_csv_path}")
         return {"error": "Output CSV file not found."}
+
+
+
+import csv
+from typing import Dict, Any, Union
+
+def write_results_to_csv(results: Dict[str, Any], csv_filename: str) -> None:
+    """
+    Write experiment results to a CSV file.
+
+    Args:
+    results (Dict[str, Any]): A dictionary containing experiment results.
+    csv_filename (str): The name of the CSV file to write to.
+
+    Raises:
+    IOError: If there's an issue writing to the file.
+    """
+    try:
+        with open(csv_filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            write_header(writer)
+            write_fixed_length_results(writer, results.get('fixed_length', {}))
+            write_combined_length_results(writer, results.get('combined_length', {}))
+    except IOError as e:
+        print(f"Error writing to file {csv_filename}: {e}")
+
+def write_header(writer: csv.writer) -> None:
+    writer.writerow([
+        'Motif Type', 'Dataset Size', 'CM Min', 'CM Max', 'Number motifs',
+        'Time cpp', 'File size GB', 'Model', 'Accuracy', 'Precision',
+        'Recall', 'F1 Score', 'Training Time (sec)', 'Testing Time (sec)'
+    ])
+
+def write_fixed_length_results(writer: csv.writer, fixed_length_results: Dict[str, Any]) -> None:
+    for size, cm_lengths in fixed_length_results.items():
+        for cm_length, experiment_results in cm_lengths.items():
+            write_experiment_results(writer, 'fixed_length', size, cm_length, cm_length, experiment_results)
+
+def write_combined_length_results(writer: csv.writer, combined_length_results: Dict[str, Any]) -> None:
+    for size, length_ranges in combined_length_results.items():
+        for (min_len, max_len), experiment_results in length_ranges.items():
+            write_experiment_results(writer, 'combined_length', size, min_len, max_len, experiment_results)
+
+def write_experiment_results(writer: csv.writer, motif_type: str, size: Union[int, str], 
+                             min_len: Union[int, str], max_len: Union[int, str], 
+                             experiment_results: Dict[str, Any]) -> None:
+    for model, metrics in experiment_results.items():
+        if isinstance(metrics, dict) and model not in [
+            'dataset_size', 'min_length', 'max_length',
+            'num_motifs', 'cpp_execution_time_sec', 'file_size_gb']:
+            writer.writerow([
+                motif_type, size, min_len, max_len,
+                experiment_results.get('num_motifs', 'N/A'),
+                experiment_results.get('cpp_execution_time_sec', 'N/A'),
+                experiment_results.get('file_size_gb', 'N/A'),
+                model,
+                metrics.get('accuracy', 'N/A'),
+                metrics.get('precision', 'N/A'),
+                metrics.get('recall', 'N/A'),
+                metrics.get('f1_score', 'N/A'),
+                metrics.get('training_time_sec', 'N/A'),
+                metrics.get('testing_time_sec', 'N/A')
+            ])
+# Example usage:
+# write_results_to_csv(experiment_results, 'experiment_results.csv')
+
 
 def main():
 
     is_debug_datasets: bool = is_debug_datasets_global_var
 
     # unzip already pre-prepared datasets
-    prepare_dataset()
+    ##prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
-    compile_code_MotifsExtractionSelection()
+    ## compile_code_MotifsExtractionSelection()
     
     # run the sub motifs deletion experiments
-    deletion_sub_motifs(is_debug_datasets)
+    ## deletion_sub_motifs(is_debug_datasets)
     
+    # run the motifs length experiments
+    print("run the motifs length experiments...")
+    ## run_motif_length_experiments(is_debug_datasets)
 
+    # debug by internal dict 
+    plot_all_len_motifs_exp(dict_len_motifs_exp_example_debug)
 
 if __name__ == "__main__":
     main()

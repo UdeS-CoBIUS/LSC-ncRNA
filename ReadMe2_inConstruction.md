@@ -727,6 +727,7 @@ pip install <package_name>
 -     + `brew install libomp` for mac os, we need to install libomp, it is required by xgboost.
 - `pyahocorasick` : https://pypi.org/project/pyahocorasick/
 - `suffix-trees` : https://pypi.org/project/suffix-trees/
+- `matplotlib` : https://matplotlib.org/stable/users/installing/index.html
 
 
 
