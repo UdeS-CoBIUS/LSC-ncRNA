@@ -27,7 +27,7 @@ from dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
 # define a global variable to use debug datasets
 is_debug_datasets_global_var: bool = True
 debug_datasets_size_global_var: list[int] = [5, 10, 15, 20, 25, 30]
-## debug_datasets_size_global_var: list[int] = [30]
+debug_datasets_size_global_var: list[int] = [30]
 dir_main_path_debug_datasets_global_var: str = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
 
 def find_project_root(project_name: str = "LSC-ncRNA") -> Path:
@@ -242,8 +242,8 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
                 print(f"Results saved to {csv_path}")
 
                 # Step 10: Clean up the generated CSV file, since it will have big size
-                ## os.remove(result['output_csv_file'])
-                ## print(f"Cleaned up {result['output_csv_file']}")
+                os.remove(result['output_csv_file'])
+                print(f"Cleaned up {result['output_csv_file']}")
 
             except Exception as e:
                 print(
@@ -363,7 +363,9 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
     #fixed_lengths: range = range(1, 21)  # for 1 we should use an intern python method to generate the dataset, the method exist already.
     fixed_lengths: range = range(2, 21)  # 2 to 20, fro now from 2. to be changed later, we treat size min max = 1 seperatly.
     # fixed_lengths: list[tuple[int, int]] = [(f-1, f) for f in range(2, 21)]  # (1, 2), (2,3) to (19, 20). we do this since in c++ program it implemented (min_len, max_len) like min_len<max_len begin min, stop before max. so 1,2 mean only one I have to check...
-    combined_lengths: list[tuple[int, int]] = [(2, max_len) for max_len in range(2, 21)]  # (2, 2) to (2, 20)
+    combined_lengths: list[tuple[int, int]] = [(2, max_len) for max_len in range(3, 21)]  # (2, 3) to (2, 20)
+
+    # note: when we have min_len = i, max_len = i+1 ex:(2,3) this mean we have fixed motif len of len 2. (this is in my c++ code work like this, maybe I should take time to change it...)
 
     results: dict[str, dict[int, dict[int | tuple[int, int], dict[str, int | float | str]]]] = {
         'fixed_length': {size: {} for size in dataset_sizes},
@@ -466,9 +468,9 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
             output_csv=classification_output_csv
         )
 
-        #print('end classification')
-        #print('classification_output:')
-        #print(classification_output)
+        print('end classification')
+        print('classification_output:')
+        print(classification_output)
         #time.sleep(3)
 
         if "error" in classification_output:
@@ -481,6 +483,7 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
                 "training_time_sec": None,
                 "testing_time_sec": None
             }
+            print(' ibra error ibra error')
             continue
 
         # Store the extracted metrics
@@ -492,6 +495,10 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
             "training_time_sec": classification_output.get("training_time_sec"),
             "testing_time_sec": classification_output.get("testing_time_sec")
         }
+
+        # Clean up the CSV file that store the classification result. 
+        os.remove(classification_output_csv)
+        print(f"Cleaned up {classification_output_csv}")
 
         print(f"Model: {model} | Accuracy: {classification_results[model]['accuracy']} | "
               f"Training Time: {classification_results[model]['training_time_sec']} sec | "
@@ -510,74 +517,15 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
     # Merge classification_results into experiment_results
     experiment_results.update(classification_results)
 
+    # Clean up the generated CSV file (train csv file), since we no longer need it & it will have big size
+    os.remove(result['output_csv_file'])
+    print(f"Cleaned up {result['output_csv_file']}")
+    
+
     print(f"Completed experiment for dataset size {dataset_size}, min_length {min_length}, max_length {max_length}")
 
     return experiment_results 
     
-    """
-    results = {
-    'fixed_length': {
-        50: {
-            1: { EXT: {acc:, f1:, train time:,...}
-            { MLP: {acc:, f1:, train time:,...}
-            },
-            2: { ... },
-            ...
-            20: { ... }
-        },
-        150: {
-            1: { ... },
-            2: { ... },
-            ...
-            20: { ... }
-        },
-        ...
-    },
-    'combined_length': {
-        350: {
-            (2, 2): { ... },
-            (2, 3): { ... },
-            ...
-            (2, 20): { ... }
-        }
-    }
-}
-    """
-    """
-    example:
-    classification_results = {
-    'EXT': {
-        "accuracy": 0.95,
-        "precision": 0.9,
-        "recall": 0.85,
-        "f1_score": 0.87,
-        "training_time_sec": 120,
-        "testing_time_sec": 30,
-    },
-    'MLP': {
-        "accuracy": 0.92,
-        "precision": 0.89,
-        "recall": 0.84,
-        "f1_score": 0.86,
-        "training_time_sec": 110,
-        "testing_time_sec": 25,
-    }
-}
-
-example:
-experiment_results = {
-    "dataset_size": dataset_size,
-    "min_length": min_length,
-    "max_length": max_length,
-    "num_motifs": result.get('num_motifs'),
-    "cpp_execution_time_sec": result.get('execution_time'),
-    "file_size_gb": result.get('file_size_gb'),
-    'EXT': { ... },  # metrics for EXT
-    'MLP': { ... },  # metrics for MLP
-}
-
-    """
-
 
 # -------------------------------------------
 # -------------------------------------------
@@ -827,15 +775,23 @@ def plot_total_time_combined_len(results, save_as_file=True, filename='Total_tim
             lengths.append((min_len, max_len))  # Store as a tuple for sorting
             
             # Calculate total execution time for EXT and MLP
+            print('Calculate total execution time for EXT and MLP')
+            print('data[EXT][training_time_sec] = ', data['EXT']['training_time_sec'])
             cpp_time = data.get('cpp_execution_time_sec', 0)
             ext_training_time = data.get('EXT', {}).get('training_time_sec', 0)
             ext_testing_time = data.get('EXT', {}).get('testing_time_sec', 0)
             mlp_training_time = data.get('MLP', {}).get('training_time_sec', 0)
             mlp_testing_time = data.get('MLP', {}).get('testing_time_sec', 0)
-            
+            print(f'cpp_time : {cpp_time} type : {type(cpp_time)}')
+            print(f'ext_training_time : {ext_training_time} type : {type(ext_training_time)}')
+            print(f'ext_testing_time : {ext_testing_time} type : {type(ext_testing_time)}')
+
+
             ext_total_time = cpp_time + ext_training_time + ext_testing_time
             mlp_total_time = cpp_time + mlp_training_time + mlp_testing_time
             
+            print(f' ext_total_time = {ext_total_time}...')
+
             ext_total_times.append(ext_total_time)
             mlp_total_times.append(mlp_total_time)
         
@@ -1245,20 +1201,20 @@ def main():
     is_debug_datasets: bool = is_debug_datasets_global_var
 
     # unzip already pre-prepared datasets
-    ##prepare_dataset()
+    prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
-    ## compile_code_MotifsExtractionSelection()
+    compile_code_MotifsExtractionSelection()
     
     # run the sub motifs deletion experiments
-    ## deletion_sub_motifs(is_debug_datasets)
+    deletion_sub_motifs(is_debug_datasets)
     
     # run the motifs length experiments
     print("run the motifs length experiments...")
-    ## run_motif_length_experiments(is_debug_datasets)
+    run_motif_length_experiments(is_debug_datasets)
 
     # debug by internal dict 
-    plot_all_len_motifs_exp(dict_len_motifs_exp_example_debug)
+    ## plot_all_len_motifs_exp(dict_len_motifs_exp_example_debug)
 
 if __name__ == "__main__":
     main()
