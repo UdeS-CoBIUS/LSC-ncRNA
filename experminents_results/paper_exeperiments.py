@@ -27,7 +27,7 @@ from dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
 # define a global variable to use debug datasets
 is_debug_datasets_global_var: bool = True
 debug_datasets_size_global_var: list[int] = [5, 10, 15, 20, 25, 30]
-debug_datasets_size_global_var: list[int] = [30]
+#debug_datasets_size_global_var: list[int] = [30]
 dir_main_path_debug_datasets_global_var: str = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
 
 def find_project_root(project_name: str = "LSC-ncRNA") -> Path:
@@ -360,6 +360,12 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
     if is_debug_datasets:
         dataset_sizes = debug_datasets_size_global_var
 
+    beta: int= 0 # percentage of the cm in the family (called alpha in the paper)
+    alpha: int= -1 # variance of nb cm between seqs in family , -1 we don't care
+    gamma: int= 1 # min nb of cm to consider 
+    is_delete_submotifs: int= 0 # delete of note sub motif, default: 0 so no.
+    
+
     #fixed_lengths: range = range(1, 21)  # for 1 we should use an intern python method to generate the dataset, the method exist already.
     fixed_lengths: range = range(2, 21)  # 2 to 20, fro now from 2. to be changed later, we treat size min max = 1 seperatly.
     # fixed_lengths: list[tuple[int, int]] = [(f-1, f) for f in range(2, 21)]  # (1, 2), (2,3) to (19, 20). we do this since in c++ program it implemented (min_len, max_len) like min_len<max_len begin min, stop before max. so 1,2 mean only one I have to check...
@@ -372,31 +378,51 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
         'combined_length': {dataset_sizes[-1]: {}} # take only last size, so 350 or 30 in debug datasets
     }
 
-    #print('inside run motif length experiments ... ')
-    #print('dataset_sizes:', dataset_sizes)
-    #print('fixed_lengths:', fixed_lengths)
-    #print('combined_lengths: ', combined_lengths)
-    #time.sleep(5) # give time to read for debug.
-
 
     # Step 2: Run experiments for fixed-length motifs
     for size in dataset_sizes:
         print(f"Running experiments for dataset size {size}")
         for cm_length in fixed_lengths:
-            results['fixed_length'][size][cm_length] = run_single_experiment(size, cm_length-1, cm_length, is_debug_datasets)
+            results['fixed_length'][size][cm_length] = run_single_experiment(
+                dataset_size=size, 
+                min_length=cm_length-1, 
+                max_length=cm_length,
+                beta_percentage=beta,
+                alpha_nb_occ_variation=alpha,
+                gamma_nb_occrs=gamma,
+                is_delete_submotifs=is_delete_submotifs,
+                test_name='cm_len', 
+                is_debug_datasets=is_debug_datasets)
 
     # Step 3: Run experiments for combined-length motifs (only for size 350)
     for min_len, max_len in combined_lengths:
         size = 350
         if is_debug_datasets:
             size = 30
-        results['combined_length'][size][(min_len, max_len)] = run_single_experiment(size, min_len, max_len, is_debug_datasets)
+        results['combined_length'][size][(min_len, max_len)] = run_single_experiment(
+            dataset_size=size, 
+            min_length=min_len, 
+            max_length=max_len,
+            beta_percentage=beta,
+            alpha_nb_occ_variation=alpha,
+            gamma_nb_occrs=gamma,
+            is_delete_submotifs=is_delete_submotifs, 
+            test_name='cm_len',
+            is_debug_datasets=is_debug_datasets)
 
     # Step 4: Generate plots
     plot_all_len_motifs_exp(results)
 
 
-def run_single_experiment(dataset_size: int, min_length: int, max_length: int, is_debug_datasets: bool = False) -> Optional[Dict[str, Any]]:
+def run_single_experiment(dataset_size: int = 500, 
+                          min_length: int = 2, 
+                          max_length: int = 10,
+                          beta_percentage: int = 0, # default: no filtering
+                          alpha_nb_occ_variation: int = -1, # default: no filtering
+                          gamma_nb_occrs: int = 1, # default: no filtering
+                          is_delete_submotifs: int = 0, # default: false , no deletion 
+                          test_name: str = 'test_no_f',
+                          is_debug_datasets: bool = False) -> Optional[Dict[str, Any]]:
     """
     Runs a single experiment including motif extraction and classification.
 
@@ -411,7 +437,6 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
     train_dir_path = get_dir_path_rfam14_sample(size=dataset_size, data_type='Train', is_debug_datasets=is_debug_datasets)
     test_dir_path = get_dir_path_rfam14_sample(size=dataset_size, data_type='Test', is_debug_datasets=is_debug_datasets)
     
-    test_name = "cm_len"
 
     #print(' inside run single experiment ...')
     #print('Train dir:', train_dir_path)
@@ -425,10 +450,10 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
         dataset_size=dataset_size,
         min_length=min_length,
         max_length=max_length,
-        is_delete_submotifs=0,  # no deletion of sub motifs
-        beta=0,  # don't use beta
-        alpha=-1,  # don't use alpha
-        gamma=1  # gamma = 1, no filtering on the number of occurrences of the cm, at least we have 1 (the default)
+        is_delete_submotifs= is_delete_submotifs,  # no deletion of sub motifs
+        beta= beta_percentage,  # don't use beta
+        alpha=alpha_nb_occ_variation,  # don't use alpha
+        gamma=gamma_nb_occrs  # gamma = 1, no filtering on the number of occurrences of the cm, at least we have 1 (the default)
     )
 
     #print(' end cpp, results:')
@@ -468,9 +493,9 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
             output_csv=classification_output_csv
         )
 
-        print('end classification')
-        print('classification_output:')
-        print(classification_output)
+        #print('end classification')
+        #print('classification_output:')
+        #print(classification_output)
         #time.sleep(3)
 
         if "error" in classification_output:
@@ -483,7 +508,7 @@ def run_single_experiment(dataset_size: int, min_length: int, max_length: int, i
                 "training_time_sec": None,
                 "testing_time_sec": None
             }
-            print(' ibra error ibra error')
+            #print(' ibra error ibra error')
             continue
 
         # Store the extracted metrics
@@ -775,22 +800,22 @@ def plot_total_time_combined_len(results, save_as_file=True, filename='Total_tim
             lengths.append((min_len, max_len))  # Store as a tuple for sorting
             
             # Calculate total execution time for EXT and MLP
-            print('Calculate total execution time for EXT and MLP')
-            print('data[EXT][training_time_sec] = ', data['EXT']['training_time_sec'])
+            #print('Calculate total execution time for EXT and MLP')
+            #print('data[EXT][training_time_sec] = ', data['EXT']['training_time_sec'])
             cpp_time = data.get('cpp_execution_time_sec', 0)
             ext_training_time = data.get('EXT', {}).get('training_time_sec', 0)
             ext_testing_time = data.get('EXT', {}).get('testing_time_sec', 0)
             mlp_training_time = data.get('MLP', {}).get('training_time_sec', 0)
             mlp_testing_time = data.get('MLP', {}).get('testing_time_sec', 0)
-            print(f'cpp_time : {cpp_time} type : {type(cpp_time)}')
-            print(f'ext_training_time : {ext_training_time} type : {type(ext_training_time)}')
-            print(f'ext_testing_time : {ext_testing_time} type : {type(ext_testing_time)}')
+            #print(f'cpp_time : {cpp_time} type : {type(cpp_time)}')
+            #print(f'ext_training_time : {ext_training_time} type : {type(ext_training_time)}')
+            #print(f'ext_testing_time : {ext_testing_time} type : {type(ext_testing_time)}')
 
 
             ext_total_time = cpp_time + ext_training_time + ext_testing_time
             mlp_total_time = cpp_time + mlp_training_time + mlp_testing_time
             
-            print(f' ext_total_time = {ext_total_time}...')
+            #print(f' ext_total_time = {ext_total_time}...')
 
             ext_total_times.append(ext_total_time)
             mlp_total_times.append(mlp_total_time)
@@ -845,8 +870,402 @@ def plot_all_len_motifs_exp(results):
 
     print(' Finish exp len motifs :) ')
 
-# Assuming your results are stored in a dictionary called 'results'
-# generate_all_plots(results)
+
+# -------------------------------------------
+# -------------------------------------------
+# Experiments on: Beta filtering
+# Filtering according to motif conservation in their family (parameter $\alpha$)
+# Percentage of given cm in the family (until now we call it Beta), but now in previous phrase (from paper we call it alpha)
+# because in the beginning we call it beta (and also in code), then later in the paper we changed to alpha.
+# So, as parameter we still call it beta.
+# in the figure we call it alpha.
+#
+# 
+# In this experiment, we compared different settings including the parameter $\alpha$. Figure \ref{fig:beta_max_10} and Supplementary Figure \ref{fig:beta_max_10_s} show the evolution of the dataset size, the classification accuracy, the training time and the data generation time for different values of $\alpha$.
+# \begin{figure}[b]
+#    \centering
+#    %\includegraphics[width=.49\textwidth]{images/Beta_0_Total_motifs.PNG}\hfill
+#    %\includegraphics[width=.49\textwidth]{images/Beta_0_Accuracy.PNG}
+#    %~\\
+#    %\includegraphics[width=.49\textwidth]{images/Beta_gamma_Total_motifs.PNG}\hfill
+#    \includegraphics[width=.49\textwidth]{images/Beta_gamma_Accuracy.PNG}
+#    
+#    \caption{Relation between $\alpha$ and the classification accuracy for EXT and MLP with  $\gamma = 1$ or $\gamma = 2$.}
+#    
+#    \label{fig:beta_gamma_test}
+#\end{figure}
+# need to show : Beta_gamma_Accuracy.PNG
+# datasets used: 
+# beta [0,50,100] (cm percentage in family), in the paper called alpha.
+# alpha: -1 (in paper called beta)
+# gamma = [1, 2]
+# model: [EXT, MLP]
+# min_len = 2
+# max_len = 10
+# data-size (nb families): 500
+# No deletion
+
+def run_beta_experiments(is_debug_datasets: bool = False) -> None:
+    """
+    Run experiments to analyze the effect of beta (percentage of common motifs) and gamma (minimum occurrences) parameters.
+
+    :param is_debug_datasets: If True, use debug dataset size
+    """
+    # Step 1: Define parameters
+    dataset_size: int = 500 if not is_debug_datasets else debug_datasets_size_global_var[-1]
+    min_len: int = 2
+    max_len: int = 10
+    list_betas: list[int] = [0, 50, 100]  # percentage of common motifs in the family
+    alpha: int = -1  # no filtering
+    list_gammas: list[int] = [1, 2]
+    is_sub_motif_delete: int = 0  # false, no deletion of submotifs
+
+    # Initialize results dictionary with nested structure
+    results: dict[int, dict[int, Optional[dict[str, Any]]]] = {
+        beta: {gamma: None for gamma in list_gammas} for beta in list_betas
+    }
+
+    # Step 2: Run experiments
+    for beta in list_betas:
+        print(f"Running experiments for beta {beta}")
+        for gamma in list_gammas:
+            print(f"  Running experiment for gamma {gamma}")
+            results[beta][gamma] = run_single_experiment(
+                dataset_size=dataset_size,
+                min_length=min_len,
+                max_length=max_len,
+                beta_percentage=beta,
+                alpha_nb_occ_variation=alpha,
+                gamma_nb_occrs=gamma,
+                is_delete_submotifs=is_sub_motif_delete,
+                test_name='beta',
+                is_debug_datasets=is_debug_datasets
+            )
+
+    # Step 3: Generate plots
+    plot_accuracy_beta_gamma(results, 'beta_gamma_accuracy_plot.png')
+    plot_motifs_beta_gamma(results, 'beta_gamma_motifs_plot.png')
+
+
+    # Step 4: Save results (optional, but recommended)
+    save_results_to_file(results, "beta_experiments_results.json")
+
+def save_results_to_file(results: dict, filename: str) -> None:
+    """
+    Save the results dictionary to a JSON file.
+
+    :param results: The results dictionary to save
+    :param filename: The name of the file to save the results to
+    """
+    import json
+    with open(filename, 'w') as f:
+        json.dump(results, f, indent=2)
+    print(f"Results saved to {filename}")
+
+
+# Example of combined results dictionary
+results_debug_beta_gamma = {
+    0: {
+        1: {
+            'EXT': {'accuracy': 0.85},
+            'MLP': {'accuracy': 0.82},
+            'num_motifs': 150
+        },
+        2: {
+            'EXT': {'accuracy': 0.87},
+            'MLP': {'accuracy': 0.84},
+            'num_motifs': 120
+        }
+    },
+    50: {
+        1: {
+            'EXT': {'accuracy': 0.89},
+            'MLP': {'accuracy': 0.86},
+            'num_motifs': 200
+        },
+        2: {
+            'EXT': {'accuracy': 0.91},
+            'MLP': {'accuracy': 0.88},
+            'num_motifs': 180
+        }
+    },
+    100: {
+        1: {
+            'EXT': {'accuracy': 0.92},
+            'MLP': {'accuracy': 0.90},
+            'num_motifs': 250
+        },
+        2: {
+            'EXT': {'accuracy': 0.94},
+            'MLP': {'accuracy': 0.92},
+            'num_motifs': 220
+        }
+    }
+}
+
+# Now let's update both plotting functions to work with this new structure
+import numpy as np
+
+def plot_accuracy_beta_gamma(results, output_filename='accuracy_plot.png'):
+    betas = list(results.keys())
+    gammas = list(results[betas[0]].keys())
+    models = ['EXT', 'MLP']
+    
+    x = np.arange(len(betas))
+    width = 0.1
+    
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    for i, model in enumerate(models):
+        for j, gamma in enumerate(gammas):
+            accuracies = [results[beta][gamma][model]['accuracy'] for beta in betas]
+            offset = width * (i * len(gammas) + j - (len(models) * len(gammas) - 1) / 2)
+            rects = ax.bar(x + offset, accuracies, width, label=f'{model}, γ={gamma}')
+            ax.bar_label(rects, fmt='{:.2f}', padding=3, rotation=90, fontsize=8)
+
+    ax.set_xlabel('Beta (%)')
+    ax.set_ylabel('Accuracy')
+    ax.set_title('Accuracy for EXT and MLP Models with Different Beta and Gamma Values')
+    ax.set_xticks(x)
+    ax.set_xticklabels(betas)
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    ax.set_ylim(0, 1)
+    
+    plt.tight_layout()
+    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_filename}")
+
+def plot_motifs_beta_gamma(results, output_filename='motifs_plot.png'):
+    betas = list(results.keys())
+    gammas = list(results[betas[0]].keys())
+    
+    x = np.arange(len(betas))
+    width = 0.2
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    for j, gamma in enumerate(gammas):
+        num_motifs = [results[beta][gamma]['num_motifs'] for beta in betas]
+        offset = width * (j - len(gammas)/2 + 0.5)
+        rects = ax.bar(x + offset, num_motifs, width, label=f'γ={gamma}')
+        ax.bar_label(rects, fmt='{:.0f}', padding=3, rotation=90, fontsize=8)
+
+    ax.set_xlabel('Beta (%)')
+    ax.set_ylabel('Number of Motifs')
+    ax.set_title('Number of Motifs for Different Beta and Gamma Values')
+    ax.set_xticks(x)
+    ax.set_xticklabels(betas)
+    ax.legend()
+    
+    ax.set_ylim(bottom=0)
+    plt.tight_layout()
+    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_filename}")
+
+
+# -------------------------------------------
+# -------------------------------------------
+# Experiments on: Alpha filtering (in the paper called beta :p)
+# D. Filtering according to the number of occurrences variation (parameter $\beta$)
+# the number of motifs for $\beta = 0$ and $\beta = +\infty$ for different values of $\alpha$.
+# so, in the code
+# beta (paper alpha) = 0, 50, 100
+# alpha (paper beta) = 0 , +infty 
+# gamma = 1 # no filtering
+# model: [EXT, MLP]
+# min_len = 2
+# max_len = 10
+# data-size (nb families): 500
+# No deletion
+
+
+def run_alpha_variance_experiments(is_debug_datasets: bool = False) -> None:
+    """
+    Run experiments to analyze the effect of beta (percentage of common motifs) and gamma (minimum occurrences) parameters.
+
+    :param is_debug_datasets: If True, use debug dataset size
+    """
+    # Step 1: Define parameters
+    dataset_size: int = 500 if not is_debug_datasets else debug_datasets_size_global_var[-1]
+    min_len: int = 2
+    max_len: int = 10
+    list_betas: list[int] = [0, 50, 100]  # percentage of common motifs in the family
+    list_alphas: list[int] = [1,100]  # 1 and 100 (as +infiny :p) since all test from 10, 20, ...and on give the same results. # We can Max positive value for 32-bit signed integer, but it give pbm, I don't know why !!!, but since we don't need it, so we don't care :p
+    gamma: int = 1 # no filtering
+    is_sub_motif_delete: int = 0  # false, no deletion of submotifs
+
+    # Initialize results dictionary with nested structure
+    results: dict[int, dict[int, Optional[dict[str, Any]]]] = {
+        beta: {alpha: None for alpha in list_alphas} for beta in list_betas
+    }
+
+    # Step 2: Run experiments
+    for beta in list_betas:
+        print(f"Running experiments for beta {beta}")
+        for alpha in list_alphas:
+            print(f"  Running experiment for alpha {alpha}")
+            results[beta][alpha] = run_single_experiment(
+                dataset_size=dataset_size,
+                min_length=min_len,
+                max_length=max_len,
+                beta_percentage=beta,
+                alpha_nb_occ_variation=alpha,
+                gamma_nb_occrs=gamma,
+                is_delete_submotifs=is_sub_motif_delete,
+                test_name='alpha',
+                is_debug_datasets=is_debug_datasets
+            )
+
+    # Step 3: Generate plots
+    plot_accuracy_beta_alpha(results, 'beta_alpha_accuracy_plot.png')
+    plot_motifs_beta_alpha(results, 'beta_alpha_motifs_plot.png')
+
+
+    # Step 4: Save results (optional, but recommended)
+    save_results_to_file(results, "alpha_experiments_results.json")
+
+
+def plot_accuracy_beta_alpha(results, output_filename='accuracy_plot.png'):
+    betas = list(results.keys())
+    alphas = list(results[betas[0]].keys())
+    models = ['EXT', 'MLP']
+    
+    x = np.arange(len(betas))
+    width = 0.1
+    
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    for i, model in enumerate(models):
+        for j, alpha in enumerate(alphas):
+            accuracies = [results[beta][alpha][model]['accuracy'] for beta in betas]
+            offset = width * (i * len(alphas) + j - (len(models) * len(alphas) - 1) / 2)
+            alpha_label = "1" if alpha == 1 else "∞"
+            rects = ax.bar(x + offset, accuracies, width, label=f'{model}, α={alpha_label}')
+            ax.bar_label(rects, fmt='{:.2f}', padding=3, rotation=90, fontsize=8)
+
+    ax.set_xlabel('Beta (%)')
+    ax.set_ylabel('Accuracy')
+    ax.set_title('Accuracy for EXT and MLP Models with Different Beta and Alpha Values')
+    ax.set_xticks(x)
+    ax.set_xticklabels(betas)
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    ax.set_ylim(0, 1)
+    
+    plt.tight_layout()
+    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_filename}")
+
+def plot_motifs_beta_alpha(results, output_filename='motifs_plot.png'):
+    betas = list(results.keys())
+    alphas = list(results[betas[0]].keys())
+    
+    x = np.arange(len(betas))
+    width = 0.2
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    for j, alpha in enumerate(alphas):
+        num_motifs = [results[beta][alpha]['num_motifs'] for beta in betas]
+        offset = width * (j - len(alphas)/2 + 0.5)
+        alpha_label = "1" if alpha == 1 else "∞"
+        rects = ax.bar(x + offset, num_motifs, width, label=f'α={alpha_label}')
+        ax.bar_label(rects, fmt='{:.0f}', padding=3, rotation=90, fontsize=8)
+
+    ax.set_xlabel('Beta (%)')
+    ax.set_ylabel('Number of Motifs')
+    ax.set_title('Number of Motifs for Different Beta and Alpha Values')
+    ax.set_xticks(x)
+    ax.set_xticklabels(betas)
+    ax.legend()
+    
+    ax.set_ylim(bottom=0)
+    plt.tight_layout()
+    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_filename}")
+
+# -------------------------------------------
+# -------------------------------------------
+# Experiments on: cla algs choices
+# Fixed len: 5, 7
+#     gamma = 1, 2
+#     => classification time
+#     => accuracy
+# combined len: (2,5), (2,8)
+#     gamma = 1, 2
+#     => classification time
+#     => accuracy
+# size = 500
+# beta (paper alpha): 50
+# alpha variance : -1 # no filtering
+# no deletion
+
+def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
+    # Step 1: Define parameters
+    dataset_size: int = 500
+    
+    if is_debug_datasets:
+        dataset_sizes = debug_datasets_size_global_var[-1] 
+
+    beta: int= 50 # percentage of the cm in the family (called alpha in the paper)
+    alpha: int= -1 # variance of nb cm between seqs in family , -1 we don't care
+    list_gammas: list[int]= [1, 2] # min nb of cm to consider 
+    is_sub_motif_delete: int= 0 # delete of note sub motif, default: 0 so no.
+
+    fixed_lengths: list[int] = [5, 7]
+    combined_lengths: list[tuple[int, int]] = [(2, 5), (2, 8)]
+
+    # note: when we have min_len = i, max_len = i+1 ex:(2,3) this mean we have fixed motif len of len 2. (this is in my c++ code work like this, maybe I should take time to change it...)
+
+    # Initialize results dictionary with nested structure
+    results_fixed_len: dict[int, dict[int, Optional[dict[str, Any]]]] = {
+        cm_len: {gamma: None for gamma in list_gammas} for cm_len in fixed_lengths
+    }
+
+    results_combiened_len: dict[int, dict[int, Optional[dict[str, Any]]]] = {
+        (cm_min, cm_max): {gamma: None for gamma in list_gammas} for (cm_min, cm_max) in combined_lengths
+    }
+
+
+    # Step 2: Run experiments for fixed-length motifs
+    for cm_len in fixed_lengths:
+        print(f"Running experiments for fixed len {cm_len}")
+        for gamma in list_gammas:
+            print(f"  Running experiment for gamma {gamma}")
+            results_fixed_len[cm_len][gamma] = run_single_experiment(
+                dataset_size=dataset_size,
+                min_length=cm_len-1,
+                max_length=cm_len,
+                beta_percentage=beta,
+                alpha_nb_occ_variation=alpha,
+                gamma_nb_occrs=gamma,
+                is_delete_submotifs=is_sub_motif_delete,
+                test_name='algs',
+                is_debug_datasets=is_debug_datasets
+            )
+
+
+    # Step 3: Run experiments for combined-length motifs (only for size 350)
+    for cm_min, cm_max in combined_lengths:
+        print(f"Running experiments for Combined len {cm_min}, {cm_max}")
+        for gamma in list_gammas:
+            print(f"  Running experiment for gamma {gamma}")
+            results_fixed_len[cm_len][gamma] = run_single_experiment(
+                dataset_size=dataset_size,
+                min_length=cm_min,
+                max_length=cm_max,
+                beta_percentage=beta,
+                alpha_nb_occ_variation=alpha,
+                gamma_nb_occrs=gamma,
+                is_delete_submotifs=is_sub_motif_delete,
+                test_name='algs',
+                is_debug_datasets=is_debug_datasets
+            )
+    
+
+    # Step 4: Generate plots
+    
+
+
 # -------------------------------------------
 # -------------------------------------------
 
@@ -1207,14 +1626,22 @@ def main():
     compile_code_MotifsExtractionSelection()
     
     # run the sub motifs deletion experiments
-    deletion_sub_motifs(is_debug_datasets)
+    ## deletion_sub_motifs(is_debug_datasets)
     
     # run the motifs length experiments
     print("run the motifs length experiments...")
-    run_motif_length_experiments(is_debug_datasets)
+    ## run_motif_length_experiments(is_debug_datasets)
 
+    #
+    print("run beta gamma experiments...")
+    ## run_beta_experiments(is_debug_datasets)
     # debug by internal dict 
     ## plot_all_len_motifs_exp(dict_len_motifs_exp_example_debug)
 
+    print("run beta alpha experiments...")
+    run_alpha_variance_experiments(is_debug_datasets)
+
+
 if __name__ == "__main__":
     main()
+    
