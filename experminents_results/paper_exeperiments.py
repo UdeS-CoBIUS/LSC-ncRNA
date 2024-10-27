@@ -552,6 +552,99 @@ def run_single_experiment(dataset_size: int = 500,
     return experiment_results 
     
 
+def run_single_experiment_models_choices(dataset_size: int = 500, 
+                          min_length: int = 2, 
+                          max_length: int = 10,
+                          beta_percentage: int = 0, # default: no filtering
+                          alpha_nb_occ_variation: int = -1, # default: no filtering
+                          gamma_nb_occrs: int = 1, # default: no filtering
+                          is_delete_submotifs: int = 0, # default: false , no deletion 
+                          test_name: str = 'test_no_f',
+                          is_debug_datasets: bool = False) -> Optional[Dict[str, Any]]:
+    """
+    Runs a single experiment including motif extraction and classification.
+
+    :param dataset_size: Size of the dataset (number of families)
+    :param min_length: Minimum motif length
+    :param max_length: Maximum motif length
+    :return: Dictionary containing experiment results or None if failed
+    """
+    project_root = find_project_root()
+
+    # Set up paths and parameters
+    train_dir_path = get_dir_path_rfam14_sample(size=dataset_size, data_type='Train', is_debug_datasets=is_debug_datasets)
+    
+    # Run the C++ program using run_cpp_motif_extraction_and_selection
+    result = run_cpp_motif_extraction_and_selection(
+        dir_path=str(train_dir_path),
+        test_name=test_name,
+        dataset_size=dataset_size,
+        min_length=min_length,
+        max_length=max_length,
+        is_delete_submotifs=is_delete_submotifs,
+        beta=beta_percentage,
+        alpha=alpha_nb_occ_variation,
+        gamma=gamma_nb_occrs
+    )
+
+    if result is None:
+        print(f"Error processing dataset size {dataset_size} with min_length {min_length} and max_length {max_length}")
+        return None
+
+    print(f"\nRunning classification with models choices...")
+
+    # Define output CSV for classification results
+    classification_output_csv = os.path.join(
+        "results",
+        f"classification_results_models_choices_dataset_{dataset_size}_min{min_length}_max{max_length}.csv"
+    )
+
+    # Run classification experiment
+    classification_output = run_classification_experiment_models_choices(
+        train_csv=result['output_csv_file'],
+        output_csv=classification_output_csv
+    )
+
+    if "error" in classification_output:
+        print(f"Classification error: {classification_output['error']}")
+        return None
+
+    # Store classification results
+    classification_results = {}
+    for i, model_name in enumerate(classification_output["models"]):
+        classification_results[model_name] = {
+            "processing_time": classification_output["processing_times"][i],
+            "accuracy": classification_output["accuracies"][i]
+        }
+        print(f"Model: {model_name} | Accuracy: {classification_output['accuracies'][i]} | "
+              f"Processing Time: {classification_output['processing_times'][i]} sec")
+
+    # Clean up the classification results CSV
+    if os.path.exists(classification_output_csv):
+        os.remove(classification_output_csv)
+        print(f"Cleaned up {classification_output_csv}")
+
+    # Combine C++ results with classification results
+    experiment_results = {
+        "dataset_size": dataset_size,
+        "min_length": min_length,
+        "max_length": max_length,
+        "num_motifs": result.get('num_motifs'),
+        "cpp_execution_time_sec": result.get('execution_time'),
+        "file_size_gb": result.get('file_size_gb'),
+        "classification_results": classification_results
+    }
+
+    # Clean up the generated CSV file
+    if os.path.exists(result['output_csv_file']):
+        os.remove(result['output_csv_file'])
+        print(f"Cleaned up {result['output_csv_file']}")
+
+    print(f"Completed experiment for dataset size {dataset_size}, min_length {min_length}, max_length {max_length}")
+
+    return experiment_results
+
+
 # -------------------------------------------
 # -------------------------------------------
 
@@ -1231,7 +1324,7 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
         print(f"Running experiments for fixed len {cm_len}")
         for gamma in list_gammas:
             print(f"  Running experiment for gamma {gamma}")
-            results_fixed_len[cm_len][gamma] = run_single_experiment(
+            results_fixed_len[cm_len][gamma] = run_single_experiment_models_choices(
                 dataset_size=dataset_size,
                 min_length=cm_len-1,
                 max_length=cm_len,
@@ -1249,7 +1342,7 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
         print(f"Running experiments for Combined len {cm_min}, {cm_max}")
         for gamma in list_gammas:
             print(f"  Running experiment for gamma {gamma}")
-            results_fixed_len[cm_len][gamma] = run_single_experiment(
+            results_combiened_len[(cm_min, cm_max)][gamma] = run_single_experiment_models_choices(
                 dataset_size=dataset_size,
                 min_length=cm_min,
                 max_length=cm_max,
@@ -1395,6 +1488,9 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
         "-a", str(alpha),
         "-g", str(gamma)
     ]
+
+    print(command)
+    print(" ".join(command))
 
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = process.communicate()
@@ -1550,6 +1646,89 @@ def run_classification_experiment(
         return {"error": "Output CSV file not found."}
 
 
+def run_classification_experiment_models_choices(
+    train_csv: str,
+    output_csv: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Runs a classification experiment using modelstest.py and retrieves results from the output CSV.
+    Returns processing time and accuracy for each model.
+
+    Args:
+        train_csv: Path to the training CSV matrix file
+        output_csv: Path to the output CSV file for results. If None, a default path is used.
+    
+    Returns:
+        Dictionary containing the experiment results for each model
+    """
+    # Define project root and modelstest.py path
+    project_root = find_project_root()
+    classification_script = project_root / "LSC-ncRNA-our_method/Classification/modelstest.py"
+    
+    # Define default output_csv if not provided
+    if output_csv is None:
+        output_csv = Path("results") / f"classification_results_models_choices_{os.getpid()}.csv"
+    
+    # Ensure output directory exists
+    output_csv_path = Path(output_csv)
+    output_csv_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Command to run modelstest.py
+    command = [
+        "python",
+        str(classification_script),
+        train_csv,
+        str(output_csv)
+    ]
+    
+    try:
+        # Execute the command
+        result = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error running classification experiment: {e}")
+        print(f"stdout: {e.stdout}")
+        print(f"stderr: {e.stderr}")
+        return {"error": f"Subprocess failed: {e.stderr}"}
+    
+    # Read the output CSV and extract results
+    if output_csv_path.exists():
+        try:
+            df = pd.read_csv(output_csv_path)
+            
+            # Initialize results dictionary
+            results = {
+                "models": [],
+                "processing_times": [],
+                "accuracies": []
+            }
+            
+            # Extract results for each model
+            for _, row in df.iterrows():
+                model_name = row['model']
+                processing_time = row['execution_time']  # from the original CSV
+                accuracy = row['Score Test']  # from the original CSV
+                
+                results["models"].append(model_name)
+                results["processing_times"].append(processing_time)
+                results["accuracies"].append(accuracy)
+            
+            return results
+        
+        except Exception as e:
+            print(f"Error reading classification output CSV: {e}")
+            return {"error": f"CSV read failed: {str(e)}"}
+    else:
+        print(f"Output CSV file not found: {output_csv_path}")
+        return {"error": "Output CSV file not found."}
+
+
 
 import csv
 from typing import Dict, Any, Union
@@ -1615,31 +1794,133 @@ def write_experiment_results(writer: csv.writer, motif_type: str, size: Union[in
 # write_results_to_csv(experiment_results, 'experiment_results.csv')
 
 
+def debug_cpp_fixed_len():
+    
+    # ibra todo:
+    # I checked but didn't find the pbm
+    # I know that the input min_len will be converted to min_len+1
+    # so, after the main
+    # we can put min_len = arg.min_len -1
+    # like this after it will be chnaged to min_len+1 again, and work as desired.
+    # Now, I don't find where this is donne, maybe in loop in AddStringMinMax...
+    # but anyway, this will solve the pbm.
+    
+
+        # Get the project root directory
+    project_root: Path = find_project_root()
+
+    is_debug_datasets = True
+    dataset_sizes = [5]
+
+
+    test_name: str = f"fixed"  # test delete no delete
+    min_length: int = 1
+    max_length: int = 3
+    beta: int = 0  # don't use beta (0 is the smallest value)
+    alpha: int = -1  # don't use alpha
+    gamma: int = 1  # 1 is smallest value
+
+    results: list[dict[str, int | float | str]] = []
+
+    # Step 2: Iterate through dataset sizes and submotif deletion options
+    for size in dataset_sizes:
+        # Step 3: Set up input file paths
+        dir_path = get_dir_path_rfam14_sample(size=size, data_type='Train', is_debug_datasets=is_debug_datasets)
+
+        for is_delete_submotifs in [0]:
+            
+            try:
+                # Step 4: Run the C++ program using the new function
+                result = run_cpp_motif_extraction_and_selection(
+                    dir_path=str(dir_path),  # Convert Path to string
+                    test_name=test_name,
+                    dataset_size=size,
+                    min_length=min_length,
+                    max_length=max_length,
+                    is_delete_submotifs=is_delete_submotifs,
+                    beta=beta,
+                    alpha=alpha,
+                    gamma=gamma
+                )
+
+                if result is None:
+                    print(f"Error processing dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
+                    continue
+
+                # Step 8: Store the results
+                results.append({
+                    "dataset_size": size,
+                    "is_delete_submotifs": bool(is_delete_submotifs),
+                    "execution_time": result['execution_time'],
+                    "file_size_gb": result['file_size_gb']
+                })
+
+                print(
+                    f"Processed dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
+
+                # Step 9: Save results to a CSV file
+                results_dir: Path = Path("results")
+                os.makedirs(results_dir, exist_ok=True)  # Create the directory if it doesn't exist
+                csv_path: Path = os.path.join(results_dir, "deletion_sub_motifs_results.csv")
+
+                with open(csv_path, "w", newline="") as csvfile:
+                    fieldnames: list[str] = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]
+                    writer: csv.DictWriter = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+                    for row in results:
+                        writer.writerow(row)
+                print(f"Results saved to {csv_path}")
+
+                # Step 10: Clean up the generated CSV file, since it will have big size
+                ## os.remove(result['output_csv_file'])
+                ## print(f"Cleaned up {result['output_csv_file']}")
+
+            except Exception as e:
+                print(
+                    f"Error processing dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}: {str(e)}")
+
+                # generate the plot of the results in 2 figures:
+    # we compare 2 methods:
+    # A- filtering out exact submotifs \textbf{(F)}, 
+    # B- Without any  filtering \textbf{(NF)}
+    # 1. generate Evolution of the data size for F vs NF:  
+    # 2. generate evolution of processing time in minute  for F vs NF
+
+    # Call the function to generate plots
+    generate_result_sub_motifs_F_vs_NF_plots(csv_path)
+
+
+
 def main():
 
     is_debug_datasets: bool = is_debug_datasets_global_var
 
     # unzip already pre-prepared datasets
-    prepare_dataset()
+    ## prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
     compile_code_MotifsExtractionSelection()
     
+    # debug min max length
+    debug_cpp_fixed_len()
+
     # run the sub motifs deletion experiments
     ## deletion_sub_motifs(is_debug_datasets)
     
     # run the motifs length experiments
-    print("run the motifs length experiments...")
+    ## print("run the motifs length experiments...")
     ## run_motif_length_experiments(is_debug_datasets)
 
     #
-    print("run beta gamma experiments...")
+    ## print("run beta gamma experiments...")
     ## run_beta_experiments(is_debug_datasets)
     # debug by internal dict 
     ## plot_all_len_motifs_exp(dict_len_motifs_exp_example_debug)
 
-    print("run beta alpha experiments...")
-    run_alpha_variance_experiments(is_debug_datasets)
+    ## print("run beta alpha experiments...")
+    ## run_alpha_variance_experiments(is_debug_datasets)
+
+    ## print('run algs models choices experiments...')
 
 
 if __name__ == "__main__":

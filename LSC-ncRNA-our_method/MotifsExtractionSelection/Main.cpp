@@ -34,6 +34,14 @@ struct Args {
     int Alpha = -1; // -a   // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
     int nbOccrs_allowed = 1; // -g (gamma) , lower bound, 1 is defult
 
+    // todo ibra: change alpha beta to
+    // beta: percentage of cm in family
+    // alpha: variance of nb cm between seqs in the family
+    // because , in the paper we changed the order alpha beta
+    // in the code it is beta alpha
+    // and it is confusing each time
+    // ...
+
 };
 
 void print_args_definition() {
@@ -216,6 +224,11 @@ inline void save_common_motifs_matrix_to_csv(const CommonMotifs& cms, const stri
 
 }
 
+// ------------------------------------------------------
+// ------------------------------------------------------
+// test and debug and fix fixed_length min_len == max_len
+
+
 int main(int argc, char *argv[]) {
 
     Args args = get_args(argc, argv);
@@ -248,8 +261,12 @@ int main(int argc, char *argv[]) {
 
     // step 2: generate the gst ------------------
     // this construction for no max no min (default min is 1, max is the length of the sequnces)
+    cout<<" will call : SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);"<<endl;
+    cout<< "args.max_length_motif : "<<args.max_length_motif<<endl;
+    cout<< "args.min_length_motif : "<<args.min_length_motif<<endl;
     SuffixTree_QuadraticTime gst(args.max_length_motif, args.min_length_motif);
 
+    cout<< "befor calling gst.GenerateGeneralizedSuffixTree(list_families_sequences); "<<endl;
     gst.GenerateGeneralizedSuffixTree(list_families_sequences);
     
     // Print the suffix tree

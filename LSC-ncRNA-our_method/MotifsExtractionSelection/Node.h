@@ -40,16 +40,20 @@ public:
 
     void AddNewPosition(unsigned int idx_seq, unsigned int pos)
     {
+        cout << "AddNewPosition : idx_seq = "<<idx_seq<<" pos="<<pos<<endl;
         if(this->map_seqId_nbOccs.find(idx_seq) == this->map_seqId_nbOccs.end())
         {
             pair<unsigned int, unsigned int> my_pair = std::make_pair(idx_seq,0);
             my_pair.second=1;
 
             this->map_seqId_nbOccs.insert(my_pair);
+
+            cout<<"this->map_seqId_nbOccs.insert(my_pair);"<<endl;
         }
         else
         {
             this->map_seqId_nbOccs[idx_seq]++;
+            cout<<"this->map_seqId_nbOccs[idx_seq]++;"<<endl;
         }
     }
 

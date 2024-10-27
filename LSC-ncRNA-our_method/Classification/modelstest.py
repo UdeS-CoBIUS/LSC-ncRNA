@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from random import randrange
 from sklearn import datasets
@@ -8,6 +9,7 @@ import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import ExtraTreesClassifier,RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
 import sys
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
@@ -26,7 +28,12 @@ import time
 
 class Model:
     def __init__(self, datafile = None,
-                 seed=1,scoring = None,n_jobs=None, model_params=None,crossval_n_folds=10,liste_model_name=['ext','knn','rdf','gnb', 'dt', 'nlp', 'svc']
+                 seed=1,
+                 scoring = None,
+                 n_jobs=None, 
+                 model_params=None,
+                 crossval_n_folds=10,
+                 liste_model_name=['ext','knn','rdf','gnb', 'dt', 'nlp', 'svc', 'Vot']
                  ):
         self.scoring = scoring
         self.crossval_n_folds = crossval_n_folds
@@ -43,12 +50,26 @@ class Model:
         #self.col=self.df.drop(['Classe'], axis=1).columns
         self.n_jobs = n_jobs
         self.liste_model_name=liste_model_name
-        self.list_model=[ExtraTreesClassifier(),KNeighborsClassifier(),RandomForestClassifier(),
-                         GaussianNB(),
-                         DecisionTreeClassifier(),
-                         MLPClassifier(),
-                         SVC()
-                         ]
+        
+        # Store base models separately for voting classifier
+        self.ext_model = ExtraTreesClassifier()
+        self.rdf_model = RandomForestClassifier()
+        self.mlp_model = MLPClassifier()
+
+        self.list_model = [
+            self.ext_model,  # Use class variables for these models
+            KNeighborsClassifier(),
+            self.rdf_model,
+            GaussianNB(),
+            DecisionTreeClassifier(),
+            self.mlp_model,
+            SVC(),
+            VotingClassifier(estimators=[
+                ('ext', self.ext_model),
+                ('mlp', self.mlp_model),
+                ('rdf', self.rdf_model)
+            ], voting='soft', weights=[1,1,1])
+        ]
 
     #SVC()
     #MLPClassifier()
@@ -76,8 +97,6 @@ class Model:
 
 
     def cv_model(self, last_model_results_=None):
-
-
         last_model_results_ = pd.DataFrame(columns = ['model', 'cv_mean', 'cv_std','execution_time'])
         i=0
         for model in self.list_model:
@@ -91,9 +110,11 @@ class Model:
                                                                                'cv_std': cv_scoress.std(),
                                                                                'execution_time':(time.time() - start_time)},
                                                                               index = [0]),
-                                                                 ignore_index = True)
+                                                                            ignore_index = True)
             i=i+1
         return last_model_results_
+    
+    
     def model_test(self, last_model_results_=None):
         start_time = time.time()
         test_result=[]
@@ -103,21 +124,33 @@ class Model:
         return test_result
 
 if __name__ == '__main__':
-    #path_data_set=R"C:\Users\ibra\OneDrive - USherbrooke\Project\MotifsExtractionSelection\cmake-build-debug\nbF050_nbSeqs20_40__min_1_max_6_beta_0.csv"
-    path_data_set=sys.argv[1]
 
-    print(path_data_set)
+    # Check if we have exactly 2 arguments
+    if len(sys.argv) != 3:
+        print("Error: Script requires exactly 2 arguments:")
+        print("1. Input CSV file path")
+        print("2. Output CSV file path")
+        print("Usage: python modelstest.py input.csv output.csv")
+        sys.exit(1)
+
+    path_data_set=sys.argv[1] # motifs nb occrs by seqs csv file 
+    output_filename = sys.argv[2] # csv file results output.
+
+    # Check if input file exists
+    if not os.path.exists(path_data_set):
+        print(f"Error: Input file '{path_data_set}' does not exist")
+        sys.exit(1)
+
+    print(f"Input file: {path_data_set}")
+    print(f"Output will be saved to: {output_filename}")
+
+    # add check input parameters ...
 
     model_instance = Model(datafile=path_data_set,n_jobs=-1)
     model_instance.split(0.3)
 
     print("train with cross_validate")
     traing_result=model_instance.cv_model()
-
-    #plt.figure(figsize=(10,10))
-    # la barre pour voir la variation des scores selon les resultat de cross_validation un resultat bon avec minimum de variance est le meilleur
-    #plt.errorbar(list(traing_result['model']), list(traing_result['cv_mean']),
-    #             list(traing_result['cv_std']), fmt='o', lw=3,capsize=20,markersize=20)
 
     print("resultat____test__________________________________")
 
@@ -127,6 +160,7 @@ if __name__ == '__main__':
     traing_result['Score Test'] = test_result
 
     print(traing_result)
-
-    #plt.bar(['ext','knn','rdf','gnb', 'dt', 'nlp', 'svc'],test_result)
-
+    # Save results
+    # output_filename = 'models_choices_results.csv'
+    traing_result.to_csv(output_filename, index=False)
+    print(f"\nResults saved to: {output_filename}")

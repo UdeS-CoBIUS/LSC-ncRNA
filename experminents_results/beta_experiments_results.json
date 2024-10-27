@@ -1,0 +1,152 @@
+{
+  "0": {
+    "1": {
+      "dataset_size": 30,
+      "min_length": 2,
+      "max_length": 10,
+      "num_motifs": 24131,
+      "cpp_execution_time_sec": 0.898048791,
+      "file_size_gb": 0.015437891706824303,
+      "EXT": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 3.0109329223632812,
+        "testing_time_sec": 0.1620790958404541
+      },
+      "MLP": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 3.293459892272949,
+        "testing_time_sec": 0.1595358848571777
+      }
+    },
+    "2": {
+      "dataset_size": 30,
+      "min_length": 2,
+      "max_length": 10,
+      "num_motifs": 972,
+      "cpp_execution_time_sec": 0.254535541,
+      "file_size_gb": 0.0006200848147273064,
+      "EXT": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 0.7011058330535889,
+        "testing_time_sec": 0.0407040119171142
+      },
+      "MLP": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 0.19932222366333,
+        "testing_time_sec": 0.0209949016571044
+      }
+    }
+  },
+  "50": {
+    "1": {
+      "dataset_size": 30,
+      "min_length": 2,
+      "max_length": 10,
+      "num_motifs": 12282,
+      "cpp_execution_time_sec": 0.62032775,
+      "file_size_gb": 0.007852060720324516,
+      "EXT": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 1.9691932201385496,
+        "testing_time_sec": 0.1003930568695068
+      },
+      "MLP": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 1.7735929489135742,
+        "testing_time_sec": 0.1043181419372558
+      }
+    },
+    "2": {
+      "dataset_size": 30,
+      "min_length": 2,
+      "max_length": 10,
+      "num_motifs": 861,
+      "cpp_execution_time_sec": 0.339414458,
+      "file_size_gb": 0.0005492260679602623,
+      "EXT": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 0.692105770111084,
+        "testing_time_sec": 0.0401918888092041
+      },
+      "MLP": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 0.1922950744628906,
+        "testing_time_sec": 0.0241689682006835
+      }
+    }
+  },
+  "100": {
+    "1": {
+      "dataset_size": 30,
+      "min_length": 2,
+      "max_length": 10,
+      "num_motifs": 6459,
+      "cpp_execution_time_sec": 0.477563583,
+      "file_size_gb": 0.004125921055674553,
+      "EXT": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 1.275757074356079,
+        "testing_time_sec": 0.0674448013305664
+      },
+      "MLP": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 1.028946876525879,
+        "testing_time_sec": 0.055859088897705
+      }
+    },
+    "2": {
+      "dataset_size": 30,
+      "min_length": 2,
+      "max_length": 10,
+      "num_motifs": 621,
+      "cpp_execution_time_sec": 0.332770042,
+      "file_size_gb": 0.00039621908217668533,
+      "EXT": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 0.6388778686523438,
+        "testing_time_sec": 0.0389492511749267
+      },
+      "MLP": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "training_time_sec": 0.1548480987548828,
+        "testing_time_sec": 0.0199809074401855
+      }
+    }
+  }
+}
