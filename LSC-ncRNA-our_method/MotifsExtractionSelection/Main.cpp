@@ -245,21 +245,25 @@ inline void save_common_motifs_matrix_to_csv(const CommonMotifs& cms, const stri
  * - Motifs of length min_length are not included
  * - Processing starts from min_length + 1
  * - Motifs of length max_length are included
+ * => this cause the program behave not as the user intended, 
+ *      because it start from min_len +1, and the user think it start and include from min_len
+ *      So, we fix this here (work around) to match the expecation of the user.
+ *      Internaly in the algorithm (extraction and generation of the matrix), since there is lot of steps, I don't know what part or succession of program force this.
+ *      I serached and tried to fix it in the process of generation, but didn't succeed (since I wrote the code long time a go)
+ *      So, this work around work eeficiently, and we are sure the program work perfectly. 
+ *      info: the min_len must be at least 2, this behavor I put to prevent to have all the suffix tree or GST, since we will have level 1 (1 char), and hence a huge search space. so I descard it.
  * 
  * Known issues:
  * 1. Fixed-length motifs (min_length = max_length) require min_length to be decreased by 1
  * 2. Minimum length must be >= 2 for algorithm correctness
  * 3. Range is exclusive of min_length but inclusive of max_length
  * 
- * TODO: Future improvement needed to handle fixed-length motifs without adjustment
- * 
+ * TODO: Future improvement needed to handle min len motif (fixed-length) motifs without adjustment
+ *       I don't know if it is neccesary in future investagate this or not, since we do not need it. 
  * @param args Reference to the Args struct containing motif length parameters
  * @throws runtime_error if minimum length is less than 2
  */
 void adjust_motif_lengths(Args& args) {
-    if (args.min_length_motif < 2) {
-        throw runtime_error("Minimum motif length must be at least 2");
-    }
     
     // Adjust min_length for correct range processing
     args.min_length_motif--;
@@ -303,7 +307,7 @@ int main(int argc, char *argv[]) {
         // First validate the input arguments
         validate_args(args);
         
-        // Then adjust the motif lengths (only if validation passed)
+        // Then adjust min motif lengths (only if validation passed)
         adjust_motif_lengths(args);
     } catch (const runtime_error& e) {
         cerr << e.what() << endl;
