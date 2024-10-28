@@ -1814,8 +1814,8 @@ def debug_cpp_fixed_len():
 
 
     test_name: str = f"fixed"  # test delete no delete
-    min_length: int = 1
-    max_length: int = 3
+    min_length: int = 2
+    max_length: int = 4
     beta: int = 0  # don't use beta (0 is the smallest value)
     alpha: int = -1  # don't use alpha
     gamma: int = 1  # 1 is smallest value

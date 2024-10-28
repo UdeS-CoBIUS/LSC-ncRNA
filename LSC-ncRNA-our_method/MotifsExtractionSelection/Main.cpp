@@ -28,11 +28,15 @@ struct Args {
     int min_nb_seqs_allowed = 4; // -mins
     int max_nb_seqs_allowed = 1000; // -maxs
     int min_length_motif = 2; // -minl
+    int original_min_length = 2; // Store original input value for generating csv filename
     int max_length_motif = 10; // -maxl
     int is_delete_subMotifs = 0; // -d (false, true)
     int Beta = 40; // -b
     int Alpha = -1; // -a   // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
     int nbOccrs_allowed = 1; // -g (gamma) , lower bound, 1 is defult
+
+    string output_file;  // -o , csv file name (path)
+    bool has_output_file = false;  // Flag initialized directly
 
     // todo ibra: change alpha beta to
     // beta: percentage of cm in family
@@ -50,12 +54,13 @@ void print_args_definition() {
     cout << "-nf : <integer> number of families "<< endl;
     cout << "-mins : <integer>, min number of sequences (default 4)"<< endl;
     cout << "-maxs : <integer>, max number of sequences"<< endl;
-    cout << "-minl : <integer>, min length of motif" << endl;
-    cout << "-maxl : <integer>, max length of motif" << endl;
+    cout << "-minl : <integer> (>=2), min length of motif" << endl;
+    cout << "-maxl : <integer>, (>= minl) max length of motif" << endl;
     cout << "-d : <integer> (0: false, 1 or other: true), is delete sub-motifs" << endl;
     cout << "-b : <integer> beta (between [0 and 100])" << endl;
     cout << "-a : <integer>, alpha  (-1 default no alpha, or: 0 equal number of occurrences, or 1,2,3,.... )" << endl;
     cout << "-g : <integer> ( >=1), gamma, number of occurrences allowed" << endl;
+    cout << "-o : <string> output CSV filename (optional)" << endl;
 }
 
 
@@ -65,12 +70,13 @@ void print_args(Args arg) {
     cout << "nb_families: " << arg.nb_families << endl;
     cout << "min_nb_seqs_allowed: " << arg.min_nb_seqs_allowed << endl;
     cout << "max_nb_seqs_allowed: " << arg.max_nb_seqs_allowed << endl;
-    cout << "min_length_motif: " << arg.min_length_motif << endl;
+    cout << "min_length_motif: " << arg.original_min_length << endl;
     cout << "max_length_motif: " << arg.max_length_motif << endl;
     cout << "is_delete_subMotifs: " << (arg.is_delete_subMotifs ? " True " : " False ") << endl;
     cout << "Beta: " << arg.Beta << endl;
     cout << "Alpha: " << arg.Alpha << endl;
     cout << "nbOccrs_allowed: " << arg.nbOccrs_allowed << endl;
+    cout << "csv output_file: " << (arg.has_output_file ? arg.output_file : "auto-generated") << endl;
 }
 
 // Function to parse command-line arguments using getopt
@@ -90,6 +96,7 @@ Args get_args(int argc, char* argv[]) {
             res.max_nb_seqs_allowed = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-minl") {
             res.min_length_motif = strtol(argv[++i], nullptr, 10);
+            res.original_min_length = res.min_length_motif; // Store original value
         } else if (arg == "-maxl") {
             res.max_length_motif = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-d") {
@@ -102,8 +109,11 @@ Args get_args(int argc, char* argv[]) {
             res.nbOccrs_allowed = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-tn") {
             res.test_name = argv[++i];
+        }  else if (arg == "-o") {
+            res.output_file = argv[++i];
+            res.has_output_file = true;
         } else {
-            cout << "Usage: " << argv[0] << " -in <string> -nf <integer> -mins <integer> -maxs <integer> -minl <integer> -maxl <integer> -d <integer> -b <integer> -a <integer> -g <integer>" << endl;
+            cout << "Usage: " << argv[0] << " -in <string> -nf <integer> -mins <integer> -maxs <integer> -minl <integer> -maxl <integer> -d <integer> -b <integer> -a <integer> -g <integer> -o <string>" << endl;
             print_args_definition();
             exit(1);
         }
@@ -118,7 +128,7 @@ string generate_output_csv_file_name(Args args) {
     ss << args.test_name
        << "_nbF_" << args.nb_families
        << "_is_del_" << (args.is_delete_subMotifs ? "yes" : "no")
-       << "_min_" << args.min_length_motif
+       << "_min_" << args.original_min_length
        << "_max_" << args.max_length_motif
        << "_beta_" << args.Beta
        << "_alpha_" << args.Alpha
@@ -226,20 +236,93 @@ inline void save_common_motifs_matrix_to_csv(const CommonMotifs& cms, const stri
 
 // ------------------------------------------------------
 // ------------------------------------------------------
-// test and debug and fix fixed_length min_len == max_len
+// fix fixed_length min_len == max_len and min_len range tha begin from min_len +1
+/**
+ * Internal function to adjust motif length parameters for correct algorithm behavior.
+ * 
+ * @dev IMPLEMENTATION NOTE:
+ * The algorithm works on the range (min_length, max_length], meaning:
+ * - Motifs of length min_length are not included
+ * - Processing starts from min_length + 1
+ * - Motifs of length max_length are included
+ * 
+ * Known issues:
+ * 1. Fixed-length motifs (min_length = max_length) require min_length to be decreased by 1
+ * 2. Minimum length must be >= 2 for algorithm correctness
+ * 3. Range is exclusive of min_length but inclusive of max_length
+ * 
+ * TODO: Future improvement needed to handle fixed-length motifs without adjustment
+ * 
+ * @param args Reference to the Args struct containing motif length parameters
+ * @throws runtime_error if minimum length is less than 2
+ */
+void adjust_motif_lengths(Args& args) {
+    if (args.min_length_motif < 2) {
+        throw runtime_error("Minimum motif length must be at least 2");
+    }
+    
+    // Adjust min_length for correct range processing
+    args.min_length_motif--;
+}
+
+
+void validate_args(const Args& args) {
+    vector<string> errors;
+
+    // Check min_length vs max_length
+    if (args.min_length_motif > args.max_length_motif) {
+        errors.push_back("Error: Minimum length (" + to_string(args.min_length_motif) + 
+                        ") cannot be greater than maximum length (" + 
+                        to_string(args.max_length_motif) + ")");
+    }
+
+    if (args.min_length_motif < 2) {
+        errors.push_back("Error: Minimum length must be at least 2");
+    }
+
+    if (args.min_nb_seqs_allowed > args.max_nb_seqs_allowed) {
+        errors.push_back("Error: Minimum number of sequences cannot be greater than maximum");
+    }
+
+    // If any errors were found, throw an exception with all error messages
+    if (!errors.empty()) {
+        string error_message = "Invalid arguments:\n";
+        for (const auto& err : errors) {
+            error_message += "  - " + err + "\n";
+        }
+        throw runtime_error(error_message);
+    }
+}
 
 
 int main(int argc, char *argv[]) {
 
     Args args = get_args(argc, argv);
 
-    print_args(args);    
+    try {
+        // First validate the input arguments
+        validate_args(args);
+        
+        // Then adjust the motif lengths (only if validation passed)
+        adjust_motif_lengths(args);
+    } catch (const runtime_error& e) {
+        cerr << e.what() << endl;
+        cerr << "\nUsage: " << argv[0] << " -in <string> -nf <integer> ... [-o <string>]" << endl;
+        print_args_definition();
+        return 1;
+    }
 
-    // the output matrix in the csv file 
+    print_args(args); 
 
-    string output_csv_file_name = generate_output_csv_file_name(args);
-    cout << "C++ output_csv_file: " << output_csv_file_name << endl;
+    string output_csv_file_name;
+    if (args.has_output_file) {
+        output_csv_file_name = args.output_file;
+    } else {
+        output_csv_file_name = generate_output_csv_file_name(args);
+    }
     
+    cout << "Output CSV file will be saved as: " << output_csv_file_name << endl;
+
     
     // --------------------------------------
     // method utilities used as needed -------
