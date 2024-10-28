@@ -38,7 +38,7 @@ struct Args {
     string output_file;  // -o , csv file name (path)
     bool has_output_file = false;  // Flag initialized directly
 
-    // todo ibra: change alpha beta to
+    // TODO ibra: change alpha beta to
     // beta: percentage of cm in family
     // alpha: variance of nb cm between seqs in the family
     // because , in the paper we changed the order alpha beta
