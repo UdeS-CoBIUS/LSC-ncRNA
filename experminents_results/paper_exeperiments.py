@@ -1326,7 +1326,7 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
             print(f"  Running experiment for gamma {gamma}")
             results_fixed_len[cm_len][gamma] = run_single_experiment_models_choices(
                 dataset_size=dataset_size,
-                min_length=cm_len-1,
+                min_length=cm_len-1, # change to just cm_len in this new version.
                 max_length=cm_len,
                 beta_percentage=beta,
                 alpha_nb_occ_variation=alpha,
