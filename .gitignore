@@ -5,3 +5,7 @@ supplementary/~$test_experiments_good_sample_distrubution_cross_validation.xlsx
 .DS_Store
 Rfam_14.1_dataset/
 
+# IDE and local build directories
+.idea/
+LSC-ncRNA-our_method/MotifsExtractionSelection/cmake-build-debug/
+

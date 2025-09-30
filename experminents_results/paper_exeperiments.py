@@ -1453,7 +1453,6 @@ def compile_code_MotifsExtractionSelection():
         "-o", os.path.join(cpp_dir, executable_name),
         os.path.join(cpp_dir, "Main.cpp"),
         os.path.join(cpp_dir, "SuffixTree_QuadraticTime.cpp"),
-        os.path.join(cpp_dir, "Old_CommonMotifs.cpp"),
         os.path.join(cpp_dir, "FastaFilesReader.cpp"),
         os.path.join(cpp_dir, "CommonMotifs.cpp"),
         os.path.join(cpp_dir, "SequenceIdManager.cpp"),

@@ -98,7 +98,7 @@ Platform notes
 ## 4) Build the C++ motif extractor
 
 The Python pipeline compiles exactly these sources:
-`LSC-ncRNA-our_method/MotifsExtractionSelection/{Main.cpp, SuffixTree_QuadraticTime.cpp, Old_CommonMotifs.cpp, FastaFilesReader.cpp, CommonMotifs.cpp, SequenceIdManager.cpp}`
+`LSC-ncRNA-our_method/MotifsExtractionSelection/{Main.cpp, SuffixTree_QuadraticTime.cpp, FastaFilesReader.cpp, CommonMotifs.cpp, SequenceIdManager.cpp}`
 
 You can either let the pipeline compile it for you (it calls `compile_code_MotifsExtractionSelection()`), or build it manually:
 
@@ -106,7 +106,7 @@ You can either let the pipeline compile it for you (it calls `compile_code_Motif
 cd LSC-ncRNA-our_method/MotifsExtractionSelection
 g++ -std=c++14 \
     -o MotifsExtractionSelection \
-    Main.cpp SuffixTree_QuadraticTime.cpp Old_CommonMotifs.cpp \
+    Main.cpp SuffixTree_QuadraticTime.cpp \
     FastaFilesReader.cpp CommonMotifs.cpp SequenceIdManager.cpp
 ```
 

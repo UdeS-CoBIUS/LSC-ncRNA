@@ -7,7 +7,6 @@
 #include <forward_list>
 #include "SuffixTree_QuadraticTime.h"
 #include "PrintTree.h"
-#include "Old_CommonMotifs.h"
 #include "FastaFilesReader.h"
 #include "CommonMotifs.h"
 #include "hasher_Container.h"
