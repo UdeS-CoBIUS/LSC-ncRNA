@@ -47,13 +47,14 @@ class CommonMotifs {
     //uint32_t nb_unique_child; // for debug
 
     //----------------------- Selection parameters: --------------------------------------------------------------------
-    // Reminder: Beta == percentage_same_family (paper α), Alpha == occurrence variation (paper β)
-    unsigned int Beta=0; // BETA is percentage of finding cm in the family
-    int Alpha=-1; // Alpha the variance in the number of occurences between seqs
+    // Selection thresholds (paper notation: α == same-family percentage, β == occurrence variation)
+    // Naming note: CLI output files encode these as `_sameFamilyPct_` and `_occVarTol_` segments for clarity.
+    unsigned int sameFamilyPercentageThreshold = 0; // `sameFamilyPct`: minimum percentage of sequences in a family sharing the motif (0 disables the filter)
+    int occurrenceVariationTolerance = -1; // `occVarTol`: tolerated variance in motif occurrences across sequences (-1 disables the check entirely)
     unsigned int nbOccrs_allowed=0;
 
     // -------  for debug and analysis
-    unsigned int sum_cm_nb_occrs_alpha=0; // the value of repetition of an accpted motif against alpha
+    unsigned int sum_cm_nb_occrs_within_variation = 0; // Accumulated motif occurrences satisfying the variation tolerance
 
 
 private: // methods
@@ -79,15 +80,17 @@ private: // methods
 
     bool is_cm_accepted_according_To_selection_parameters(const string &cm, const umap_seqId_nbOccs_ &cm_umap_seqId_nbOccs);
 
-    bool is_cm_accepted_only_for_one_family_beta_nbOcrrs(
+    bool is_cm_accepted_only_for_one_family_percentage_nbOcrrs(
             const unordered_map<unsigned int, unsigned int> &cm_umap_seqId_nbOccs,
             uint32_t percentage_same_family,
             uint32_t nbOccrs_allowed_local);
 
     bool
-    is_cm_accepted_only_for_one_family_alpha_beta(
-            const unordered_map<unsigned int, unsigned int> &cm_umap_seqId_nbOccs, uint32_t percentage_same_family,
-            uint32_t alpha, uint32_t nbOccrs_allowed_local);
+    is_cm_accepted_only_for_one_family_percentage_and_variation(
+        const unordered_map<unsigned int, unsigned int> &cm_umap_seqId_nbOccs,
+        uint32_t percentage_same_family,
+        uint32_t variation_tolerance,
+        uint32_t nbOccrs_allowed_local);
 
     // ---------------------------------------------------------------------------------------------------------------------
     // ------------------------------------ Utils Methods
@@ -97,9 +100,9 @@ private: // methods
     pair<unsigned int, unsigned int> get_FamilyId_And_SeqId(unsigned int global_seq_id) const; // a copy of the method in SuffixTree_QuadraticTime.h, to use local list_sum_nb_seqs, since we have pbm using the refrence this->gst.get_FamilyId_And_SeqId which give 0....
 
 public:
-    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta);
-    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta, int alpha);
-    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta, int alpha, unsigned int nbOccrs_allowed);
+    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold);
+    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold, int occurrenceVariationTolerance);
+    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold, int occurrenceVariationTolerance, unsigned int nbOccrs_allowed);
 
     void cmsExtractionSelection();
     void cmsExtractionSelectionDeletionCSMs();

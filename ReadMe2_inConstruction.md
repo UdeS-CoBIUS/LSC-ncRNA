@@ -222,7 +222,7 @@ nohup ./MatrixCmsNStrNbOccs -in "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Tr
 
   
 
-The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_beta_[-b]_alpha_[-a]_nbOccrs_[-g].csv. For exameple, the previous command produce the following name: del_No_nbF_F_600_min_2_max_8_beta_50_alpha_-1_nbOccrs_1.csv 
+The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_sameFamilyPct_[-b]_occVarTol_[-a]_nbOccrs_[-g].csv. For example, the previous command produces the following name: del_No_nbF_F_600_min_2_max_8_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv 
 
   
 
@@ -266,7 +266,7 @@ Example:
 
 ```shell 
 
-python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_beta_50_alpha_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_beta_50_alpha_-1_nbOccrs_1 
+python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_1 
 
 ``` 
 
@@ -483,7 +483,7 @@ The LSC-ncRNA method consists of:
     nohup ./MatrixCmsNStrNbOccs -in "/data/ibra/Rfam_14.1_dataset/Train" -minl 2 -maxl 8 -b 50 -g 1 -tn F_600 > out_F_600 &
     ```
 
-    The output CSV file will have a name following this format: `del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_beta_[-b]_alpha_[-a]_nbOccrs_[-g].csv`.
+    The output CSV file will have a name following this format: `del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_sameFamilyPct_[-b]_occVarTol_[-a]_nbOccrs_[-g].csv`.
 
 ### Classification
 
@@ -506,7 +506,7 @@ The LSC-ncRNA method consists of:
     **Example:**
 
     ```sh
-    python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_beta_50_alpha_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_beta_50_alpha_-1_nbOccrs_1
+    python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_1
     ```
 
     Supported models are "EXT" (Extra-tree), "RDF" (Random forest), "NLP" (MultiLayer perceptron), and "VOT" (voting model).
@@ -634,7 +634,7 @@ if __name__ == "__main__":
     motifs_gamma = 1
     experiment_name = "F_600"
     model = "EXT"  # Example model: EXT, RDF, NLP, etc.
-    csv_path = f"{rfam_output_path}/del_No_nbF_F_600_min_{motifs_min_length}_max_{motifs_max_length}_beta_{motifs_beta}_alpha_-1_nbOccrs_{motifs_gamma}.csv"
+    csv_path = f"{rfam_output_path}/del_No_nbF_F_600_min_{motifs_min_length}_max_{motifs_max_length}_sameFamilyPct_{motifs_beta}_occVarTol_-1_nbOccrs_{motifs_gamma}.csv"
     test_folder = f"{rfam_output_path}/Test"
 
     # Run the steps

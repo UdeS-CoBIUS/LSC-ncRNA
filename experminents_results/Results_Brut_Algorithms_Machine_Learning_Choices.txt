@@ -3,8 +3,8 @@ Algorithms Machine Learning Choices Using Cross validation 10-fold:
 Combined Motifs Length:
 -----------------------
 
-del_No_nbF_F_500_min_1_max_5_beta_50_alpha_-1_nbOccrs_1.csv
-=> nb Fam = 500, min =2, max = 5, alpha = 50 , beta = -1, gamma = 1
+del_No_nbF_F_500_min_1_max_5_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv
+=> nb Fam = 500, min =2, max = 5, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 1
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.943331  0.008305      181.604975    0.945536
 1   knn  0.929780  0.011702      110.352699    0.936993
@@ -20,8 +20,8 @@ total time voted_model:  1043.6968040466309
 
 ---------------------------------------------------------------
 
-del_No_nbF_F_500_min_1_max_5_beta_50_alpha_-1_nbOccrs_2.csv
-=> nb Fam = 500, min =2, max = 5, alpha = 50 , beta = -1, gamma = 2
+del_No_nbF_F_500_min_1_max_5_sameFamilyPct_50_occVarTol_-1_nbOccrs_2.csv
+=> nb Fam = 500, min =2, max = 5, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 2
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.940309  0.010283      191.392021    0.947458
 1   knn  0.929780  0.011702      104.827573    0.936993
@@ -36,8 +36,8 @@ total time :  1643.7722804546356
 
 ---------------------------------------------------------------
 
-del_No_nbF_F_500_min_1_max_8_beta_50_alpha_-1_nbOccrs_1.csv
-=> nb Fam = 500, min =2, max = 8, alpha = 50 , beta = -1, gamma = 1
+del_No_nbF_F_500_min_1_max_8_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv
+=> nb Fam = 500, min =2, max = 8, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 1
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.956422  0.006229     2227.854020    0.959633
 1   knn  0.932435  0.008933     3254.117419    0.935498
@@ -52,8 +52,8 @@ total time :  6683.838836193085
 
 ---------------------------------------------------------------
 
-del_No_nbF_F_500_min_1_max_8_beta_50_alpha_-1_nbOccrs_2.csv
-=> nb Fam = 500, min =2, max = 8, alpha = 50 , beta = -1, gamma = 2
+del_No_nbF_F_500_min_1_max_8_sameFamilyPct_50_occVarTol_-1_nbOccrs_2.csv
+=> nb Fam = 500, min =2, max = 8, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 2
 
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.955782  0.007239      662.976758    0.956429
@@ -72,8 +72,8 @@ total time :  1293.4574983119965
 Fixed Motifs Length:
 -----------------------
 
-del_No_nbF_F_500_min_4_max_5_beta_50_alpha_-1_nbOccrs_1.csv
-=> nb Fam = 500, min =5, max = 5, alpha = 50 , beta = -1, gamma = 1
+del_No_nbF_F_500_min_4_max_5_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv
+=> nb Fam = 500, min =5, max = 5, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 1
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.938020  0.007453      131.504742    0.944255
 1   knn  0.769383  0.014516      114.797826    0.780222
@@ -88,8 +88,8 @@ total time :  955.7304575443268
 
 ---------------------------------------------------------------
 
-del_No_nbF_F_500_min_4_max_5_beta_50_alpha_-1_nbOccrs_2.csv
-=> nb Fam = 500, min =5, max = 5, alpha = 50 , beta = -1, gamma = 2
+del_No_nbF_F_500_min_4_max_5_sameFamilyPct_50_occVarTol_-1_nbOccrs_2.csv
+=> nb Fam = 500, min =5, max = 5, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 2
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.937929  0.009798      128.489106    0.940196
 1   knn  0.769383  0.014516      115.213235    0.780222
@@ -104,8 +104,8 @@ total time :  1021.9966073036194
 
 ---------------------------------------------------------------
 
-del_No_nbF_F_500_min_6_max_7_beta_50_alpha_-1_nbOccrs_1.csv
-=> nb Fam = 500, min =7, max = 7, alpha = 50 , beta = -1, gamma = 1
+del_No_nbF_F_500_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv
+=> nb Fam = 500, min =7, max = 7, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 1
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.937378  0.007210     1353.362617    0.935925
 1   knn  0.566326  0.014029     2096.744315    0.575822
@@ -121,8 +121,8 @@ total time :  1776.8179204463959
 
 ---------------------------------------------------------------
 
-del_No_nbF_F_500_min_6_max_7_beta_50_alpha_-1_nbOccrs_2.csv
-=> nb Fam = 500, min =7, max = 7, alpha = 50 , beta = -1, gamma = 2
+del_No_nbF_F_500_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_2.csv
+=> nb Fam = 500, min =7, max = 7, same_family_percentage_threshold = 50 , occurrence_variation_tolerance = -1, gamma = 2
   model   cv_mean    cv_std  execution_time  Score Test
 0   ext  0.898653  0.009116      609.399655    0.904955
 1   knn  0.631421  0.020336      501.110013    0.637121

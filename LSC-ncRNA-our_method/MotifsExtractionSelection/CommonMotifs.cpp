@@ -10,7 +10,8 @@
 #include "SubSetDistancePercentage.h"
 #include "SequenceIdManager.h"
 
-CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta) : gst(gst), Beta(beta)
+CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold)
+    : gst(gst), sameFamilyPercentageThreshold(sameFamilyPercentageThreshold)
 {
     //nb_total_cm=0;
     //nb_deleted_cm_from_list_cm=0;
@@ -22,7 +23,11 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int bet
     this->nb_all_sequences = gst.getNbAllSequences();
 }
 
-CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta, int alpha) : gst(gst), Beta(beta), Alpha(alpha)
+CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold,
+                                                     int occurrenceVariationTolerance)
+                : gst(gst),
+                    sameFamilyPercentageThreshold(sameFamilyPercentageThreshold),
+                    occurrenceVariationTolerance(occurrenceVariationTolerance)
 {
     //nb_total_cm=0;
     //nb_deleted_cm_from_list_cm=0;
@@ -34,7 +39,13 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int bet
     this->nb_all_sequences = gst.getNbAllSequences();
 }
 
-CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int beta, int alpha, unsigned int nbOccrs_allowed) : gst(gst), Beta(beta), Alpha(alpha), nbOccrs_allowed(nbOccrs_allowed)
+CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold,
+                                                     int occurrenceVariationTolerance,
+                                                     unsigned int nbOccrs_allowed)
+                : gst(gst),
+                    sameFamilyPercentageThreshold(sameFamilyPercentageThreshold),
+                    occurrenceVariationTolerance(occurrenceVariationTolerance),
+                    nbOccrs_allowed(nbOccrs_allowed)
 {
     vec_flist.resize(gst.getMaxLengthMotif()+1,forward_list<uint32_t>()); //+1 to simplify the access, to avoid -1 (str.lenght vs str.lenght-1)
 
@@ -755,17 +766,22 @@ bool CommonMotifs::is_cm_accepted_according_To_selection_parameters(const string
                                                                     const umap_seqId_nbOccs_ &cm_umap_seqId_nbOccs)
 {
     //if(umap_seqId_nbOccs_active_node.size()>GAMMA)
-    //if(!umap_seqId_nbOccs_active_node.empty() && isCm_Common_For_ListSeqId_Percentage(umap_seqId_nbOccs_active_node,BETA,BETA_2))
-    //if(!umap_seqId_nbOccs_active_node.empty() && isCm_Common_For_ListSeqId_Percentage_cmInter(umap_seqId_nbOccs_active_node,BETA))
+    //if(!umap_seqId_nbOccs_active_node.empty() && is_cm_accepted_only_for_one_family_percentage_nbOcrrs(
+    //        umap_seqId_nbOccs_active_node, sameFamilyPercentageThreshold, sameFamilyPercentageThresholdInternal))
 
-    //return (!cm_umap_seqId_nbOccs.empty() && is_cm_accepted_only_for_one_family_beta_nbOcrrs(cm_umap_seqId_nbOccs,Beta));
+    //return (!cm_umap_seqId_nbOccs.empty() && is_cm_accepted_only_for_one_family_percentage_nbOcrrs(cm_umap_seqId_nbOccs, sameFamilyPercentageThreshold));
 
-    if(Alpha == -1) // only beta
+    if(occurrenceVariationTolerance == -1) // only same-family percentage threshold
         return (cm_umap_seqId_nbOccs.size() >= GAMMA &&
-                is_cm_accepted_only_for_one_family_beta_nbOcrrs(cm_umap_seqId_nbOccs, Beta, this->nbOccrs_allowed));
+                is_cm_accepted_only_for_one_family_percentage_nbOcrrs(cm_umap_seqId_nbOccs,
+                                                                      sameFamilyPercentageThreshold,
+                                                                      this->nbOccrs_allowed));
 
-    //ALpha and beta, and also check nbOccrs_allowed
-    return is_cm_accepted_only_for_one_family_alpha_beta(cm_umap_seqId_nbOccs, Beta, Alpha, this->nbOccrs_allowed);
+    // Otherwise check both thresholds plus nbOccrs_allowed
+    return is_cm_accepted_only_for_one_family_percentage_and_variation(cm_umap_seqId_nbOccs,
+                                                                       sameFamilyPercentageThreshold,
+                                                                       occurrenceVariationTolerance,
+                                                                       this->nbOccrs_allowed);
 }
 
 
@@ -784,7 +800,7 @@ bool CommonMotifs::is_cm_accepted_according_To_selection_parameters(const string
  * @param percentage_same_family
  * @return
  */
-bool CommonMotifs::is_cm_accepted_only_for_one_family_beta_nbOcrrs(
+bool CommonMotifs::is_cm_accepted_only_for_one_family_percentage_nbOcrrs(
         const unordered_map<unsigned int, unsigned int> &cm_umap_seqId_nbOccs,
         uint32_t percentage_same_family,
         uint32_t nbOccrs_allowed_local)
@@ -794,7 +810,7 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_beta_nbOcrrs(
 
     // if we use nbOccrs_allowed_local (which is > 1), we count all seqs that have the nbOccrs of the cm above or equqle the nbOccrs_allowed_local
     // todo: this should be donne at the time of adding nbOccrs to the maps, we check if it is above or equal to nbOccrs_allowed_local
-    //       unless, we want to do the multiple paramter combination with beta and nbOccrs like: nbOccrs=1 beta = 40 and nbOcrrs=2 beta = 10 for example.
+    //       unless, we want to do the multiple parameter combination with the percentage threshold and nbOccrs like: nbOccrs=1 threshold = 40 and nbOccrs=2 threshold = 10 for example.
     if(nbOccrs_allowed_local>1) // 1 is default
     {
         uint32_t nb_seqs_have_nbOccrs_allowd = 0;
@@ -807,11 +823,11 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_beta_nbOcrrs(
 
         nb_seqs_have_cm = nb_seqs_have_nbOccrs_allowd;
 
-        // if Beta (percentage_same_family) = 0 and nb_seqs_have_cm<2,
+        // if sameFamilyPercentageThreshold (percentage_same_family) = 0 and nb_seqs_have_cm<2,
         // this means that we have only one single seq that have the motif with nbOccrs_allowed
         // hence we don't accept it
         //if(nb_seqs_have_cm<2) // it dosen't metter if percentage_same_family==0 or its >0, we don't accepte
-        if(percentage_same_family == 0 && nb_seqs_have_cm<2) // this mean for samll family a pbm, if nbsqs = 10, this mean mean beta is = 20, if nbsqs = 4 beta = 50, if nbsqs=3, beta 70, nsqs=2 beta = 100
+        if(percentage_same_family == 0 && nb_seqs_have_cm<2) // this mean for samll family a pbm, if nbsqs = 10, this mean mean threshold is = 20, if nbsqs = 4 threshold = 50, if nbsqs=3 threshold 70, nsqs=2 threshold = 100
             return false;
     }
 
@@ -836,9 +852,11 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_beta_nbOcrrs(
     return ( (double)(nb_seqs_have_cm*100)/(double)nb_all_seqs_comparedTo >= percentage_same_family );
 }
 
-bool CommonMotifs::is_cm_accepted_only_for_one_family_alpha_beta(
-        const unordered_map<unsigned int, unsigned int> &cm_umap_seqId_nbOccs, uint32_t percentage_same_family,
-        uint32_t alpha, uint32_t nbOccrs_allowed_local)
+bool CommonMotifs::is_cm_accepted_only_for_one_family_percentage_and_variation(
+    const unordered_map<unsigned int, unsigned int> &cm_umap_seqId_nbOccs,
+    uint32_t percentage_same_family,
+    uint32_t variation_tolerance,
+    uint32_t nbOccrs_allowed_local)
 {
     uint32_t nb_all_seqs_comparedTo = 0;
 
@@ -854,21 +872,23 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_alpha_beta(
         list_nb_repeated_cm_by_seqId.push_back(cm_nb_occrs);
     }
 
-    // 2nd:  get the best list that satisfy the alpha paramater (we can, just get the first one that satisfay the paramater alpha and beta)
+    // 2nd:  get the best list that satisfy the occurrence variation parameter and the same-family percentage threshold
     //      +
     //      the nbOccrs_allowed_local paramter if it is >= 2 , because, otherwise we will have 1 which is the defaut or the lowest value.
 
     pair<int,vector<int>> best_key_subSt;
     if(nbOccrs_allowed_local < 2)
-        best_key_subSt = SubSetDistancePercentage::getBestSubSet(list_nb_repeated_cm_by_seqId,alpha);
+        best_key_subSt = SubSetDistancePercentage::getBestSubSet(list_nb_repeated_cm_by_seqId, variation_tolerance);
     else
-        best_key_subSt = SubSetDistancePercentage::getBestSubSet_lowerBound(list_nb_repeated_cm_by_seqId, alpha, nbOccrs_allowed_local);
+        best_key_subSt = SubSetDistancePercentage::getBestSubSet_lowerBound(list_nb_repeated_cm_by_seqId,
+                                                                            variation_tolerance,
+                                                                            nbOccrs_allowed_local);
 
     nb_seqs_have_cm_with_alpha = best_key_subSt.second.size();
 
-    // 3rd: check if the cm satisafy the paramater beta, if beta = 0, the motifs must exsit at least in 2 seqs.
+    // 3rd: check if the cm satisafy the same-family percentage threshold; when it is 0 the motif must exist in at least 2 sequences.
     if(percentage_same_family == 0 && nb_seqs_have_cm_with_alpha >= GAMMA) {
-        sum_cm_nb_occrs_alpha += best_key_subSt.first;
+    sum_cm_nb_occrs_within_variation += best_key_subSt.first;
         return true;
     } else if(percentage_same_family == 0 && nb_seqs_have_cm_with_alpha < GAMMA){
         return false;
@@ -885,7 +905,7 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_alpha_beta(
 
             if( ((double)(nb_seqs_have_cm_with_alpha*100)/(double)nb_all_seqs_comparedTo) >= percentage_same_family )
             {
-                sum_cm_nb_occrs_alpha += best_key_subSt.first;
+                sum_cm_nb_occrs_within_variation += best_key_subSt.first;
                 return true;
             }
         }
@@ -898,7 +918,7 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_alpha_beta(
 
     if ( (double)(nb_seqs_have_cm_with_alpha*100)/(double)nb_all_seqs_comparedTo >= percentage_same_family )
     {
-        sum_cm_nb_occrs_alpha += best_key_subSt.first;
+    sum_cm_nb_occrs_within_variation += best_key_subSt.first;
         return true;
     }
 
@@ -1021,8 +1041,8 @@ void CommonMotifs::print_infos() const
 
     cout<<" Total nb_seqs = "<<nb_seqs<<endl;
     cout<<" Total nb_motifs = "<<nb_motifs<<endl;
-    cout<<" sum_cm_nb_occrs_alpha = "<<sum_cm_nb_occrs_alpha<<endl;
-    cout<<" Average nb_occres = "<<(double (sum_cm_nb_occrs_alpha) / double (nb_motifs))<<endl;
+    cout<<" sum_cm_nb_occrs_within_variation = "<<sum_cm_nb_occrs_within_variation<<endl;
+    cout<<" Average nb_occres = "<<(double (sum_cm_nb_occrs_within_variation) / double (nb_motifs))<<endl;
     std::cout << "Number of rows (sequences): " << matrix_nbOcrrs_cmsSeqsIds.size() << std::endl;
     std::cout << "Number of columns (common motifs): " << (matrix_nbOcrrs_cmsSeqsIds.empty() ? 0 : matrix_nbOcrrs_cmsSeqsIds[0].size()) << std::endl;
 }

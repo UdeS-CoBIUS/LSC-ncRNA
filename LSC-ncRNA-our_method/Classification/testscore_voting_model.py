@@ -96,7 +96,7 @@ class Model:
         print("le score de voted_model",voted_model.score(self.X_test,self.y_test))
         print("total time : ",(time.time() - start_time))
 if __name__ == '__main__':
-    #data_set=R"C:\Users\ibra\OneDrive - USherbrooke\Project\MotifsExtractionSelection\cmake-build-debug\nbF050_nbSeqs20_40_allF__min_5_max_6_beta_40.csv"
+    #data_set=R"C:\Users\ibra\OneDrive - USherbrooke\Project\MotifsExtractionSelection\cmake-build-debug\nbF050_nbSeqs20_40_allF__min_5_max_6_sameFamilyPct_40.csv"
     data_set=sys.argv[1]
 
     model_instance = Model(datafile=data_set,n_jobs=-1)

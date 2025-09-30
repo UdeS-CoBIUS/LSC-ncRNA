@@ -206,8 +206,8 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
     test_name: str = f"test_dnd"  # test delete no delete
     min_length: int = 2
     max_length: int = 20
-    beta: int = 0  # don't use beta (0 is the smallest value)
-    alpha: int = -1  # don't use alpha
+    same_family_percentage_threshold: int = 0  # minimum percentage of sequences sharing the motif (previously beta; 0 disables this filter just like the old "don't use beta" setting)
+    occurrence_variation_tolerance: int = -1  # maximum allowed occurrence deviation (previously alpha; -1 keeps the legacy "don't use alpha" behavior)
     gamma: int = 1  # 1 is smallest value
 
     results: list[dict[str, int | float | str]] = []
@@ -228,8 +228,8 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
                     min_length=min_length,
                     max_length=max_length,
                     is_delete_submotifs=is_delete_submotifs,
-                    beta=beta,
-                    alpha=alpha,
+                    same_family_percentage_threshold=same_family_percentage_threshold,
+                    occurrence_variation_tolerance=occurrence_variation_tolerance,
                     gamma=gamma
                 )
 
@@ -380,9 +380,9 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
     if is_debug_datasets:
         dataset_sizes = debug_datasets_size_global_var
 
-    beta: int= 0 # percentage of the cm in the family (called alpha in the paper)
-    alpha: int= -1 # variance of nb cm between seqs in family , -1 we don't care
-    gamma: int= 1 # min nb of cm to consider 
+    same_family_percentage_threshold: int = 0  # percentage of the cm in the family (called alpha in the paper)
+    occurrence_variation_tolerance: int = -1  # variance of nb cm between seqs in family, -1 we don't care
+    min_occurrence_count: int = 1  # min nb of cm to consider 
     is_delete_submotifs: int= 0 # delete of note sub motif, default: 0 so no.
     
 
@@ -407,9 +407,9 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
                 dataset_size=size, 
                 min_length=cm_length-1, 
                 max_length=cm_length,
-                beta_percentage=beta,
-                alpha_nb_occ_variation=alpha,
-                gamma_nb_occrs=gamma,
+                same_family_percentage_threshold=same_family_percentage_threshold,
+                occurrence_variation_tolerance=occurrence_variation_tolerance,
+                min_occurrence_count=min_occurrence_count,
                 is_delete_submotifs=is_delete_submotifs,
                 test_name='cm_len', 
                 is_debug_datasets=is_debug_datasets)
@@ -423,9 +423,9 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
             dataset_size=size, 
             min_length=min_len, 
             max_length=max_len,
-            beta_percentage=beta,
-            alpha_nb_occ_variation=alpha,
-            gamma_nb_occrs=gamma,
+            same_family_percentage_threshold=same_family_percentage_threshold,
+            occurrence_variation_tolerance=occurrence_variation_tolerance,
+            min_occurrence_count=min_occurrence_count,
             is_delete_submotifs=is_delete_submotifs, 
             test_name='cm_len',
             is_debug_datasets=is_debug_datasets)
@@ -437,9 +437,9 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
 def run_single_experiment(dataset_size: int = 500, 
                           min_length: int = 2, 
                           max_length: int = 10,
-                          beta_percentage: int = 0, # default: no filtering
-                          alpha_nb_occ_variation: int = -1, # default: no filtering
-                          gamma_nb_occrs: int = 1, # default: no filtering
+                          same_family_percentage_threshold: int = 0, # default: no filtering
+                          occurrence_variation_tolerance: int = -1, # default: no filtering
+                          min_occurrence_count: int = 1, # default: no filtering
                           is_delete_submotifs: int = 0, # default: false , no deletion 
                           test_name: str = 'test_no_f',
                           is_debug_datasets: bool = False) -> Optional[Dict[str, Any]]:
@@ -470,10 +470,10 @@ def run_single_experiment(dataset_size: int = 500,
         dataset_size=dataset_size,
         min_length=min_length,
         max_length=max_length,
-        is_delete_submotifs= is_delete_submotifs,  # no deletion of sub motifs
-        beta= beta_percentage,  # don't use beta
-        alpha=alpha_nb_occ_variation,  # don't use alpha
-        gamma=gamma_nb_occrs  # gamma = 1, no filtering on the number of occurrences of the cm, at least we have 1 (the default)
+        is_delete_submotifs=is_delete_submotifs,  # no deletion of sub motifs
+        same_family_percentage_threshold=same_family_percentage_threshold,  # don't use beta
+        occurrence_variation_tolerance=occurrence_variation_tolerance,  # don't use alpha
+        gamma=min_occurrence_count  # gamma = 1, no filtering on the number of occurrences of the cm, at least we have 1 (the default)
     )
 
     #print(' end cpp, results:')
@@ -573,13 +573,13 @@ def run_single_experiment(dataset_size: int = 500,
     return experiment_results 
     
 
-def run_single_experiment_models_choices(dataset_size: int = 500, 
-                          min_length: int = 2, 
+def run_single_experiment_models_choices(dataset_size: int = 500,
+                          min_length: int = 2,
                           max_length: int = 10,
-                          beta_percentage: int = 0, # default: no filtering
-                          alpha_nb_occ_variation: int = -1, # default: no filtering
-                          gamma_nb_occrs: int = 1, # default: no filtering
-                          is_delete_submotifs: int = 0, # default: false , no deletion 
+                          same_family_percentage_threshold: int = 0,  # default: no filtering
+                          occurrence_variation_tolerance: int = -1,  # default: no filtering
+                          min_occurrence_count: int = 1,  # default: no filtering
+                          is_delete_submotifs: int = 0,  # default: false, no deletion
                           test_name: str = 'test_no_f',
                           is_debug_datasets: bool = False) -> Optional[Dict[str, Any]]:
     """
@@ -603,9 +603,9 @@ def run_single_experiment_models_choices(dataset_size: int = 500,
         min_length=min_length,
         max_length=max_length,
         is_delete_submotifs=is_delete_submotifs,
-        beta=beta_percentage,
-        alpha=alpha_nb_occ_variation,
-        gamma=gamma_nb_occrs
+        same_family_percentage_threshold=same_family_percentage_threshold,
+        occurrence_variation_tolerance=occurrence_variation_tolerance,
+        gamma=min_occurrence_count
     )
 
     if result is None:
@@ -1048,9 +1048,9 @@ def run_beta_experiments(is_debug_datasets: bool = False) -> None:
                 dataset_size=dataset_size,
                 min_length=min_len,
                 max_length=max_len,
-                beta_percentage=beta,
-                alpha_nb_occ_variation=alpha,
-                gamma_nb_occrs=gamma,
+                same_family_percentage_threshold=beta,
+                occurrence_variation_tolerance=alpha,
+                min_occurrence_count=gamma,
                 is_delete_submotifs=is_sub_motif_delete,
                 test_name='beta',
                 is_debug_datasets=is_debug_datasets
@@ -1222,9 +1222,9 @@ def run_alpha_variance_experiments(is_debug_datasets: bool = False) -> None:
                 dataset_size=dataset_size,
                 min_length=min_len,
                 max_length=max_len,
-                beta_percentage=beta,
-                alpha_nb_occ_variation=alpha,
-                gamma_nb_occrs=gamma,
+                same_family_percentage_threshold=beta,
+                occurrence_variation_tolerance=alpha,
+                min_occurrence_count=gamma,
                 is_delete_submotifs=is_sub_motif_delete,
                 test_name='alpha',
                 is_debug_datasets=is_debug_datasets
@@ -1351,9 +1351,9 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
                 dataset_size=dataset_size,
                 min_length=cm_len-1, # change to just cm_len in this new version.
                 max_length=cm_len,
-                beta_percentage=beta,
-                alpha_nb_occ_variation=alpha,
-                gamma_nb_occrs=gamma,
+                same_family_percentage_threshold=beta,
+                occurrence_variation_tolerance=alpha,
+                min_occurrence_count=gamma,
                 is_delete_submotifs=is_sub_motif_delete,
                 test_name='algs',
                 is_debug_datasets=is_debug_datasets
@@ -1369,9 +1369,9 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
                 dataset_size=dataset_size,
                 min_length=cm_min,
                 max_length=cm_max,
-                beta_percentage=beta,
-                alpha_nb_occ_variation=alpha,
-                gamma_nb_occrs=gamma,
+                same_family_percentage_threshold=beta,
+                occurrence_variation_tolerance=alpha,
+                min_occurrence_count=gamma,
                 is_delete_submotifs=is_sub_motif_delete,
                 test_name='algs',
                 is_debug_datasets=is_debug_datasets
@@ -1410,11 +1410,11 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
 #    output_csv_file += args.test_name;
 #   output_csv_file += "_min_" + util::to_string(args.min_length_motif);
 #    output_csv_file += "_max_" + util::to_string(args.max_length_motif);
-#    output_csv_file += "_beta_" + util::to_string(args.Beta);
-#    output_csv_file += "_alpha_" + util::to_string(args.Alpha);
+#    output_csv_file += "_sameFamilyPct_" + util::to_string(args.sameFamilyPercentageThreshold);
+#    output_csv_file += "_occVarTol_" + util::to_string(args.occurrenceVariationTolerance);
 #    output_csv_file += "_nbOccrs_" + util::to_string(args.nbOccrs_allowed);
 # 
-# The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_beta_[-b]_alpha_[-a]_nbOccrs_[-g].csv.
+# The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_sameFamilyPct_[-b]_occVarTol_[-a]_nbOccrs_[-g].csv.
 
 from typing import Dict, Union
 
@@ -1426,14 +1426,17 @@ def generate_csv_output_filename(args: Dict[str, Union[str, int, bool]]) -> str:
     :param args: A dictionary containing the argument values
     :return: The generated output CSV filename
     """
+    same_family_percentage_threshold = args['-b']
+    occurrence_variation_tolerance = args['-a']
+
     output_csv_file = (
         f"{args['-tn']}"  # test_name
         f"_nbF_{args['-nf']}"  # nb_families (if provided)
         f"_is_del_{'yes' if args['-d'] else 'no'}"  # is_delete_subMotifs
         f"_min_{args['-minl']}"  # min_length_motif
         f"_max_{args['-maxl']}"  # max_length_motif
-        f"_beta_{args['-b']}"  # Beta
-        f"_alpha_{args['-a']}"  # Alpha
+        f"_sameFamilyPct_{same_family_percentage_threshold}"  # same-family percentage threshold (legacy beta / paper α)
+        f"_occVarTol_{occurrence_variation_tolerance}"  # occurrence variation tolerance (legacy alpha / paper β)
         f"_nbOccrs_{args['-g']}"  # nbOccrs_allowed (gamma)
     )
 
@@ -1470,7 +1473,17 @@ def compile_code_MotifsExtractionSelection():
 # -------------------------------------------
 # run C++ code for motifs extraction and selection
 
-def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, min_length, max_length, is_delete_submotifs=0, beta=0, alpha=-1, gamma=1):
+def run_cpp_motif_extraction_and_selection(
+    dir_path,
+    test_name,
+    dataset_size,
+    min_length,
+    max_length,
+    is_delete_submotifs=0,
+    same_family_percentage_threshold=0,
+    occurrence_variation_tolerance=-1,
+    gamma=1,
+):
     """
     Run the motif extraction and selection process and return the results.
 
@@ -1480,8 +1493,8 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
     :param min_length: Minimum common motif length
     :param max_length: Maximum common motif length
     :param is_delete_submotifs: Whether to delete submotifs (0 or 1)
-    :param beta: Beta parameter
-    :param alpha: Alpha parameter
+    :param same_family_percentage_threshold: Minimum percentage of family members sharing the motif (legacy beta / paper α)
+    :param occurrence_variation_tolerance: Allowed variation in the number of occurrences across sequences (legacy alpha / paper β)
     :param gamma: Gamma parameter
     :return: A dictionary containing the results
     """
@@ -1506,8 +1519,8 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
         "-minl", str(min_length),
         "-maxl", str(max_length),
         "-d", str(is_delete_submotifs),
-        "-b", str(beta),
-        "-a", str(alpha),
+        "-b", str(same_family_percentage_threshold),
+        "-a", str(occurrence_variation_tolerance),
         "-g", str(gamma)
     ]
 
@@ -1538,8 +1551,8 @@ def run_cpp_motif_extraction_and_selection(dir_path, test_name, dataset_size, mi
         "-minl": min_length,
         "-maxl": max_length,
         "-d": is_delete_submotifs,
-        "-b": beta,
-        "-a": alpha,
+        "-b": same_family_percentage_threshold,
+        "-a": occurrence_variation_tolerance,
         "-g": gamma
     }
     output_csv_file = generate_csv_output_filename(args)
@@ -1838,8 +1851,8 @@ def debug_cpp_fixed_len():
     test_name: str = f"fixed"  # test delete no delete
     min_length: int = 2
     max_length: int = 4
-    beta: int = 0  # don't use beta (0 is the smallest value)
-    alpha: int = -1  # don't use alpha
+    same_family_percentage_threshold: int = 0  # minimum percentage of sequences sharing the motif (previously beta)
+    occurrence_variation_tolerance: int = -1  # maximum allowed occurrence deviation (previously alpha)
     gamma: int = 1  # 1 is smallest value
 
     results: list[dict[str, int | float | str]] = []
@@ -1860,8 +1873,8 @@ def debug_cpp_fixed_len():
                     min_length=min_length,
                     max_length=max_length,
                     is_delete_submotifs=is_delete_submotifs,
-                    beta=beta,
-                    alpha=alpha,
+                    same_family_percentage_threshold=same_family_percentage_threshold,
+                    occurrence_variation_tolerance=occurrence_variation_tolerance,
                     gamma=gamma
                 )
 

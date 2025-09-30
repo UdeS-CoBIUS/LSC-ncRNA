@@ -100,8 +100,8 @@ The program can be used like this:
 - *-minl* : \<integer\>, min length of motif, (**default 2**)
 - *-maxl* : \<integer\>, max length of motif, (**default 10**)
 - *-d* : \<integer\> (0: false, 1 or other: true), delete sub-motifs, (**default 0**)
-- *-b* : \<integer\> beta (between [0 and 100]), (**default 40**)
-- *-a* : \<integer\>, alpha  (-1 no alpha, or 0,1,2,3,..., , (**default -1**)
+- *-b* : \<integer\> same_family_percentage_threshold (legacy beta, between [0 and 100]), (**default 40**)
+- *-a* : \<integer\> occurrence_variation_tolerance (legacy alpha, -1 disables tolerance, otherwise 0,1,2,3,...), (**default -1**)
 - *-g* : \<integer\> ( >=1), gamma, number of occurrences allowed, (**default 1**)
 
 All the parameters between [] are optional. The path to the directory of fasta files is mandatory. The motifs length (minl, maxl), Beta and experiment name parameters are recommended to use.
@@ -111,7 +111,7 @@ Example:
 nohup ./MatrixCmsNStrNbOccs -in "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Train" -minl 2 -maxl 8 -b 50 -g 1 -tn F_600 > out_F_600 &
 ```
 
-The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_beta_[-b]_alpha_[-a]_nbOccrs_[-g].csv. For exameple, the previous command produce the following name: del_No_nbF_F_600_min_2_max_8_beta_50_alpha_-1_nbOccrs_1.csv
+The output csv file name is as follows: del_[No/Yes:-d]_nbF_[test_name:-tn]_min_[-minl]_max_[-maxl]_sameFamilyPct_[-b]_occVarTol_[-a]_nbOccrs_[-g].csv. For example, the previous command produces the following name: del_No_nbF_F_600_min_2_max_8_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv
 
 
 ## C) Training and Testing experiments:
@@ -133,7 +133,7 @@ To launcn the program we use the main python script as follow:
 Example:
 
 ```shell
-python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_beta_50_alpha_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_beta_50_alpha_-1_nbOccrs_1
+python3 Main.py EXT "/data/ibra/del_No_nbF_F_600_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_1.csv" "/data/ibra/Rfam_14.1_dataset/Rfam14.1_Sample_Train_Test/Rfam_600_Train_Test/Test" > res_EXT_Single_del_No_nbF_Clans_min_6_max_7_sameFamilyPct_50_occVarTol_-1_nbOccrs_1
 ```
 
 The training and test experiments generate  different scores:

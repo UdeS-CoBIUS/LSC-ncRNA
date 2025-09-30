@@ -30,23 +30,16 @@ struct Args {
     int original_min_length = 2; // Store original input value for generating csv filename
     int max_length_motif = 10; // -maxl
     int is_delete_subMotifs = 0; // -d (false, true)
-    int Beta = 40; // -b (percentage_same_family (paper α))
-    int Alpha = -1; // -a   // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it. occurrence_variation (paper β)
+    int same_family_percentage_threshold = 40; // -b (percentage_same_family, paper α)
+    int occurrence_variation_tolerance = -1; // -a (-1 disables the variation check, paper β)
     int nbOccrs_allowed = 1; // -g (gamma) , lower bound, 1 is defult
 
     string output_file;  // -o , csv file name (path)
     bool has_output_file = false;  // Flag initialized directly
 
-    // TODO ibra: change alpha beta to
-    // beta: percentage of cm in family
-    // alpha: variance of nb cm between seqs in the family
-    // because , in the paper we changed the order alpha beta
-    // in the code it is beta alpha
-    // and it is confusing each time
-    // ...
-    // Naming note: CLI flag -b (Beta) controls the percentage_same_family threshold (paper α).
-    //              CLI flag -a (Alpha) controls the occurrence variation threshold (paper β).
-    //              We keep the historical field names for backward compatibility.
+    // Naming note: CLI flag -b (legacy “beta”) controls the same-family percentage threshold (paper α).
+    //              CLI flag -a (legacy “alpha”) controls the occurrence variation tolerance (paper β).
+    //              Internally we now use descriptive field names to avoid the legacy swap.
 
 };
 
@@ -59,9 +52,9 @@ void print_args_definition() {
     cout << "-minl : <integer> (>=2), min length of motif" << endl;
     cout << "-maxl : <integer>, (>= minl) max length of motif" << endl;
     cout << "-d : <integer> (0: false, 1 or other: true), is delete sub-motifs" << endl;
-    // Reminder: Beta == percentage_same_family (paper α), Alpha == occurrence variation (paper β)
-    cout << "-b : <integer> beta : (between [0 and 100]): percentage same family (in the paper, i.e. α)" << endl;
-    cout << "-a : <integer>, alpha : occurrence variation (in the paper, i.e. β): (-1 default no alpha, or: 0 equal number of occurrences, or 1,2,3,.... )" << endl;
+    // Reminder: same_family_percentage_threshold == percentage_same_family (paper α), occurrence_variation_tolerance == occurrence variation (paper β)
+    cout << "-b : <integer> same_family_percentage_threshold (legacy: beta) : (between [0 and 100]) percentage of sequences in the family (paper α)" << endl;
+    cout << "-a : <integer> occurrence_variation_tolerance (legacy: alpha): (-1 disables variation filtering, 0 enforces equal occurrences, >0 allows a tolerance; paper β)" << endl;
     cout << "-g : <integer> ( >=1), gamma, number of occurrences allowed" << endl;
     cout << "-o : <string> output CSV filename (optional)" << endl;
 }
@@ -76,8 +69,8 @@ void print_args(Args arg) {
     cout << "min_length_motif: " << arg.original_min_length << endl;
     cout << "max_length_motif: " << arg.max_length_motif << endl;
     cout << "is_delete_subMotifs: " << (arg.is_delete_subMotifs ? " True " : " False ") << endl;
-    cout << "Beta: " << arg.Beta << endl;
-    cout << "Alpha: " << arg.Alpha << endl;
+    cout << "same_family_percentage_threshold: " << arg.same_family_percentage_threshold << endl;
+    cout << "occurrence_variation_tolerance: " << arg.occurrence_variation_tolerance << endl;
     cout << "nbOccrs_allowed: " << arg.nbOccrs_allowed << endl;
     cout << "csv output_file: " << (arg.has_output_file ? arg.output_file : "auto-generated") << endl;
 }
@@ -105,9 +98,9 @@ Args get_args(int argc, char* argv[]) {
         } else if (arg == "-d") {
             res.is_delete_subMotifs = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-b") {
-            res.Beta = strtol(argv[++i], nullptr, 10);
+            res.same_family_percentage_threshold = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-a") {
-            res.Alpha = strtol(argv[++i], nullptr, 10);
+            res.occurrence_variation_tolerance = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-g") {
             res.nbOccrs_allowed = strtol(argv[++i], nullptr, 10);
         } else if (arg == "-tn") {
@@ -133,8 +126,8 @@ string generate_output_csv_file_name(Args args) {
        << "_is_del_" << (args.is_delete_subMotifs ? "yes" : "no")
        << "_min_" << args.original_min_length
        << "_max_" << args.max_length_motif
-       << "_beta_" << args.Beta
-       << "_alpha_" << args.Alpha
+    << "_sameFamilyPct_" << args.same_family_percentage_threshold
+    << "_occVarTol_" << args.occurrence_variation_tolerance
        << "_nbOccrs_" << args.nbOccrs_allowed
        << ".csv";
     return ss.str();
@@ -363,7 +356,10 @@ int main(int argc, char *argv[]) {
     ///PrintTree::PrintSuffixTree(gst.getRootSuffixTree());
 
     // step 3: generate the cms ------------------
-    CommonMotifs cms(gst, args.Beta, args.Alpha, args.nbOccrs_allowed);
+    CommonMotifs cms(gst,
+                     args.same_family_percentage_threshold,
+                     args.occurrence_variation_tolerance,
+                     args.nbOccrs_allowed);
 
 
     if (args.is_delete_subMotifs) {
