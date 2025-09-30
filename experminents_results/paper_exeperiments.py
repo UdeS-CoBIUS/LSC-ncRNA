@@ -1041,7 +1041,7 @@ def run_beta_experiments(is_debug_datasets: bool = False) -> None:
 
     # Step 2: Run experiments
     for beta in list_betas:
-        print(f"Running experiments for beta {beta}")
+        print(f"Running experiments for α (percentage_same_family) = {beta}")
         for gamma in list_gammas:
             print(f"  Running experiment for gamma {gamma}")
             results[beta][gamma] = run_single_experiment(
@@ -1137,9 +1137,9 @@ def plot_accuracy_beta_gamma(results, output_filename='accuracy_plot.png'):
             rects = ax.bar(x + offset, accuracies, width, label=f'{model}, γ={gamma}')
             ax.bar_label(rects, fmt='{:.2f}', padding=3, rotation=90, fontsize=8)
 
-    ax.set_xlabel('Beta (%)')
+    ax.set_xlabel('α (%) – percentage_same_family')
     ax.set_ylabel('Accuracy')
-    ax.set_title('Accuracy for EXT and MLP Models with Different Beta and Gamma Values')
+    ax.set_title('Accuracy for EXT and MLP Models with Different α and γ Values')
     ax.set_xticks(x)
     ax.set_xticklabels(betas)
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
@@ -1215,9 +1215,9 @@ def run_alpha_variance_experiments(is_debug_datasets: bool = False) -> None:
 
     # Step 2: Run experiments
     for beta in list_betas:
-        print(f"Running experiments for beta {beta}")
+        print(f"Running experiments for α (percentage_same_family) = {beta}")
         for alpha in list_alphas:
-            print(f"  Running experiment for alpha {alpha}")
+            print(f"  Running experiment for β (occurrence variation) = {alpha}")
             results[beta][alpha] = run_single_experiment(
                 dataset_size=dataset_size,
                 min_length=min_len,
@@ -1364,7 +1364,7 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
     for cm_min, cm_max in combined_lengths:
         print(f"Running experiments for Combined len {cm_min}, {cm_max}")
         for gamma in list_gammas:
-            print(f"  Running experiment for gamma {gamma}")
+            print(f"  Running experiment for γ (min occurrences) = {gamma}")
             results_combiened_len[(cm_min, cm_max)][gamma] = run_single_experiment_models_choices(
                 dataset_size=dataset_size,
                 min_length=cm_min,
@@ -1884,7 +1884,7 @@ def debug_cpp_fixed_len():
                 # Step 9: Save results to a CSV file
                 results_dir: Path = Path("results")
                 os.makedirs(results_dir, exist_ok=True)  # Create the directory if it doesn't exist
-                csv_path: Path = os.path.join(results_dir, "deletion_sub_motifs_results.csv")
+                csv_path: Path = results_dir / "deletion_sub_motifs_results.csv"
 
                 with open(csv_path, "w", newline="") as csvfile:
                     fieldnames: list[str] = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]

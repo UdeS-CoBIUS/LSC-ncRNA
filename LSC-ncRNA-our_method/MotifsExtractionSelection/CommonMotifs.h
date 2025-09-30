@@ -47,6 +47,7 @@ class CommonMotifs {
     //uint32_t nb_unique_child; // for debug
 
     //----------------------- Selection parameters: --------------------------------------------------------------------
+    // Reminder: Beta == percentage_same_family (paper α), Alpha == occurrence variation (paper β)
     unsigned int Beta=0; // BETA is percentage of finding cm in the family
     int Alpha=-1; // Alpha the variance in the number of occurences between seqs
     unsigned int nbOccrs_allowed=0;

@@ -31,8 +31,8 @@ struct Args {
     int original_min_length = 2; // Store original input value for generating csv filename
     int max_length_motif = 10; // -maxl
     int is_delete_subMotifs = 0; // -d (false, true)
-    int Beta = 40; // -b
-    int Alpha = -1; // -a   // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it.
+    int Beta = 40; // -b (percentage_same_family (paper α))
+    int Alpha = -1; // -a   // -1, mean don't use the Alpha paramter ==> whatever the variance we accepte it. occurrence_variation (paper β)
     int nbOccrs_allowed = 1; // -g (gamma) , lower bound, 1 is defult
 
     string output_file;  // -o , csv file name (path)
@@ -45,6 +45,9 @@ struct Args {
     // in the code it is beta alpha
     // and it is confusing each time
     // ...
+    // Naming note: CLI flag -b (Beta) controls the percentage_same_family threshold (paper α).
+    //              CLI flag -a (Alpha) controls the occurrence variation threshold (paper β).
+    //              We keep the historical field names for backward compatibility.
 
 };
 
@@ -57,8 +60,9 @@ void print_args_definition() {
     cout << "-minl : <integer> (>=2), min length of motif" << endl;
     cout << "-maxl : <integer>, (>= minl) max length of motif" << endl;
     cout << "-d : <integer> (0: false, 1 or other: true), is delete sub-motifs" << endl;
-    cout << "-b : <integer> beta (between [0 and 100])" << endl;
-    cout << "-a : <integer>, alpha  (-1 default no alpha, or: 0 equal number of occurrences, or 1,2,3,.... )" << endl;
+    // Reminder: Beta == percentage_same_family (paper α), Alpha == occurrence variation (paper β)
+    cout << "-b : <integer> beta : (between [0 and 100]): percentage same family (in the paper, i.e. α)" << endl;
+    cout << "-a : <integer>, alpha : occurrence variation (in the paper, i.e. β): (-1 default no alpha, or: 0 equal number of occurrences, or 1,2,3,.... )" << endl;
     cout << "-g : <integer> ( >=1), gamma, number of occurrences allowed" << endl;
     cout << "-o : <string> output CSV filename (optional)" << endl;
 }
