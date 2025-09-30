@@ -12,17 +12,37 @@ import zipfile
 import subprocess
 import re
 import csv
-import re
-import csv
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from pathlib import Path
-from typing import Optional, Dict, Any
 
 import time 
 
 from dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
+
+from typing import TypedDict, Optional, Any, Dict, Union, Tuple
+
+# Classification Models experiment results structure
+class ModelResult(TypedDict):
+    accuracy: Optional[float]
+    precision: Optional[float]
+    recall: Optional[float]
+    f1_score: Optional[float]
+    training_time_sec: Optional[float]
+    testing_time_sec: Optional[float]
+
+# Overall experiment result structure
+class ExperimentResult(TypedDict):
+    dataset_size: int
+    min_length: int
+    max_length: int
+    num_motifs: Optional[int]
+    cpp_execution_time_sec: Optional[float]
+    file_size_gb: Optional[float]
+    EXT: Optional[ModelResult]
+    MLP: Optional[ModelResult]
+
 
 # define a global variable to use debug datasets
 is_debug_datasets_global_var: bool = True
@@ -71,8 +91,8 @@ def prepare_dataset():
     ]
 
     for dataset in datasets:
-        zip_path: Path = os.path.join(data_dir, dataset)
-        extract_dir: Path = os.path.join(data_dir, dataset[:-4])  # Remove .zip extension
+        zip_path: Path = data_dir / dataset
+        extract_dir: Path = data_dir / dataset.replace(".zip", "")  # Remove .zip extension
 
         print(f"Unzipping {dataset}...")
 
@@ -231,7 +251,7 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
                 # Step 9: Save results to a CSV file
                 results_dir: Path = Path("results")
                 os.makedirs(results_dir, exist_ok=True)  # Create the directory if it doesn't exist
-                csv_path: Path = os.path.join(results_dir, "deletion_sub_motifs_results.csv")
+                csv_path: Path = results_dir / "deletion_sub_motifs_results.csv"
 
                 with open(csv_path, "w", newline="") as csvfile:
                     fieldnames: list[str] = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]
@@ -373,7 +393,7 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
 
     # note: when we have min_len = i, max_len = i+1 ex:(2,3) this mean we have fixed motif len of len 2. (this is in my c++ code work like this, maybe I should take time to change it...)
 
-    results: dict[str, dict[int, dict[int | tuple[int, int], dict[str, int | float | str]]]] = {
+    results: Dict[str, Any] = {
         'fixed_length': {size: {} for size in dataset_sizes},
         'combined_length': {dataset_sizes[-1]: {}} # take only last size, so 350 or 30 in debug datasets
     }
@@ -462,8 +482,9 @@ def run_single_experiment(dataset_size: int = 500,
     #time.sleep(5)
 
     if result is None:
-        print(f"Error processing dataset size {dataset_size} with min_length {min_length} and max_length {max_length}")
-        return None
+        raise RuntimeError(f"C++ processing failed for dataset {dataset_size}, "
+                         f"min_length {min_length}, max_length {max_length}")
+
 
     # Initialize classification results
     classification_results = {}
@@ -1014,7 +1035,7 @@ def run_beta_experiments(is_debug_datasets: bool = False) -> None:
     is_sub_motif_delete: int = 0  # false, no deletion of submotifs
 
     # Initialize results dictionary with nested structure
-    results: dict[int, dict[int, Optional[dict[str, Any]]]] = {
+    results: Dict[int, Any] = {
         beta: {gamma: None for gamma in list_gammas} for beta in list_betas
     }
 
@@ -1188,7 +1209,7 @@ def run_alpha_variance_experiments(is_debug_datasets: bool = False) -> None:
     is_sub_motif_delete: int = 0  # false, no deletion of submotifs
 
     # Initialize results dictionary with nested structure
-    results: dict[int, dict[int, Optional[dict[str, Any]]]] = {
+    results: Dict[int, Any] = {
         beta: {alpha: None for alpha in list_alphas} for beta in list_betas
     }
 
@@ -1314,9 +1335,11 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
         cm_len: {gamma: None for gamma in list_gammas} for cm_len in fixed_lengths
     }
 
-    results_combiened_len: dict[int, dict[int, Optional[dict[str, Any]]]] = {
+    results_combiened_len: dict[tuple[int, int], dict[int, Optional[dict[str, Any]]]] = {
         (cm_min, cm_max): {gamma: None for gamma in list_gammas} for (cm_min, cm_max) in combined_lengths
     }
+
+    
 
 
     # Step 2: Run experiments for fixed-length motifs
@@ -1563,7 +1586,7 @@ def run_classification_experiment(
     
     # Define default output_csv if not provided
     if output_csv is None:
-        output_csv = Path("results") / f"classification_results_{model}_{os.getpid()}.csv"
+        output_csv = str(Path("results") / f"classification_results_{model}_{os.getpid()}.csv")
     
     # Ensure output directory exists
     output_csv_path = Path(output_csv)
@@ -1667,7 +1690,7 @@ def run_classification_experiment_models_choices(
     
     # Define default output_csv if not provided
     if output_csv is None:
-        output_csv = Path("results") / f"classification_results_models_choices_{os.getpid()}.csv"
+        output_csv = str(Path("results") / f"classification_results_models_choices_{os.getpid()}.csv")
     
     # Ensure output directory exists
     output_csv_path = Path(output_csv)
@@ -1753,24 +1776,24 @@ def write_results_to_csv(results: Dict[str, Any], csv_filename: str) -> None:
     except IOError as e:
         print(f"Error writing to file {csv_filename}: {e}")
 
-def write_header(writer: csv.writer) -> None:
+def write_header(writer) -> None:
     writer.writerow([
         'Motif Type', 'Dataset Size', 'CM Min', 'CM Max', 'Number motifs',
         'Time cpp', 'File size GB', 'Model', 'Accuracy', 'Precision',
         'Recall', 'F1 Score', 'Training Time (sec)', 'Testing Time (sec)'
     ])
 
-def write_fixed_length_results(writer: csv.writer, fixed_length_results: Dict[str, Any]) -> None:
+def write_fixed_length_results(writer, fixed_length_results: Dict[str, Any]) -> None:
     for size, cm_lengths in fixed_length_results.items():
         for cm_length, experiment_results in cm_lengths.items():
             write_experiment_results(writer, 'fixed_length', size, cm_length, cm_length, experiment_results)
 
-def write_combined_length_results(writer: csv.writer, combined_length_results: Dict[str, Any]) -> None:
+def write_combined_length_results(writer, combined_length_results: Dict[str, Any]) -> None:
     for size, length_ranges in combined_length_results.items():
         for (min_len, max_len), experiment_results in length_ranges.items():
             write_experiment_results(writer, 'combined_length', size, min_len, max_len, experiment_results)
 
-def write_experiment_results(writer: csv.writer, motif_type: str, size: Union[int, str], 
+def write_experiment_results(writer, motif_type: str, size: Union[int, str], 
                              min_len: Union[int, str], max_len: Union[int, str], 
                              experiment_results: Dict[str, Any]) -> None:
     for model, metrics in experiment_results.items():
