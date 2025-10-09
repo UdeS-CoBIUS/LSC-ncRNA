@@ -14,3 +14,4 @@ LSC-ncRNA-our_method/MotifsExtractionSelection/cmake-build-debug/
 __pycache__/
 *.pyc
 
+README_*
