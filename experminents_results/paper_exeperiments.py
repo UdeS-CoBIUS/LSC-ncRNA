@@ -380,15 +380,14 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
     if is_debug_datasets:
         dataset_sizes = debug_datasets_size_global_var
 
+    # Paper parameters:
     same_family_percentage_threshold: int = 0  # percentage of the cm in the family (called alpha in the paper)
     occurrence_variation_tolerance: int = -1  # variance of nb cm between seqs in family, -1 we don't care
     min_occurrence_count: int = 1  # min nb of cm to consider 
     is_delete_submotifs: int= 0 # delete of note sub motif, default: 0 so no.
     
 
-    #fixed_lengths: range = range(1, 21)  # for 1 we should use an intern python method to generate the dataset, the method exist already.
     fixed_lengths: range = range(2, 21)  # 2 to 20, fro now from 2. to be changed later, we treat size min max = 1 seperatly.
-    # fixed_lengths: list[tuple[int, int]] = [(f-1, f) for f in range(2, 21)]  # (1, 2), (2,3) to (19, 20). we do this since in c++ program it implemented (min_len, max_len) like min_len<max_len begin min, stop before max. so 1,2 mean only one I have to check...
     combined_lengths: list[tuple[int, int]] = [(2, max_len) for max_len in range(3, 21)]  # (2, 3) to (2, 20)
 
     # note: when we have min_len = i, max_len = i+1 ex:(2,3) this mean we have fixed motif len of len 2. (this is in my c++ code work like this, maybe I should take time to change it...)
@@ -405,7 +404,7 @@ def run_motif_length_experiments(is_debug_datasets: bool = False) -> None:
         for cm_length in fixed_lengths:
             results['fixed_length'][size][cm_length] = run_single_experiment(
                 dataset_size=size, 
-                min_length=cm_length-1, 
+                min_length=cm_length, 
                 max_length=cm_length,
                 same_family_percentage_threshold=same_family_percentage_threshold,
                 occurrence_variation_tolerance=occurrence_variation_tolerance,
@@ -1926,19 +1925,23 @@ def main():
         print("Running in full mode with complete datasets.")
         print("This may take a significant amount of time and resources.")
 
-    # unzip already pre-prepared datasets
+    # need to sleep for a while to let the user read the message
+    time.sleep(2)
+
+    # unzip the datasets if not already pre-prepared
     ## prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
+    print("Compile the c++ code for motifs extraction and selection...")
     compile_code_MotifsExtractionSelection()
     
     # debug min max length: done
     #debug_cpp_fixed_len()
 
     # run the sub motifs deletion experiments
-    print("run the sub motifs deletion experiments...")
-    deletion_sub_motifs(is_debug_datasets)
-    #deletion_sub_motifs(is_debug_datasets=False)
+    ##print("run the sub motifs deletion experiments...")
+    ##deletion_sub_motifs(is_debug_datasets)
+
     
     # run the motifs length experiments
     print("run the motifs length experiments...")
