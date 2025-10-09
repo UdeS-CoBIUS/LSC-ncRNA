@@ -1830,18 +1830,8 @@ def write_experiment_results(writer, motif_type: str, size: Union[int, str],
 
 
 def debug_cpp_fixed_len():
-    
-    # ibra todo:
-    # I checked but didn't find the pbm
-    # I know that the input min_len will be converted to min_len+1
-    # so, after the main
-    # we can put min_len = arg.min_len -1
-    # like this after it will be chnaged to min_len+1 again, and work as desired.
-    # Now, I don't find where this is donne, maybe in loop in AddStringMinMax...
-    # but anyway, this will solve the pbm.
-    
 
-        # Get the project root directory
+    # Get the project root directory
     project_root: Path = find_project_root()
 
     is_debug_datasets = True
@@ -1850,7 +1840,7 @@ def debug_cpp_fixed_len():
 
     test_name: str = f"fixed"  # test delete no delete
     min_length: int = 2
-    max_length: int = 4
+    max_length: int = 2
     same_family_percentage_threshold: int = 0  # minimum percentage of sequences sharing the motif (previously beta)
     occurrence_variation_tolerance: int = -1  # maximum allowed occurrence deviation (previously alpha)
     gamma: int = 1  # 1 is smallest value
@@ -1937,10 +1927,10 @@ def main():
     #compile_code_MotifsExtractionSelection()
     
     # debug min max length
-    #debug_cpp_fixed_len()
+    debug_cpp_fixed_len()
 
     # run the sub motifs deletion experiments
-    deletion_sub_motifs(is_debug_datasets)
+    #deletion_sub_motifs(is_debug_datasets)
     
     # run the motifs length experiments
     ## print("run the motifs length experiments...")

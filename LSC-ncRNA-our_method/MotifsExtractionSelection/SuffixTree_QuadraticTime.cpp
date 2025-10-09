@@ -25,9 +25,6 @@ SuffixTree_QuadraticTime::SuffixTree_QuadraticTime(uint32_t maxLengthMotif, uint
 
     if(maxLengthMotif!=0 && maxLengthMotif < minLengthMotif ) this->max_length_motif = minLengthMotif; // its a choice.
 
-    cout<< "inside : constructor min max"<<endl;
-    cout<< "this->min_length_motif: "<<this->min_length_motif <<endl;
-    cout<< "this->max_length_motif: "<<this->max_length_motif <<endl;
     help_initializer();
 }
 
@@ -58,8 +55,6 @@ SuffixTree_QuadraticTime::~SuffixTree_QuadraticTime() {
  */
 void SuffixTree_QuadraticTime::AddString(string str, unsigned int idx_seq)
 {
-    //cout<<"AddString: "<<str<<endl;
-
     int num_char=-1; // [0..51]<==>[A-Za-z]
 
     Node* my_node= nullptr;
@@ -219,12 +214,11 @@ void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<string> &lis
  *  */
 void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<string>> &list_grouped_strings)
 {
-    cout<< "inside void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<string>> &list_grouped_strings)" <<endl;
     this->list_families_seqs=list_grouped_strings;
     this->are_sequences_grouped_in_families = true;
 
     unsigned int global_sequence_id=0; // global sequence id = index of the seq in all sequences of all families. just incrementing by one for each sequence
-    std::cout << "global_sequence_id : "<< global_sequence_id << std::endl;
+    //std::cout << "global_sequence_id : "<< global_sequence_id << std::endl;
     
     for (const auto & list_single_family_seqs : list_families_seqs)
     {
@@ -234,7 +228,7 @@ void SuffixTree_QuadraticTime::GenerateGeneralizedSuffixTree(vector<vector<strin
             this->addAllSubMotifMinMax(sequence, global_sequence_id);
             global_sequence_id++;
 
-            std::cout << "global_sequence_id : "<< global_sequence_id << std::endl;
+            //std::cout << "global_sequence_id : "<< global_sequence_id << std::endl;
         }
 
         nb_all_sequences+=list_single_family_seqs.size();
@@ -313,48 +307,27 @@ void SuffixTree_QuadraticTime::addAllSubMotifMinMax(const string &str, uint32_t 
 {
     if (str.size() < this->min_length_motif) return;
 
-    cout<<"addAllSubMotifMinMax : "<<endl;
-    cout<<"str : "<<str<<endl;
-    cout<<"len(str) : "<<str.length()<<endl;
-    cout<<"idx_str: "<<idx_str<<endl;
-    cout<<"min : "<<min_length_motif<<endl;
-    cout<<"max : "<<max_length_motif<<endl;
-    cout<<"this->max_length_motif : "<<this->max_length_motif<<endl;
-
-    cout<< "Befor if (this->max_length_motif == 0): "<< endl;
-
     // maxLengthMotif==0, mean we don't need max, so call diffirent method, to avoid to check each time when extracting motif
     if (this->max_length_motif == 0) return this->addAllSubMotifMin(str, idx_str);
-
-    cout<< "After if (this->max_length_motif == 0): "<< (this->max_length_motif == 0)<< endl;
 
     // it is maybe we find some strings that have size() < this->max_length_motif
     // for that we use a local_str_max_length_motif that have the size of those str, and we don't alter the global this->max_length_motif
     uint32_t local_str_max_length_motif = this->max_length_motif;
-    cout<<"local_str_max_length_motif : "<<local_str_max_length_motif<<endl;
     if(str.size() < local_str_max_length_motif) local_str_max_length_motif = str.size();
 
     uint32_t last = str.size() - this->min_length_motif + 1;
 
     uint32_t last_max = str.size() - local_str_max_length_motif + 1;
 
-    cout<< "last : "<< last << endl;
-    cout<< "last_max : "<< last_max << endl;
-
     for (uint32_t i = 0; i < last_max; ++i)
     // Changed condition to <= for fixed-length case
     //for (uint32_t i = 0; i <= last_max; ++i)
     {
-        cout<< "in First loop i < last_max "<<i<<"<"<<last_max<<"local_str_max_length_motif : "<<local_str_max_length_motif<<endl;
         addSubStr(str, idx_str, i, i + local_str_max_length_motif);
     }
 
-    std::cout << " last_max < last "<< (last_max<last) << endl;
-
     for (uint32_t i = last_max; i < last; ++i)
     {
-        cout<< "in Second loop i < last_max "<<i<<" < "<<last<<" local_str_max_length_motif : "<<local_str_max_length_motif<<endl;
-        
         addSubStr(str, idx_str, i, str.size());
     }
 }
@@ -372,11 +345,6 @@ void SuffixTree_QuadraticTime::addAllSubMotifMin(const string &str, uint32_t idx
 
 void SuffixTree_QuadraticTime::addSubStr(const string &str, uint32_t idx_str, uint32_t from, uint32_t to)
 {
-    cout<<" addSubStr : from :"<<from<<" to: "<<to<<endl;
-    cout<<"str : "<<str.substr(from,to-from)<<endl;
-    cout<<"idx_str: "<<idx_str<<endl;
-    cout<<"char by char insert : ";
-
     int num_char; // [0..51]<==>[A-Za-z]
 
     Node* my_node = this->root_suffix_tree;
@@ -384,7 +352,6 @@ void SuffixTree_QuadraticTime::addSubStr(const string &str, uint32_t idx_str, ui
     // add the subStr[from--to[ to generilized suffixe tree.
     for(uint32_t i = from ; i < to ; ++i)
     {
-        cout<<str[i];
 
         num_char = get_num_char(str[i]);
         if(num_char==-1) continue; // to not consider the other wrong chars, we just ignore it and jump to to the next char.
@@ -399,9 +366,7 @@ void SuffixTree_QuadraticTime::addSubStr(const string &str, uint32_t idx_str, ui
         {
             my_node=my_node->listChildren[ num_char ];
         }
-
     }
-    cout<<endl;
 
     my_node->AddNewPosition(idx_str, from);
 }
