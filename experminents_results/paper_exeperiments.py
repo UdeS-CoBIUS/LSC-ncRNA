@@ -1832,7 +1832,7 @@ def write_experiment_results(writer, motif_type: str, size: Union[int, str],
 def debug_cpp_fixed_len():
 
     # Get the project root directory
-    project_root: Path = find_project_root()
+    project_root: Path = find_project_root() # not needed here
 
     is_debug_datasets = True
     dataset_sizes = [5]
@@ -1924,7 +1924,7 @@ def main():
     ## prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
-    #compile_code_MotifsExtractionSelection()
+    compile_code_MotifsExtractionSelection()
     
     # debug min max length
     debug_cpp_fixed_len()

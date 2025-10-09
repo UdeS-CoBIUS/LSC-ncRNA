@@ -380,7 +380,7 @@ int main(int argc, char *argv[]) {
     cms.print_infos();
 
     // step 4: save the common motifs matrix to csv file
-    save_common_motifs_matrix_to_csv(cms, output_csv_file_name); // desactivated for debug
+    save_common_motifs_matrix_to_csv(cms, output_csv_file_name);
 
     // only for debug:
     // generate random matrix of nb_families x 20 and save it in csv file output_csv_file
