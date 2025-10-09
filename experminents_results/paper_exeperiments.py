@@ -198,7 +198,7 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
     project_root: Path = find_project_root()
 
 
-    dataset_sizes: list[int] = [100, 200, 300, 400, 500, 600]
+    dataset_sizes: list[int] = [100, 200, 300, 400, 500, 600] # normal datasets for delete sub motifs experiments
     
     if is_debug_datasets:
         dataset_sizes = debug_datasets_size_global_var
@@ -1920,21 +1920,29 @@ def main():
 
     is_debug_datasets: bool = is_debug_datasets_global_var
 
+    if is_debug_datasets:
+        print("Running in debug mode with smaller datasets.")
+    else:
+        print("Running in full mode with complete datasets.")
+        print("This may take a significant amount of time and resources.")
+
     # unzip already pre-prepared datasets
     ## prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
     compile_code_MotifsExtractionSelection()
     
-    # debug min max length
-    debug_cpp_fixed_len()
+    # debug min max length: done
+    #debug_cpp_fixed_len()
 
     # run the sub motifs deletion experiments
-    #deletion_sub_motifs(is_debug_datasets)
+    print("run the sub motifs deletion experiments...")
+    deletion_sub_motifs(is_debug_datasets)
+    #deletion_sub_motifs(is_debug_datasets=False)
     
     # run the motifs length experiments
-    ## print("run the motifs length experiments...")
-    ## run_motif_length_experiments(is_debug_datasets)
+    print("run the motifs length experiments...")
+    run_motif_length_experiments(is_debug_datasets)
 
     #
     ## print("run beta gamma experiments...")
