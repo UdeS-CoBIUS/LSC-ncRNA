@@ -1934,13 +1934,13 @@ def main():
     ## prepare_dataset()
 
     # compile the c++ code for motifs extraction and selection
-    compile_code_MotifsExtractionSelection()
+    #compile_code_MotifsExtractionSelection()
     
     # debug min max length
-    debug_cpp_fixed_len()
+    #debug_cpp_fixed_len()
 
     # run the sub motifs deletion experiments
-    ## deletion_sub_motifs(is_debug_datasets)
+    deletion_sub_motifs(is_debug_datasets)
     
     # run the motifs length experiments
     ## print("run the motifs length experiments...")

@@ -8,4 +8,9 @@ Rfam_14.1_dataset/
 # IDE and local build directories
 .idea/
 LSC-ncRNA-our_method/MotifsExtractionSelection/cmake-build-debug/
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
 
