@@ -251,6 +251,30 @@ Expand-Archive -Path .\Clans_ncRNA_from_Rfam_14.8.zip -DestinationPath .\Clans_n
 The `datasets/preparation/` folder contains scripts to recreate the datasets:
 
 1. **Split Stockholm seeds to per-family FASTA**
+
+- Get the Rfam seed alignment (Stockholm format)
+  - Rfam 14.1 (used in our paper):
+    ```bash
+    # from a working folder (e.g., datasets/preparation/)
+    curl -O https://ftp.ebi.ac.uk/pub/databases/Rfam/14.1/Rfam.seed.gz
+    gunzip -f Rfam.seed.gz   # produces Rfam.seed
+    ```
+  - Newer releases (e.g., 14.8+): browse the latest directory and adjust the version in the URL:
+    https://ftp.ebi.ac.uk/pub/databases/Rfam/
+    ```bash
+    # example pattern (replace 14.8 with current release)
+    curl -O https://ftp.ebi.ac.uk/pub/databases/Rfam/14.8/Rfam.seed.gz
+    gunzip -f Rfam.seed.gz
+    ```
+  - Windows (PowerShell):
+    ```powershell
+    Invoke-WebRequest https://ftp.ebi.ac.uk/pub/databases/Rfam/14.1/Rfam.seed.gz -OutFile Rfam.seed.gz
+    # Install 7-Zip or use WSL for gunzip; with 7z:
+    7z x Rfam.seed.gz
+    ```
+
+Note: The next step (`extract -in path_to/Rfam.seed -out path_to/Rfam_out_files`) expects the uncompressed file `Rfam.seed`.
+
 Use the C++ utility in `datasets/preparation/RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles/`.
 ```bash
 # Compile the utility
@@ -259,10 +283,7 @@ g++ main.cpp -o extract -std=c++14
 ./extract -in path_to/Rfam.seed -out path_to/Rfam_out_files
 ```
 
-2. **Build clan datasets**
-The script `datasets/preparation/clans_dataset.py` downloads and prepares the clan-based datasets.
-
-3. **Construct train/test splits & summary statistics**
+2. **Construct train/test splits & summary statistics**
 The script `datasets/preparation/constructTrainTestFiles/` splits families into training and testing sets and computes statistics.
 
     ```bash
@@ -271,7 +292,28 @@ The script `datasets/preparation/constructTrainTestFiles/` splits families into 
     - `-pt` controls the percentage of sequences assigned to the test split (default 30%).
     - Alternate modes (`i`, `s`, `sttmm`, `sttm`) support sampling and statistics-only workflows.
 
+Note: During splitting, constructTrainTestFiles standardizes FASTA identifiers to the Rfam family name format (Rfamxxxxx), ensuring consistent class labels.
+
 > **Encoding reminder**: Keep FASTA files in UTF-8 to avoid trailing-space issues when parsing lines. See [this Stack Overflow answer](https://stackoverflow.com/a/73952980/3429103) for the background.
+
+
+3. **Build clan datasets**
+The script `datasets/preparation/clans_dataset.py` downloads and prepares the clan-based datasets.
+
+***Low sequence similarity dataset*** : the  dataset consists of $36$ classes defined as the clans of RFAM 14.8 containing at least $4$ ncRNA families (https://rfam.xfam.org/clan/). This results in $36$ clans containing $4$ to $11$ families per clan and a total of $199$ families for all $36$ clans. For each clan,  $12$ sequences are selected from each family. 
+
+***The high sequence similarity dataset*** : the  dataset consists of $199$ classes defined as the $199$ ncRNA families contained in the $36$ clans from the low sequence similarity dataset. 
+
+*** List of used clans: *** : *["CL00051", "CL00003", "CL00069", "CL00106", "CL00038", "CL00054", "CL00002", "CL00014", "CL00102", "CL00001", "CL00117", "CL00021", "CL00057", "CL00111", "CL00118", "CL00066", "CL00112", "CL00116", "CL00010", "CL00005", "CL00027", "CL00053", "CL00063", "CL00100", "CL00119", "CL00004", "CL00032", "CL00034", "CL00035", "CL00040", "CL00096", "CL00093", "CL00015", "CL00121", "CL00036", "CL00045"]* 
+
+Each class of each dataset was split into two subsets for train (70\%) and test (30\%). 
+
+
+1. **DeepNC RNA dataset (noise variants)**
+- Source: https://github.com/bioinformatics-sannio/ncrna-deep
+- We use the 88‑family benchmark from the DeepNC RNA paper and keep the original split (84% train, 8% validation, 8% test).
+- Noise variants are generated as described in the paper (0–200% of sequence length in 25% steps, preserving mono/di‑nucleotide frequencies). Follow their repository’s instructions to build the dataset.
+- Place the resulting folders under datasets/data/deep_ncrna_datasets/ so this pipeline can locate them.
 
 
 ## 6. Running experiments and reproducing figures
