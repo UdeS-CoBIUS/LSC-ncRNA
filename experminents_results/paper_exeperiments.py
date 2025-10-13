@@ -1018,7 +1018,7 @@ def plot_all_len_motifs_exp(results):
 # data-size (nb families): 500
 # No deletion
 
-def run_beta_experiments(is_debug_datasets: bool = False) -> None:
+def run_same_family_threshold_experiments(is_debug_datasets: bool = False) -> None:
     """
     Run experiments to analyze the effect of beta (percentage of common motifs) and gamma (minimum occurrences) parameters.
 
@@ -1192,7 +1192,7 @@ def plot_motifs_beta_gamma(results, output_filename='motifs_plot.png'):
 # No deletion
 
 
-def run_alpha_variance_experiments(is_debug_datasets: bool = False) -> None:
+def run_occurrence_variation_experiments(is_debug_datasets: bool = False) -> None:
     """
     Run experiments to analyze the effect of beta (percentage of common motifs) and gamma (minimum occurrences) parameters.
 

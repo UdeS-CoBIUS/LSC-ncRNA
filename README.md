@@ -2,7 +2,7 @@
 
 LSC-ncRNA is a sequence-based method for classifying ncRNA families. It builds a vector representation of sequences from common motifs (computed/selected by C++), then trains supervised models (Python) to predict families at scale.
 
-This repository bundles the full workflow—from motif discovery to model evaluation—along with a Python pipeline that can reproduce the paper’s experiments end-to-end. Run the bundled “debug” preset locally to validate your environment, then scale to the full datasets on a high-memory machine.
+This repository contains all source code plus a single Python pipeline that can reproduce the paper’s experiments end-to-end (on a small “debug” sample locally; full datasets require a high-memory machine (large RAM).
 
 | Component | Path | Purpose |
 | --- | --- | --- |
@@ -48,9 +48,8 @@ This repository bundles the full workflow—from motif discovery to model evalua
 Run the lightweight “debug” preset to make sure your environment is ready. The pipeline compiles the C++ extractor, generates a small motif matrix, trains classifiers, and writes sample figures under `experminents_results/` and `results/`.
 
 ### Prerequisites
-- **C++14 toolchain** (e.g., `g++` on macOS/Linux, MSVC/WSL on Windows)
+- **C++14 toolchain** (`g++`)
 - **Python 3.9+** (3.8 works) with `pip` available
-- **Git LFS** if you plan to pull the larger datasets (optional for the debug run)
 
 ### Steps
 1. From the repository root, create and activate a virtual environment.
@@ -86,7 +85,7 @@ Run the lightweight “debug” preset to make sure your environment is ready. T
 
 ## 2. Full reproduction: paper experiments
 
-Running the full Rfam-scale experiments requires a machine with substantial memory (tens of GB RAM) and fast storage. All experiment entry points live in `experminents_results/paper_exeperiments.py`. Enable experiments by editing the `main()` function (uncomment the calls you need) or by importing the module and calling the helpers from a Python session:
+Running the full Rfam-scale experiments requires a machine with substantial memory (tens of GB RAM recommended). All experiment entry points live in `experminents_results/paper_exeperiments.py`. Enable experiments by editing the `main()` function (uncomment the calls you need) or by importing the module and calling the helpers from a Python session:
 
 ```python
 from experminents_results.paper_exeperiments import (
@@ -95,8 +94,7 @@ from experminents_results.paper_exeperiments import (
 )
 
 run_same_family_threshold_experiments(
-    same_family_pct_values=[30, 40, 50],
-    min_occurrence_counts=[1, 2, 3],
+    is_debug_datasets = False
 )
 ```
 
@@ -104,23 +102,21 @@ run_same_family_threshold_experiments(
 - **Submotif deletion impact**: `deletion_sub_motifs()`
 - **Motif length sweeps (fixed & combined)**: `run_motif_length_experiments()`
 - **Conservation vs occurrence sweeps**:
-  - `run_same_family_threshold_experiments()` (legacy name `run_beta_experiments`)
-  - `run_occurrence_variation_experiments()` (legacy name `run_alpha_variance_experiments`)
-  - Each helper takes the “new” descriptive parameters (`sameFamilyPct`, `occVarTol`, `min_occurrence_count`) while still accepting the legacy keywords for backwards compatibility.
+  - `run_same_family_threshold_experiments()` 
+  - `run_occurrence_variation_experiments()`
+
 - **Algorithm choices & timings**: `run_algs_choice_experiments()`
 
 ### Outputs
 - CSV summaries in `experminents_results/results/`
 - Figures in `experminents_results/` (e.g., `Growth_NB_motifs.png`, `Accuracy_combined_len_EXT_MLP.png`, `beta_gamma_accuracy_plot.png`)
-- Logs written to the console and to `experminents_results/logs/` (created on demand)
 
 
 ## 3. Requirements and installation
 
 ### Core stack
-- **C++14 compiler** (e.g., `g++` on macOS/Linux, MSVC/WSL on Windows)
+- **C++14 compiler** (`g++`)
 - **Python 3.8+** (Python 3.9+ recommended) with `pip`
-- **Git LFS** for downloading the larger dataset archives (optional for debug mode)
 
 ### Python dependencies
 Install the baseline dependencies via `requirements.txt`:
@@ -132,7 +128,6 @@ pip install -r requirements.txt
 The file lists:
 - `biopython`, `datatable`, `scikit-learn`, `pandas`, `numpy`, `matplotlib`
 - `portalocker`, `pyahocorasick`, `suffix-trees`
-- Optional extras (commented) such as `xgboost`
 
 > **macOS tip**: If the wheel for `datatable` is unavailable, install from source:
 > ```bash
@@ -154,7 +149,15 @@ This command should report no dependency conflicts before you proceed to the ful
 
 The C++ program computes and selects sequence motifs, creating a vectorial representation of ncRNA sequences. The result is a 2D matrix (saved as a CSV file) where each row is a sequence and each column is the occurrence count of a selected motif.
 
-The Python pipeline can compile the C++ source for you, or you can build it manually.
+The Python pipeline can compile the C++ source for you:
+``` python
+    # compile the c++ code for motifs extraction and selection
+    print("Compile the c++ code for motifs extraction and selection...")
+    compile_code_MotifsExtractionSelection()
+
+```
+
+Or you can build it manually.
 
 ### Manual Compilation
 ```bash
@@ -208,18 +211,60 @@ Unzip the dataset archives in `datasets/data/` before running full experiments.
 
 After extraction, you should see ready-to-use `Train/` and `Test/` folders matching the experiment scripts.
 
+
+You can do this in two ways:
+
+- Option A — Programmatic (Python helper)
+```python
+# unzip the datasets if not already prepared
+from experminents_results.paper_exeperiments import prepare_dataset
+prepare_dataset()
+```
+
+- Option B — Manual unzipping
+
+macOS/Linux (bash/zsh):
+```bash
+# from the repository root
+cd datasets/data
+
+# unzip individually (overwrite existing files to match Python)
+unzip -o Rfam_14.1_dataset.zip -d Rfam_14.1_dataset
+unzip -o deep_ncrna_datasets.zip -d deep_ncrna_datasets
+unzip -o Clans_ncRNA_from_Rfam_14.8.zip -d Clans_ncRNA_from_Rfam_14.8
+
+```
+
+Windows (PowerShell)
+```powershell
+# from the repository root
+Set-Location datasets/data
+
+Expand-Archive -Path .\Rfam_14.1_dataset.zip -DestinationPath .\Rfam_14.1_dataset -Force
+Expand-Archive -Path .\deep_ncrna_datasets.zip -DestinationPath .\deep_ncrna_datasets -Force
+Expand-Archive -Path .\Clans_ncRNA_from_Rfam_14.8.zip -DestinationPath .\Clans_ncRNA_from_Rfam_14.8 -Force
+
+```
+
+
 ### From scratch (optional)
 The `datasets/preparation/` folder contains scripts to recreate the datasets:
 
-1. **Split Stockholm seeds to per-family FASTA** — `RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles/`
-    ```bash
-    g++ main.cpp -o extract -std=c++14
-    ./extract -in path/to/Rfam.seed -out path/to/Rfam_out_files
-    ```
+1. **Split Stockholm seeds to per-family FASTA**
+Use the C++ utility in `datasets/preparation/RNAFamilies_Stockholm_SeedAlignment_To_PlainFastaFiles/`.
+```bash
+# Compile the utility
+g++ main.cpp -o extract -std=c++14
+# Run it
+./extract -in path_to/Rfam.seed -out path_to/Rfam_out_files
+```
 
-2. **Build clan datasets** — `clans_dataset.py` downloads and assembles the clan-level corpora.
+2. **Build clan datasets**
+The script `datasets/preparation/clans_dataset.py` downloads and prepares the clan-based datasets.
 
-3. **Construct train/test splits & summary statistics** — `constructTrainTestFiles/`
+3. **Construct train/test splits & summary statistics**
+The script `datasets/preparation/constructTrainTestFiles/` splits families into training and testing sets and computes statistics.
+
     ```bash
     constructTrainTestFiles -in path/to/fasta_dir -out path/to/output -pt 30 -m stt
     ```
@@ -293,7 +338,7 @@ python LSC-ncRNA-our_method/Classification/Main.py EXT \
 - **Motif matrix (arg 2)** — CSV produced by the C++ extractor.
 - **Test folder (arg 3)** — Directory containing FASTA files to classify.
 
-Outputs are streamed to stdout and saved to `Classification/logs/` (created if absent). You can use shell redirection to persist the metrics, e.g. `... > logs/ext_run.txt`.
+Outputs are streamed to stdout. You can use shell redirection to persist the metrics, e.g. `... > ext_run.txt`.
 
 
 ## 8. Compared methods
@@ -335,7 +380,6 @@ LSC-ncRNA/
 
 - **Memory and time:** Full Rfam runs are resource-intensive. Use the debug mode first, then scale up on a server with large RAM and an SSD.
 - **macOS datatable install:** Use the GitHub source install if wheels are unavailable: `pip install git+https://github.com/h2oai/datatable`.
-- **xgboost on macOS (optional):** Run `brew install libomp` before `pip install xgboost`.
 - **Paths:** The pipeline constructs output CSV names automatically. Results are saved under `results/` and `experminents_results/`.
 
 
