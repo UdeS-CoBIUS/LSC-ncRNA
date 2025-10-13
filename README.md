@@ -310,7 +310,8 @@ Each class of each dataset was split into two subsets for train (70\%) and test 
 
 
 1. **DeepNC RNA dataset (noise variants)**
-- Source: https://github.com/bioinformatics-sannio/ncrna-deep
+- Source: https://github.com/bioinformatics-sannio/ncrna-deep ([paper link](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008415)).
+- The dataset includes 306,016 sequences distributed among 88 RFAM families of small ncRNA such that each family contains more than 400 sequences.
 - We use the 88‑family benchmark from the DeepNC RNA paper and keep the original split (84% train, 8% validation, 8% test).
 - Noise variants are generated as described in the paper (0–200% of sequence length in 25% steps, preserving mono/di‑nucleotide frequencies). Follow their repository’s instructions to build the dataset.
 - Place the resulting folders under datasets/data/deep_ncrna_datasets/ so this pipeline can locate them.
