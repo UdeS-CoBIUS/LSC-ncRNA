@@ -4,7 +4,7 @@ import tempfile
 import os
 from parameterized import parameterized
 
-from paper_exeperiments import write_results_to_csv  # Make sure this import matches your actual filename
+from experiments.scripts.paper_exeperiments import write_results_to_csv  # Make sure this import matches your actual filename
 
 class TestWriteResultsToCSV(unittest.TestCase):
     EXPECTED_HEADER = [

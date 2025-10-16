@@ -19,7 +19,7 @@ from pathlib import Path
 
 import time 
 
-from dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
+from experiments.scripts.dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
 
 from typing import TypedDict, Optional, Any, Dict, Union, Tuple
 

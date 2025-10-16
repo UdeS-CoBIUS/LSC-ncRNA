@@ -15,3 +15,8 @@ __pycache__/
 *.pyc
 
 README_*
+
+# Experiment outputs (keep directory structure but ignore generated content)
+experiments/outputs/
+!experiments/outputs/.gitkeep
+!experiments/outputs/README.md
