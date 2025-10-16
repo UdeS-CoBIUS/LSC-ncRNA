@@ -703,6 +703,137 @@ def run_single_experiment_models_choices(dataset_size: int = 500,
 # -------------------------------------------
 
 
+def normalize_model_name(raw_name: Optional[str]) -> str:
+    """Normalize model identifiers while preserving meaningful prefixes."""
+    if raw_name is None:
+        return "UNKNOWN"
+    trimmed = raw_name.strip()
+    mapping = {
+        'ext': 'EXT',
+        'rdf': 'RDF',
+        'mlp': 'MLP',
+        'nlp': 'MLP',  # historical alias
+        'gnb': 'GNB',
+        'knn': 'KNN',
+        'svc': 'SVC',
+        'dt': 'DT',
+        'vot': 'VOT'
+    }
+    lowered = trimmed.lower()
+    return mapping.get(lowered, trimmed.upper())
+
+
+def build_algorithm_choice_records(algs_choice_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Flatten nested algs-choice results into plotting-friendly records."""
+    records: List[Dict[str, Any]] = []
+
+    def append_records(motif_type: str, configs: Dict[Any, Dict[int, Optional[Dict[str, Any]]]]) -> None:
+        for config_key, gamma_map in configs.items():
+            for gamma, experiment_result in gamma_map.items():
+                if not experiment_result:
+                    continue
+                classification_results = experiment_result.get("classification_results", {})
+                if not classification_results:
+                    continue
+                if motif_type == "fixed_length":
+                    motif_label = f"len={config_key}"
+                else:
+                    cm_min, cm_max = config_key
+                    motif_label = f"({cm_min},{cm_max})"
+
+                for model_name, metrics in classification_results.items():
+                    if not isinstance(metrics, dict):
+                        continue
+                    records.append(
+                        {
+                            "motif_type": motif_type,
+                            "motif_label": motif_label,
+                            "gamma": gamma,
+                            "model": normalize_model_name(model_name),
+                            "accuracy": metrics.get("accuracy"),
+                            "processing_time_sec": metrics.get("processing_time"),
+                        }
+                    )
+
+    append_records("fixed_length", algs_choice_results.get("fixed_length", {}))
+    append_records("combined_length", algs_choice_results.get("combined_length", {}))
+
+    return records
+
+
+def plot_algorithm_choice_metric(records: List[Dict[str, Any]],
+                                 metric_key: str,
+                                 ylabel: str,
+                                 filename_base: str,
+                                 title_suffix: str) -> None:
+    if not records:
+        print("No algorithm-choice records available for plotting.")
+        return
+
+    df = pd.DataFrame(records)
+    if df.empty or metric_key not in df:
+        print(f"No data found for metric '{metric_key}'.")
+        return
+
+    df = df.dropna(subset=[metric_key])
+    if df.empty:
+        print(f"All values missing for metric '{metric_key}'.")
+        return
+
+    for motif_type in sorted(df["motif_type"].unique()):
+        subset = df[df["motif_type"] == motif_type].copy()
+        if subset.empty:
+            continue
+
+        subset["config_label"] = subset.apply(
+            lambda row: f"{row['motif_label']} | γ={row['gamma']}", axis=1
+        )
+
+        pivot = subset.pivot_table(
+            index="config_label",
+            columns="model",
+            values=metric_key,
+            aggfunc="mean"
+        ).sort_index()
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+        pivot.plot(kind="bar", ax=ax)
+
+        ax.set_xlabel("Motif configuration (length | γ)")
+        ax.set_ylabel(ylabel)
+        ax.set_title(f"Algorithm-choice {title_suffix} – {motif_type.replace('_', ' ')}")
+        ax.legend(title="Model")
+        ax.grid(axis="y", linestyle="--", alpha=0.4)
+        plt.tight_layout()
+
+        output_path = get_output_path(f"{filename_base}_{motif_type}.png", 'plots')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        print(f"Plot saved as {output_path}")
+
+
+def plot_algorithm_choice_accuracy(records: List[Dict[str, Any]]) -> None:
+    plot_algorithm_choice_metric(
+        records,
+        metric_key="accuracy",
+        ylabel="Accuracy",
+        filename_base="algorithm_choice_accuracy",
+        title_suffix="accuracy"
+    )
+
+
+def plot_algorithm_choice_processing_time(records: List[Dict[str, Any]]) -> None:
+    plot_algorithm_choice_metric(
+        records,
+        metric_key="processing_time_sec",
+        ylabel="Processing time (sec)",
+        filename_base="algorithm_choice_processing_time",
+        title_suffix="processing time"
+    )
+
+
+
+
 def plot_growth_nb_motifs_fixed_len(results, save_as_file=True, filename='Growth_NB_motifs.png'):
     """
     Plot the growth in the number of motifs for fixed-length motifs for various dataset sizes.
@@ -1338,7 +1469,7 @@ def plot_accuracy_same_family_vs_occurrence_variation(
                 x + offset,
                 accuracies,
                 width,
-                label=f'{model}, β={tolerance_label}'
+                label=f'{model}, tolerance={tolerance_label}'
             )
             ax.bar_label(rects, fmt='{:.2f}', padding=3, rotation=90, fontsize=8)
 
@@ -1378,7 +1509,7 @@ def plot_motif_counts_same_family_vs_occurrence_variation(
             x + offset,
             motif_counts,
             width,
-            label=f'β={tolerance_label}'
+            label=f'tolerance={tolerance_label}'
         )
         ax.bar_label(rects, fmt='{:.0f}', padding=3, rotation=90, fontsize=8)
 
@@ -1416,25 +1547,23 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
     dataset_size: int = 500
     
     if is_debug_datasets:
-        dataset_sizes = debug_datasets_size_global_var[-1] 
+        dataset_size = debug_datasets_size_global_var[-1]
 
-    beta: int= 50 # percentage of the cm in the family (called alpha in the paper)
-    alpha: int= -1 # variance of nb cm between seqs in family , -1 we don't care
-    list_gammas: list[int]= [1, 2] # min nb of cm to consider 
-    is_sub_motif_delete: int= 0 # delete of note sub motif, default: 0 so no.
+    same_family_coverage_pct: int = 50  # percentage of the cm in the family (called α in the paper, legacy beta)
+    occurrence_variation_limit: int = -1  # variance of nb cm between seqs in family, -1 we don't care (legacy alpha)
+    min_occurrence_counts: list[int] = [1, 2]  # minimum nb of cm to consider (legacy gamma)
+    is_sub_motif_delete: int = 0  # delete of note sub motif, default: 0 so no.
 
     fixed_lengths: list[int] = [5, 7]
     combined_lengths: list[tuple[int, int]] = [(2, 5), (2, 8)]
 
-    # note: when we have min_len = i, max_len = i+1 ex:(2,3) this mean we have fixed motif len of len 2. (this is in my c++ code work like this, maybe I should take time to change it...)
-
     # Initialize results dictionary with nested structure
     results_fixed_len: dict[int, dict[int, Optional[dict[str, Any]]]] = {
-        cm_len: {gamma: None for gamma in list_gammas} for cm_len in fixed_lengths
+        cm_len: {gamma: None for gamma in min_occurrence_counts} for cm_len in fixed_lengths
     }
 
-    results_combiened_len: dict[tuple[int, int], dict[int, Optional[dict[str, Any]]]] = {
-        (cm_min, cm_max): {gamma: None for gamma in list_gammas} for (cm_min, cm_max) in combined_lengths
+    results_combined_len: dict[tuple[int, int], dict[int, Optional[dict[str, Any]]]] = {
+        (cm_min, cm_max): {gamma: None for gamma in min_occurrence_counts} for (cm_min, cm_max) in combined_lengths
     }
 
     
@@ -1443,41 +1572,67 @@ def run_algs_choice_experiments(is_debug_datasets: bool = False) -> None:
     # Step 2: Run experiments for fixed-length motifs
     for cm_len in fixed_lengths:
         print(f"Running experiments for fixed len {cm_len}")
-        for gamma in list_gammas:
+        for gamma in min_occurrence_counts:
             print(f"  Running experiment for gamma {gamma}")
-            results_fixed_len[cm_len][gamma] = run_single_experiment_models_choices(
+            experiment_result = run_single_experiment_models_choices(
                 dataset_size=dataset_size,
-                min_length=cm_len-1, # change to just cm_len in this new version.
+                min_length=cm_len,
                 max_length=cm_len,
-                same_family_percentage_threshold=beta,
-                occurrence_variation_tolerance=alpha,
+                same_family_percentage_threshold=same_family_coverage_pct,
+                occurrence_variation_tolerance=occurrence_variation_limit,
                 min_occurrence_count=gamma,
                 is_delete_submotifs=is_sub_motif_delete,
                 test_name='algs',
                 is_debug_datasets=is_debug_datasets
             )
+            results_fixed_len[cm_len][gamma] = experiment_result
+            if experiment_result is None:
+                print("    Skipping plotting data for this configuration due to previous errors.")
 
 
     # Step 3: Run experiments for combined-length motifs (only for size 350)
     for cm_min, cm_max in combined_lengths:
         print(f"Running experiments for Combined len {cm_min}, {cm_max}")
-        for gamma in list_gammas:
+        for gamma in min_occurrence_counts:
             print(f"  Running experiment for γ (min occurrences) = {gamma}")
-            results_combiened_len[(cm_min, cm_max)][gamma] = run_single_experiment_models_choices(
+            experiment_result = run_single_experiment_models_choices(
                 dataset_size=dataset_size,
                 min_length=cm_min,
                 max_length=cm_max,
-                same_family_percentage_threshold=beta,
-                occurrence_variation_tolerance=alpha,
+                same_family_percentage_threshold=same_family_coverage_pct,
+                occurrence_variation_tolerance=occurrence_variation_limit,
                 min_occurrence_count=gamma,
                 is_delete_submotifs=is_sub_motif_delete,
                 test_name='algs',
                 is_debug_datasets=is_debug_datasets
             )
+            results_combined_len[(cm_min, cm_max)][gamma] = experiment_result
+            if experiment_result is None:
+                print("    Skipping plotting data for this configuration due to previous errors.")
+
+    algs_choice_results: Dict[str, Any] = {
+        "dataset_size": dataset_size,
+        "same_family_coverage_pct": same_family_coverage_pct,
+        "occurrence_variation_limit": occurrence_variation_limit,
+        "min_occurrence_counts": min_occurrence_counts,
+        "fixed_length": results_fixed_len,
+        "combined_length": results_combined_len,
+    }
     
 
     # Step 4: Generate plots
-    
+    records = build_algorithm_choice_records(algs_choice_results)
+
+    if records:
+        summary_df = pd.DataFrame(records)
+        summary_csv_path = get_output_path("algorithm_choice_summary.csv", 'tables')
+        summary_df.to_csv(summary_csv_path, index=False)
+        print(f"Algorithm-choice summary saved to {summary_csv_path}")
+    else:
+        print("No records generated for algorithm-choice summary.")
+
+    plot_algorithm_choice_accuracy(records)
+    plot_algorithm_choice_processing_time(records)
 
 
 # -------------------------------------------
@@ -2184,5 +2339,6 @@ if __name__ == "__main__":
     
     # for quick testing of a single experiment step
     is_debug_datasets_global_var = True  # keep the small datasets
-    print("Running single step for quick testing: same-family-threshold")
-    run_same_family_coverage_experiments(True)
+    print("Running algs-choice experiment step only for quick testing...")
+    run_algs_choice_experiments(is_debug_datasets_global_var)
+    
