@@ -105,12 +105,19 @@ class Model:
             cv_scoress = cross_val_score(model, self.X_train, self.y_train, cv = kfold, scoring=self.scoring, n_jobs =self.n_jobs)
 
             if last_model_results_ is not None:
-                last_model_results_ = last_model_results_.append(pd.DataFrame({'model': self.liste_model_name[i],
-                                                                               'cv_mean': cv_scoress.mean(),
-                                                                               'cv_std': cv_scoress.std(),
-                                                                               'execution_time':(time.time() - start_time)},
-                                                                              index = [0]),
-                                                                            ignore_index = True)
+                new_row = pd.DataFrame(
+                    {
+                        'model': self.liste_model_name[i],
+                        'cv_mean': cv_scoress.mean(),
+                        'cv_std': cv_scoress.std(),
+                        'execution_time': (time.time() - start_time)
+                    },
+                    index=[0]
+                )
+                last_model_results_ = pd.concat(
+                    [last_model_results_, new_row],
+                    ignore_index=True
+                )
             i=i+1
         return last_model_results_
     
