@@ -12,6 +12,7 @@ import zipfile
 import subprocess
 import re
 import csv
+import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -19,9 +20,9 @@ from pathlib import Path
 
 import time 
 
-from experiments.scripts.dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
+from dic_values_exp_example_debug import dict_len_motifs_exp_example_debug
 
-from typing import TypedDict, Optional, Any, Dict, Union, Tuple
+from typing import TypedDict, Optional, Any, Dict, Union, Tuple, Callable, List
 
 # Classification Models experiment results structure
 class ModelResult(TypedDict):
@@ -1009,6 +1010,9 @@ def plot_total_time_combined_len(results, save_as_file=True, filename='Total_tim
 
 
 def plot_all_len_motifs_exp(results):
+    """
+    Generate all plots for motif length experiments.
+    """
     
     print('plot_growth_nb_motifs_fixed_len: ...')
     plot_growth_nb_motifs_fixed_len(results, save_as_file=True)
@@ -1963,48 +1967,168 @@ def debug_cpp_fixed_len():
 
 
 
-def main():
+ExperimentStep = Callable[[bool], None]
 
-    is_debug_datasets: bool = is_debug_datasets_global_var
 
-    if is_debug_datasets:
+def run_prepare_dataset_step(is_debug: bool) -> None:
+    """Wrapper to keep a uniform signature for experiment steps."""
+    prepare_dataset()
+
+
+def run_compile_cpp_step(is_debug: bool) -> None:
+    compile_code_MotifsExtractionSelection()
+
+
+EXPERIMENT_SEQUENCE: List[str] = [
+    "prepare-dataset",
+    "compile-cpp",
+    "deletion-sub-motifs",
+    "motif-length",
+    "same-family-threshold",
+    "occurrence-variation",
+    "algs-choice",
+]
+
+
+EXPERIMENT_REGISTRY: Dict[str, Tuple[str, ExperimentStep]] = {
+    "prepare-dataset": (
+        "Unzip dataset archives under datasets/data (safe to re-run).",
+        run_prepare_dataset_step,
+    ),
+    "compile-cpp": (
+        "Compile the C++ MotifsExtractionSelection binary.",
+        run_compile_cpp_step,
+    ),
+    "deletion-sub-motifs": (
+        "Run the deletion vs non-deletion sub-motifs experiment.",
+        deletion_sub_motifs,
+    ),
+    "motif-length": (
+        "Run experiments sweeping motif length settings and generate plots.",
+        run_motif_length_experiments,
+    ),
+    "same-family-threshold": (
+        "Run β/γ (percentage_same_family vs gamma) experiments and plots.",
+        run_same_family_threshold_experiments,
+    ),
+    "occurrence-variation": (
+        "Run occurrence variation tolerance experiments (legacy alpha).",
+        run_occurrence_variation_experiments,
+    ),
+    "algs-choice": (
+        "Compare multiple classification models on selected motif configs.",
+        run_algs_choice_experiments,
+    ),
+}
+
+
+DEFAULT_EXPERIMENTS: List[str] = ["compile-cpp", "deletion-sub-motifs"]
+
+
+def parse_arguments() -> argparse.Namespace:
+    default_mode = "debug" if is_debug_datasets_global_var else "full"
+
+    parser = argparse.ArgumentParser(
+        description="Run LSC-ncRNA experiment pipeline tasks individually or in batches."
+    )
+    parser.add_argument(
+        "-x",
+        "--experiments",
+        metavar="NAME",
+        nargs="+",
+        choices=["all"] + list(EXPERIMENT_REGISTRY.keys()),
+        help=(
+            "Space-separated list of experiment steps to execute. "
+            "Use 'all' to run every registered step in sequence. "
+            "Defaults to 'compile-cpp deletion-sub-motifs'."
+        ),
+    )
+    parser.add_argument(
+        "--skip",
+        metavar="NAME",
+        nargs="+",
+        choices=list(EXPERIMENT_REGISTRY.keys()),
+        help=(
+            "Omit specific steps even if they appear in the selected experiments. "
+            "Useful for skipping costly stages like 'compile-cpp'."
+        ),
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["debug", "full"],
+        default=default_mode,
+        help="Choose dataset size mode. Debug uses the small samples; full uses the paper-scale datasets.",
+    )
+    parser.add_argument(
+        "--list",
+        dest="list_experiments",
+        action="store_true",
+        help="List the available experiment names and exit.",
+    )
+
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_arguments()
+
+    if args.list_experiments:
+        print("Available experiment steps (in execution order):")
+        for name in EXPERIMENT_SEQUENCE:
+            description, _ = EXPERIMENT_REGISTRY[name]
+            print(f"  - {name}: {description}")
+        return
+
+    global is_debug_datasets_global_var
+    is_debug_datasets_global_var = args.mode == "debug"
+
+    if is_debug_datasets_global_var:
         print("Running in debug mode with smaller datasets.")
     else:
-        print("Running in full mode with complete datasets.")
-        print("This may take a significant amount of time and resources.")
+        print("Running in full mode with complete datasets. This may take significant time and resources.")
+
+    selected_experiments: List[str]
+    if not args.experiments:
+        selected_experiments = DEFAULT_EXPERIMENTS
+    elif "all" in args.experiments:
+        selected_experiments = EXPERIMENT_SEQUENCE
+    else:
+        seen: set[str] = set()
+        selected_experiments = []
+        for name in args.experiments:
+            if name not in seen:
+                selected_experiments.append(name)
+                seen.add(name)
+
+    skip_set = set(args.skip or [])
+    if skip_set:
+        print("\nSkipping requested steps:")
+        for name in skip_set:
+            print(f"  - {name}")
+        selected_experiments = [name for name in selected_experiments if name not in skip_set]
+
+    if not selected_experiments:
+        print("\nNo experiment steps left to run after applying selections/skips. Exiting.")
+        return
 
     # need to sleep for a while to let the user read the message
     time.sleep(2)
 
-    # unzip the datasets if not already pre-prepared
-    ## prepare_dataset()
+    print("\nSelected experiment steps:")
+    for name in selected_experiments:
+        description, _ = EXPERIMENT_REGISTRY[name]
+        print(f"  - {name}: {description}")
 
-    # compile the c++ code for motifs extraction and selection
-    print("Compile the c++ code for motifs extraction and selection...")
-    compile_code_MotifsExtractionSelection()
-    
-    # debug min max length: done
-    #debug_cpp_fixed_len()
+    print("\nStarting execution...\n")
 
-    # run the sub motifs deletion experiments
-    ##print("run the sub motifs deletion experiments...")
-    ##deletion_sub_motifs(is_debug_datasets)
+    for name in selected_experiments:
+        description, runner = EXPERIMENT_REGISTRY[name]
+        print(f"=== {name} ===")
+        print(description)
+        runner(is_debug_datasets_global_var)
+        print(f"Completed: {name}\n")
 
-    
-    # run the motifs length experiments
-    print("run the motifs length experiments...")
-    run_motif_length_experiments(is_debug_datasets)
-
-    #
-    ## print("run beta gamma experiments...")
-    ## run_beta_experiments(is_debug_datasets)
-    # debug by internal dict 
-    ## plot_all_len_motifs_exp(dict_len_motifs_exp_example_debug)
-
-    ## print("run beta alpha experiments...")
-    ## run_alpha_variance_experiments(is_debug_datasets)
-
-    ## print('run algs models choices experiments...')
+    print("All requested experiment steps completed.")
 
 
 if __name__ == "__main__":
