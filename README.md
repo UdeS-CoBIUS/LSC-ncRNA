@@ -6,7 +6,7 @@ This repository contains all source code plus a single Python pipeline that can 
 
 | Component | Path | Purpose |
 | --- | --- | --- |
-| Pipeline orchestrator | `experminents_results/paper_exeperiments.py` | Compiles the C++ extractor, launches experiments, aggregates results, and produces plots. |
+| Pipeline orchestrator | `experiments/scripts/paper_exeperiments.py` | Compiles the C++ extractor, launches experiments, aggregates results, and produces plots. |
 | Motif extractor (C++) | `LSC-ncRNA-our_method/MotifsExtractionSelection/` | Builds motif occurrence matrices from FASTA inputs. |
 | Classifiers (Python) | `LSC-ncRNA-our_method/Classification/` | Trains and scores supervised models using the generated motif matrices. |
 
@@ -45,7 +45,7 @@ This repository contains all source code plus a single Python pipeline that can 
 
 ## 1. Quickstart: small demo on a laptop
 
-Run the lightweight “debug” preset to make sure your environment is ready. The pipeline compiles the C++ extractor, generates a small motif matrix, trains classifiers, and writes sample figures under `experminents_results/` and `results/`.
+Run the lightweight “debug” preset to make sure your environment is ready. The pipeline compiles the C++ extractor, generates a small motif matrix, trains classifiers, and writes sample figures/CSVs under `experiments/outputs/debug_small_dataset/` (plots and tables subfolders).
 
 ### Prerequisites
 - **C++14 toolchain** (`g++`)
@@ -74,18 +74,18 @@ Run the lightweight “debug” preset to make sure your environment is ready. T
 
 4. Run the pipeline in debug mode (ensure your working directory is the repository root).
     ```bash
-    python experminents_results/paper_exeperiments.py
+  python experiments/scripts/paper_exeperiments.py
     ```
 
 5. Inspect the outputs.
-    - Figures such as `experminents_results/accuracy_fixed_len_EXT.png`
-    - CSV summaries in `experminents_results/results/`
+  - Plots saved under `experiments/outputs/debug_small_dataset/plots/`
+  - CSV summaries (e.g., `algorithm_choice_summary.csv`) under `experiments/outputs/debug_small_dataset/tables/`
     A successful run indicates that both the C++ and Python components are wired correctly.
 
 
 ## 2. Full reproduction: paper experiments
 
-Running the full Rfam-scale experiments requires a machine with substantial memory (tens of GB RAM recommended). All experiment entry points live in `experminents_results/paper_exeperiments.py`. Enable experiments by editing the `main()` function (uncomment the calls you need) or by importing the module and calling the helpers from a Python session:
+Running the full Rfam-scale experiments requires a machine with substantial memory (tens of GB RAM recommended). All experiment entry points live in `experiments/scripts/paper_exeperiments.py`. Enable experiments by editing the `main()` function (uncomment the calls you need) or by importing the module and calling the helpers from a Python session:
 
 ```python
 from experminents_results.paper_exeperiments import (
@@ -105,11 +105,11 @@ run_same_family_threshold_experiments(
   - `run_same_family_threshold_experiments()` 
   - `run_occurrence_variation_experiments()`
 
-- **Algorithm choices & timings**: `run_algs_choice_experiments()`
+- **Algorithm choices & timings**: `run_algs_choice_experiments()` (writes consolidated tables to `experiments/outputs/<mode>/tables/algorithm_choice_summary.csv` and paired accuracy/time plots in the `plots` subfolder)
 
 ### Outputs
-- CSV summaries in `experminents_results/results/`
-- Figures in `experminents_results/` (e.g., `Growth_NB_motifs.png`, `Accuracy_combined_len_EXT_MLP.png`, `beta_gamma_accuracy_plot.png`)
+- CSV summaries in `experiments/outputs/<mode>/tables/`
+- Figures in `experiments/outputs/<mode>/plots/` (e.g., `Growth_NB_motifs.png`, `Accuracy_combined_len_EXT_MLP.png`, `beta_gamma_accuracy_plot.png`, `algorithm_choice_accuracy_fixed_length.png`)
 
 
 ## 3. Requirements and installation
@@ -319,7 +319,7 @@ Each class of each dataset was split into two subsets for train (70\%) and test 
 
 ## 6. Running experiments and reproducing figures
 
-All experiment orchestration lives in `experminents_results/paper_exeperiments.py`. The pipeline follows the sequence below:
+All experiment orchestration lives in `experiments/scripts/paper_exeperiments.py`. The pipeline follows the sequence below:
 
 ```
 compile_code_MotifsExtractionSelection()
