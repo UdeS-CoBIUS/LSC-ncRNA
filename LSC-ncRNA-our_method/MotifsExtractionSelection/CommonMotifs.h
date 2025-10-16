@@ -49,7 +49,7 @@ class CommonMotifs {
     //----------------------- Selection parameters: --------------------------------------------------------------------
     // Selection thresholds (paper notation: α == same-family percentage, β == occurrence variation)
     // Naming note: CLI output files encode these as `_sameFamilyPct_` and `_occVarTol_` segments for clarity.
-    unsigned int sameFamilyPercentageThreshold = 0; // `sameFamilyPct`: minimum percentage of sequences in a family sharing the motif (0 disables the filter)
+    unsigned int sameFamilyCoveragePct = 0; // `sameFamilyPct`: minimum percentage of sequences in a family sharing the motif (0 disables the filter). max allowed difference between motif counts across accepted sequences.
     int occurrenceVariationTolerance = -1; // `occVarTol`: tolerated variance in motif occurrences across sequences (-1 disables the check entirely)
     unsigned int nbOccrs_allowed=0;
 
@@ -100,9 +100,9 @@ private: // methods
     pair<unsigned int, unsigned int> get_FamilyId_And_SeqId(unsigned int global_seq_id) const; // a copy of the method in SuffixTree_QuadraticTime.h, to use local list_sum_nb_seqs, since we have pbm using the refrence this->gst.get_FamilyId_And_SeqId which give 0....
 
 public:
-    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold);
-    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold, int occurrenceVariationTolerance);
-    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold, int occurrenceVariationTolerance, unsigned int nbOccrs_allowed);
+    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyCoveragePct);
+    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyCoveragePct, int occurrenceVariationTolerance);
+    CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyCoveragePct, int occurrenceVariationTolerance, unsigned int nbOccrs_allowed);
 
     void cmsExtractionSelection();
     void cmsExtractionSelectionDeletionCSMs();

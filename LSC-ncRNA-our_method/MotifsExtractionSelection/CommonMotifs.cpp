@@ -10,8 +10,8 @@
 #include "SubSetDistancePercentage.h"
 #include "SequenceIdManager.h"
 
-CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold)
-    : gst(gst), sameFamilyPercentageThreshold(sameFamilyPercentageThreshold)
+CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyCoveragePct)
+    : gst(gst), sameFamilyCoveragePct(sameFamilyCoveragePct)
 {
     //nb_total_cm=0;
     //nb_deleted_cm_from_list_cm=0;
@@ -23,10 +23,10 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sam
     this->nb_all_sequences = gst.getNbAllSequences();
 }
 
-CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold,
+CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyCoveragePct,
                                                      int occurrenceVariationTolerance)
                 : gst(gst),
-                    sameFamilyPercentageThreshold(sameFamilyPercentageThreshold),
+                    sameFamilyCoveragePct(sameFamilyCoveragePct),
                     occurrenceVariationTolerance(occurrenceVariationTolerance)
 {
     //nb_total_cm=0;
@@ -39,11 +39,11 @@ CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sam
     this->nb_all_sequences = gst.getNbAllSequences();
 }
 
-CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyPercentageThreshold,
+CommonMotifs::CommonMotifs(const SuffixTree_QuadraticTime &gst, unsigned int sameFamilyCoveragePct,
                                                      int occurrenceVariationTolerance,
                                                      unsigned int nbOccrs_allowed)
                 : gst(gst),
-                    sameFamilyPercentageThreshold(sameFamilyPercentageThreshold),
+                    sameFamilyCoveragePct(sameFamilyCoveragePct),
                     occurrenceVariationTolerance(occurrenceVariationTolerance),
                     nbOccrs_allowed(nbOccrs_allowed)
 {
@@ -767,19 +767,19 @@ bool CommonMotifs::is_cm_accepted_according_To_selection_parameters(const string
 {
     //if(umap_seqId_nbOccs_active_node.size()>GAMMA)
     //if(!umap_seqId_nbOccs_active_node.empty() && is_cm_accepted_only_for_one_family_percentage_nbOcrrs(
-    //        umap_seqId_nbOccs_active_node, sameFamilyPercentageThreshold, sameFamilyPercentageThresholdInternal))
+    //        umap_seqId_nbOccs_active_node, sameFamilyCoveragePct, sameFamilyPercentageThresholdInternal))
 
-    //return (!cm_umap_seqId_nbOccs.empty() && is_cm_accepted_only_for_one_family_percentage_nbOcrrs(cm_umap_seqId_nbOccs, sameFamilyPercentageThreshold));
+    //return (!cm_umap_seqId_nbOccs.empty() && is_cm_accepted_only_for_one_family_percentage_nbOcrrs(cm_umap_seqId_nbOccs, sameFamilyCoveragePct));
 
     if(occurrenceVariationTolerance == -1) // only same-family percentage threshold
         return (cm_umap_seqId_nbOccs.size() >= GAMMA &&
                 is_cm_accepted_only_for_one_family_percentage_nbOcrrs(cm_umap_seqId_nbOccs,
-                                                                      sameFamilyPercentageThreshold,
+                                                                      sameFamilyCoveragePct,
                                                                       this->nbOccrs_allowed));
 
     // Otherwise check both thresholds plus nbOccrs_allowed
     return is_cm_accepted_only_for_one_family_percentage_and_variation(cm_umap_seqId_nbOccs,
-                                                                       sameFamilyPercentageThreshold,
+                                                                       sameFamilyCoveragePct,
                                                                        occurrenceVariationTolerance,
                                                                        this->nbOccrs_allowed);
 }
@@ -823,7 +823,7 @@ bool CommonMotifs::is_cm_accepted_only_for_one_family_percentage_nbOcrrs(
 
         nb_seqs_have_cm = nb_seqs_have_nbOccrs_allowd;
 
-        // if sameFamilyPercentageThreshold (percentage_same_family) = 0 and nb_seqs_have_cm<2,
+        // if sameFamilyCoveragePct (percentage_same_family) = 0 and nb_seqs_have_cm<2,
         // this means that we have only one single seq that have the motif with nbOccrs_allowed
         // hence we don't accept it
         //if(nb_seqs_have_cm<2) // it dosen't metter if percentage_same_family==0 or its >0, we don't accepte

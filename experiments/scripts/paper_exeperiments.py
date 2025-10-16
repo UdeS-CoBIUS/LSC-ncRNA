@@ -1033,12 +1033,13 @@ def plot_all_len_motifs_exp(results):
 
 # -------------------------------------------
 # -------------------------------------------
-# Experiments on: Beta filtering
-# Filtering according to motif conservation in their family (parameter $\alpha$)
-# Percentage of given cm in the family (until now we call it Beta), but now in previous phrase (from paper we call it alpha)
-# because in the beginning we call it beta (and also in code), then later in the paper we changed to alpha.
-# So, as parameter we still call it beta.
-# in the figure we call it alpha.
+# Motif filtering parameter guide
+# - same_family_coverage_pct: minimum percentage of sequences in a family that must contain the motif.
+# - occurrence_variation_tolerance: maximum allowed difference between motif counts for the sequences that pass the coverage test.
+# - min_occurrence_count: minimum number of motif occurrences required for a sequence to be counted.
+
+# Experiments on: same-family coverage filtering
+# Filtering according to motif conservation within a family.
 #
 # 
 # In this experiment, we compared different settings including the parameter $\alpha$. Figure \ref{fig:beta_max_10} and Supplementary Figure \ref{fig:beta_max_10_s} show the evolution of the dataset size, the classification accuracy, the training time and the data generation time for different values of $\alpha$.
@@ -1065,9 +1066,10 @@ def plot_all_len_motifs_exp(results):
 # data-size (nb families): 500
 # No deletion
 
-def run_same_family_threshold_experiments(is_debug_datasets: bool = False) -> None:
+def run_same_family_coverage_experiments(is_debug_datasets: bool = False) -> None:
     """
-    Run experiments to analyze the effect of beta (percentage of common motifs) and gamma (minimum occurrences) parameters.
+    Run experiments to analyze how the same-family motif coverage interacts with the
+    minimum motif occurrence count per sequence.
 
     :param is_debug_datasets: If True, use debug dataset size
     """
@@ -1075,40 +1077,46 @@ def run_same_family_threshold_experiments(is_debug_datasets: bool = False) -> No
     dataset_size: int = 500 if not is_debug_datasets else debug_datasets_size_global_var[-1]
     min_len: int = 2
     max_len: int = 10
-    list_betas: list[int] = [0, 50, 100]  # percentage of common motifs in the family
-    alpha: int = -1  # no filtering
-    list_gammas: list[int] = [1, 2]
+    same_family_coverage_pct_values: list[int] = [0, 50, 100]
+    occurrence_variation_tolerance: int = -1  # disabled for this sweep
+    min_occurrence_counts: list[int] = [1, 2]
     is_sub_motif_delete: int = 0  # false, no deletion of submotifs
 
     # Initialize results dictionary with nested structure
     results: Dict[int, Any] = {
-        beta: {gamma: None for gamma in list_gammas} for beta in list_betas
+        coverage_pct: {min_occurrence: None for min_occurrence in min_occurrence_counts}
+        for coverage_pct in same_family_coverage_pct_values
     }
 
     # Step 2: Run experiments
-    for beta in list_betas:
-        print(f"Running experiments for α (percentage_same_family) = {beta}")
-        for gamma in list_gammas:
-            print(f"  Running experiment for gamma {gamma}")
-            results[beta][gamma] = run_single_experiment(
+    for coverage_pct in same_family_coverage_pct_values:
+        print(f"Running experiments for same-family coverage = {coverage_pct}%")
+        for min_occurrence in min_occurrence_counts:
+            print(f"  Running experiment for minimum occurrence count = {min_occurrence}")
+            results[coverage_pct][min_occurrence] = run_single_experiment(
                 dataset_size=dataset_size,
                 min_length=min_len,
                 max_length=max_len,
-                same_family_percentage_threshold=beta,
-                occurrence_variation_tolerance=alpha,
-                min_occurrence_count=gamma,
+                same_family_percentage_threshold=coverage_pct,
+                occurrence_variation_tolerance=occurrence_variation_tolerance,
+                min_occurrence_count=min_occurrence,
                 is_delete_submotifs=is_sub_motif_delete,
-                test_name='beta',
+                test_name='same_family_coverage',
                 is_debug_datasets=is_debug_datasets
             )
 
     # Step 3: Generate plots
-    plot_accuracy_beta_gamma(results, 'beta_gamma_accuracy_plot.png')
-    plot_motifs_beta_gamma(results, 'beta_gamma_motifs_plot.png')
-
+    plot_accuracy_same_family_vs_min_occurrence(
+        results,
+        'same_family_coverage_vs_min_occurrence_accuracy.png'
+    )
+    plot_motif_counts_same_family_vs_min_occurrence(
+        results,
+        'same_family_coverage_vs_min_occurrence_motifs.png'
+    )
 
     # Step 4: Save results (optional, but recommended)
-    save_results_to_file(results, "beta_experiments_results.json")
+    save_results_to_file(results, "same_family_coverage_vs_min_occurrence_results.json")
 
 def save_results_to_file(results: dict, filename: str) -> None:
     """
@@ -1125,7 +1133,7 @@ def save_results_to_file(results: dict, filename: str) -> None:
 
 
 # Example of combined results dictionary
-results_debug_beta_gamma = {
+results_debug_same_family_coverage = {
     0: {
         1: {
             'EXT': {'accuracy': 0.85},
@@ -1167,28 +1175,39 @@ results_debug_beta_gamma = {
 # Now let's update both plotting functions to work with this new structure
 import numpy as np
 
-def plot_accuracy_beta_gamma(results, output_filename='accuracy_plot.png'):
-    betas = list(results.keys())
-    gammas = list(results[betas[0]].keys())
+def plot_accuracy_same_family_vs_min_occurrence(
+    results,
+    output_filename: str = 'same_family_coverage_vs_min_occurrence_accuracy.png'
+):
+    coverage_values = list(results.keys())
+    min_occurrence_values = list(results[coverage_values[0]].keys())
     models = ['EXT', 'MLP']
     
-    x = np.arange(len(betas))
+    x = np.arange(len(coverage_values))
     width = 0.1
     
     fig, ax = plt.subplots(figsize=(12, 6))
     
     for i, model in enumerate(models):
-        for j, gamma in enumerate(gammas):
-            accuracies = [results[beta][gamma][model]['accuracy'] for beta in betas]
-            offset = width * (i * len(gammas) + j - (len(models) * len(gammas) - 1) / 2)
-            rects = ax.bar(x + offset, accuracies, width, label=f'{model}, γ={gamma}')
+        for j, min_occurrence in enumerate(min_occurrence_values):
+            accuracies = [
+                results[coverage_pct][min_occurrence][model]['accuracy']
+                for coverage_pct in coverage_values
+            ]
+            offset = width * (i * len(min_occurrence_values) + j - (len(models) * len(min_occurrence_values) - 1) / 2)
+            rects = ax.bar(
+                x + offset,
+                accuracies,
+                width,
+                label=f'{model}, γ={min_occurrence}'
+            )
             ax.bar_label(rects, fmt='{:.2f}', padding=3, rotation=90, fontsize=8)
 
-    ax.set_xlabel('α (%) – percentage_same_family')
+    ax.set_xlabel('α (%) – same-family coverage')
     ax.set_ylabel('Accuracy')
-    ax.set_title('Accuracy for EXT and MLP Models with Different α and γ Values')
+    ax.set_title('Accuracy vs Same-family Coverage and Minimum Occurrence Count')
     ax.set_xticks(x)
-    ax.set_xticklabels(betas)
+    ax.set_xticklabels(coverage_values)
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     ax.set_ylim(0, 1)
     
@@ -1197,26 +1216,32 @@ def plot_accuracy_beta_gamma(results, output_filename='accuracy_plot.png'):
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Plot saved as {output_path}")
 
-def plot_motifs_beta_gamma(results, output_filename='motifs_plot.png'):
-    betas = list(results.keys())
-    gammas = list(results[betas[0]].keys())
+def plot_motif_counts_same_family_vs_min_occurrence(
+    results,
+    output_filename: str = 'same_family_coverage_vs_min_occurrence_motifs.png'
+):
+    coverage_values = list(results.keys())
+    min_occurrence_values = list(results[coverage_values[0]].keys())
     
-    x = np.arange(len(betas))
+    x = np.arange(len(coverage_values))
     width = 0.2
     
     fig, ax = plt.subplots(figsize=(10, 6))
     
-    for j, gamma in enumerate(gammas):
-        num_motifs = [results[beta][gamma]['num_motifs'] for beta in betas]
-        offset = width * (j - len(gammas)/2 + 0.5)
-        rects = ax.bar(x + offset, num_motifs, width, label=f'γ={gamma}')
+    for j, min_occurrence in enumerate(min_occurrence_values):
+        num_motifs = [
+            results[coverage_pct][min_occurrence]['num_motifs']
+            for coverage_pct in coverage_values
+        ]
+        offset = width * (j - len(min_occurrence_values)/2 + 0.5)
+        rects = ax.bar(x + offset, num_motifs, width, label=f'γ={min_occurrence}')
         ax.bar_label(rects, fmt='{:.0f}', padding=3, rotation=90, fontsize=8)
 
-    ax.set_xlabel('Beta (%)')
+    ax.set_xlabel('α (%) – same-family coverage')
     ax.set_ylabel('Number of Motifs')
-    ax.set_title('Number of Motifs for Different Beta and Gamma Values')
+    ax.set_title('Motif Counts vs Same-family Coverage and Minimum Occurrence Count')
     ax.set_xticks(x)
-    ax.set_xticklabels(betas)
+    ax.set_xticklabels(coverage_values)
     ax.legend()
     
     ax.set_ylim(bottom=0)
@@ -1228,23 +1253,16 @@ def plot_motifs_beta_gamma(results, output_filename='motifs_plot.png'):
 
 # -------------------------------------------
 # -------------------------------------------
-# Experiments on: Alpha filtering (in the paper called beta :p)
-# D. Filtering according to the number of occurrences variation (parameter $\beta$)
-# the number of motifs for $\beta = 0$ and $\beta = +\infty$ for different values of $\alpha$.
-# so, in the code
-# beta (paper alpha) = 0, 50, 100
-# alpha (paper beta) = 0 , +infty 
-# gamma = 1 # no filtering
-# model: [EXT, MLP]
-# min_len = 2
-# max_len = 10
-# data-size (nb families): 500
-# No deletion
+# Experiments on: occurrence variation tolerance filtering
+# Filtering according to the allowed variation in motif occurrences across sequences.
+# We sweep same-family coverage percentages together with strict (1) and effectively unbounded (100)
+# occurrence variation tolerance values while keeping the minimum occurrence count fixed at 1.
 
 
 def run_occurrence_variation_experiments(is_debug_datasets: bool = False) -> None:
     """
-    Run experiments to analyze the effect of beta (percentage of common motifs) and gamma (minimum occurrences) parameters.
+    Run experiments to analyze the impact of same-family coverage together with the
+    occurrence variation tolerance parameter while keeping the minimum occurrence count fixed.
 
     :param is_debug_datasets: If True, use debug dataset size
     """
@@ -1252,65 +1270,83 @@ def run_occurrence_variation_experiments(is_debug_datasets: bool = False) -> Non
     dataset_size: int = 500 if not is_debug_datasets else debug_datasets_size_global_var[-1]
     min_len: int = 2
     max_len: int = 10
-    list_betas: list[int] = [0, 50, 100]  # percentage of common motifs in the family
-    list_alphas: list[int] = [1,100]  # 1 and 100 (as +infiny :p) since all test from 10, 20, ...and on give the same results. # We can Max positive value for 32-bit signed integer, but it give pbm, I don't know why !!!, but since we don't need it, so we don't care :p
-    gamma: int = 1 # no filtering
+    same_family_coverage_pct_values: list[int] = [0, 50, 100]
+    occurrence_variation_tolerances: list[int] = [1, 100]
+    min_occurrence_count: int = 1
     is_sub_motif_delete: int = 0  # false, no deletion of submotifs
 
     # Initialize results dictionary with nested structure
     results: Dict[int, Any] = {
-        beta: {alpha: None for alpha in list_alphas} for beta in list_betas
+        coverage_pct: {tolerance: None for tolerance in occurrence_variation_tolerances}
+        for coverage_pct in same_family_coverage_pct_values
     }
 
     # Step 2: Run experiments
-    for beta in list_betas:
-        print(f"Running experiments for α (percentage_same_family) = {beta}")
-        for alpha in list_alphas:
-            print(f"  Running experiment for β (occurrence variation) = {alpha}")
-            results[beta][alpha] = run_single_experiment(
+    for coverage_pct in same_family_coverage_pct_values:
+        print(f"Running experiments for same-family coverage = {coverage_pct}%")
+        for tolerance in occurrence_variation_tolerances:
+            tolerance_label = 'unbounded' if tolerance >= 100 else str(tolerance)
+            print(f"  Running experiment for occurrence variation tolerance = {tolerance_label}")
+            results[coverage_pct][tolerance] = run_single_experiment(
                 dataset_size=dataset_size,
                 min_length=min_len,
                 max_length=max_len,
-                same_family_percentage_threshold=beta,
-                occurrence_variation_tolerance=alpha,
-                min_occurrence_count=gamma,
+                same_family_percentage_threshold=coverage_pct,
+                occurrence_variation_tolerance=tolerance,
+                min_occurrence_count=min_occurrence_count,
                 is_delete_submotifs=is_sub_motif_delete,
-                test_name='alpha',
+                test_name='occurrence_variation',
                 is_debug_datasets=is_debug_datasets
             )
 
     # Step 3: Generate plots
-    plot_accuracy_beta_alpha(results, 'beta_alpha_accuracy_plot.png')
-    plot_motifs_beta_alpha(results, 'beta_alpha_motifs_plot.png')
-
+    plot_accuracy_same_family_vs_occurrence_variation(
+        results,
+        'same_family_coverage_vs_occurrence_variation_accuracy.png'
+    )
+    plot_motif_counts_same_family_vs_occurrence_variation(
+        results,
+        'same_family_coverage_vs_occurrence_variation_motifs.png'
+    )
 
     # Step 4: Save results (optional, but recommended)
-    save_results_to_file(results, "alpha_experiments_results.json")
+    save_results_to_file(results, "same_family_coverage_vs_occurrence_variation_results.json")
 
 
-def plot_accuracy_beta_alpha(results, output_filename='accuracy_plot.png'):
-    betas = list(results.keys())
-    alphas = list(results[betas[0]].keys())
+def plot_accuracy_same_family_vs_occurrence_variation(
+    results,
+    output_filename: str = 'same_family_coverage_vs_occurrence_variation_accuracy.png'
+):
+    coverage_values = list(results.keys())
+    variation_values = list(results[coverage_values[0]].keys())
     models = ['EXT', 'MLP']
     
-    x = np.arange(len(betas))
+    x = np.arange(len(coverage_values))
     width = 0.1
     
     fig, ax = plt.subplots(figsize=(12, 6))
     
     for i, model in enumerate(models):
-        for j, alpha in enumerate(alphas):
-            accuracies = [results[beta][alpha][model]['accuracy'] for beta in betas]
-            offset = width * (i * len(alphas) + j - (len(models) * len(alphas) - 1) / 2)
-            alpha_label = "1" if alpha == 1 else "∞"
-            rects = ax.bar(x + offset, accuracies, width, label=f'{model}, α={alpha_label}')
+        for j, tolerance in enumerate(variation_values):
+            accuracies = [
+                results[coverage_pct][tolerance][model]['accuracy']
+                for coverage_pct in coverage_values
+            ]
+            tolerance_label = "∞" if tolerance >= 100 else str(tolerance)
+            offset = width * (i * len(variation_values) + j - (len(models) * len(variation_values) - 1) / 2)
+            rects = ax.bar(
+                x + offset,
+                accuracies,
+                width,
+                label=f'{model}, β={tolerance_label}'
+            )
             ax.bar_label(rects, fmt='{:.2f}', padding=3, rotation=90, fontsize=8)
 
-    ax.set_xlabel('Beta (%)')
+    ax.set_xlabel('α (%) – same-family coverage')
     ax.set_ylabel('Accuracy')
-    ax.set_title('Accuracy for EXT and MLP Models with Different Beta and Alpha Values')
+    ax.set_title('Accuracy vs Same-family Coverage and Occurrence Variation Tolerance')
     ax.set_xticks(x)
-    ax.set_xticklabels(betas)
+    ax.set_xticklabels(coverage_values)
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
     ax.set_ylim(0, 1)
     
@@ -1319,27 +1355,38 @@ def plot_accuracy_beta_alpha(results, output_filename='accuracy_plot.png'):
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Plot saved as {output_path}")
 
-def plot_motifs_beta_alpha(results, output_filename='motifs_plot.png'):
-    betas = list(results.keys())
-    alphas = list(results[betas[0]].keys())
+def plot_motif_counts_same_family_vs_occurrence_variation(
+    results,
+    output_filename: str = 'same_family_coverage_vs_occurrence_variation_motifs.png'
+):
+    coverage_values = list(results.keys())
+    variation_values = list(results[coverage_values[0]].keys())
     
-    x = np.arange(len(betas))
+    x = np.arange(len(coverage_values))
     width = 0.2
     
     fig, ax = plt.subplots(figsize=(10, 6))
     
-    for j, alpha in enumerate(alphas):
-        num_motifs = [results[beta][alpha]['num_motifs'] for beta in betas]
-        offset = width * (j - len(alphas)/2 + 0.5)
-        alpha_label = "1" if alpha == 1 else "∞"
-        rects = ax.bar(x + offset, num_motifs, width, label=f'α={alpha_label}')
+    for j, tolerance in enumerate(variation_values):
+        motif_counts = [
+            results[coverage_pct][tolerance]['num_motifs']
+            for coverage_pct in coverage_values
+        ]
+        tolerance_label = "∞" if tolerance >= 100 else str(tolerance)
+        offset = width * (j - len(variation_values)/2 + 0.5)
+        rects = ax.bar(
+            x + offset,
+            motif_counts,
+            width,
+            label=f'β={tolerance_label}'
+        )
         ax.bar_label(rects, fmt='{:.0f}', padding=3, rotation=90, fontsize=8)
 
-    ax.set_xlabel('Beta (%)')
+    ax.set_xlabel('α (%) – same-family coverage')
     ax.set_ylabel('Number of Motifs')
-    ax.set_title('Number of Motifs for Different Beta and Alpha Values')
+    ax.set_title('Motif Counts vs Same-family Coverage and Occurrence Variation Tolerance')
     ax.set_xticks(x)
-    ax.set_xticklabels(betas)
+    ax.set_xticklabels(coverage_values)
     ax.legend()
     
     ax.set_ylim(bottom=0)
@@ -2008,8 +2055,8 @@ EXPERIMENT_REGISTRY: Dict[str, Tuple[str, ExperimentStep]] = {
         run_motif_length_experiments,
     ),
     "same-family-threshold": (
-        "Run β/γ (percentage_same_family vs gamma) experiments and plots.",
-        run_same_family_threshold_experiments,
+        "Run same-family coverage vs minimum occurrence count experiments and plots.",
+        run_same_family_coverage_experiments,
     ),
     "occurrence-variation": (
         "Run occurrence variation tolerance experiments (legacy alpha).",
@@ -2131,6 +2178,11 @@ def main() -> None:
     print("All requested experiment steps completed.")
 
 
+
 if __name__ == "__main__":
-    main()
+    #main()
     
+    # for quick testing of a single experiment step
+    is_debug_datasets_global_var = True  # keep the small datasets
+    print("Running single step for quick testing: same-family-threshold")
+    run_same_family_coverage_experiments(True)
