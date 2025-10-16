@@ -50,6 +50,11 @@ debug_datasets_size_global_var: list[int] = [5, 10, 15, 20, 25, 30]
 #debug_datasets_size_global_var: list[int] = [30]
 dir_main_path_debug_datasets_global_var: str = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
 
+# Directory to save plots
+PLOTS_SAVE_DIR: str = "results/plots/"
+os.makedirs(PLOTS_SAVE_DIR, exist_ok=True)
+
+
 def find_project_root(project_name: str = "LSC-ncRNA") -> Path:
     """
     Find the project root directory by looking for a specific directory name.
