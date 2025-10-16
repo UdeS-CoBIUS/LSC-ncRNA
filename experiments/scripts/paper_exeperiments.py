@@ -50,9 +50,35 @@ debug_datasets_size_global_var: list[int] = [5, 10, 15, 20, 25, 30]
 #debug_datasets_size_global_var: list[int] = [30]
 dir_main_path_debug_datasets_global_var: str = "datasets/data/Rfam_14.1_dataset/debug_small_Rfam14.1_Sample_Train_Test"
 
-# Directory to save plots
-PLOTS_SAVE_DIR: str = "results/plots/"
-os.makedirs(PLOTS_SAVE_DIR, exist_ok=True)
+# Directory roots for generated artifacts
+OUTPUTS_ROOT: Path = Path(__file__).resolve().parent.parent / "outputs"
+
+
+def get_run_mode_folder(is_debug: Optional[bool] = None) -> str:
+    """Return the subdirectory name representing the current run mode."""
+    if is_debug is None:
+        is_debug = is_debug_datasets_global_var
+    return "debug_small_dataset" if is_debug else "full_paper_dataset"
+
+
+def ensure_dir(path: Path) -> Path:
+    """Create the target directory (including parents) if it does not exist."""
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_output_dir(*subdirs: str, is_debug: Optional[bool] = None) -> Path:
+    """Resolve (and create) the directory under outputs for the current run mode."""
+    return ensure_dir(OUTPUTS_ROOT.joinpath(get_run_mode_folder(is_debug), *subdirs))
+
+
+def get_output_path(filename: str, *subdirs: str, is_debug: Optional[bool] = None) -> Path:
+    """Return the full path to an artifact inside the outputs tree."""
+    return get_output_dir(*subdirs, is_debug=is_debug) / filename
+
+
+# Default directory for plots (will be created on import)
+PLOTS_SAVE_DIR: Path = get_output_dir("plots")
 
 
 def find_project_root(project_name: str = "LSC-ncRNA") -> Path:
@@ -254,9 +280,7 @@ def deletion_sub_motifs(is_debug_datasets: bool = False) -> None:
                     f"Processed dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
 
                 # Step 9: Save results to a CSV file
-                results_dir: Path = Path("results")
-                os.makedirs(results_dir, exist_ok=True)  # Create the directory if it doesn't exist
-                csv_path: Path = results_dir / "deletion_sub_motifs_results.csv"
+                csv_path: Path = get_output_path("deletion_sub_motifs_results.csv", 'tables')
 
                 with open(csv_path, "w", newline="") as csvfile:
                     fieldnames: list[str] = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]
@@ -300,9 +324,10 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path: Path) -> None:
     plt.title('Evolution of Data Size')
     plt.legend()
     plt.grid(True)
-    plt.savefig('results/evolution_of_data_size.png')
+    output_path_size = get_output_path('evolution_of_data_size.png', 'plots')
+    plt.savefig(output_path_size)
     plt.close()
-    print("Plot saved as results/evolution_of_data_size.png")
+    print(f"Plot saved as {output_path_size}")
 
     # Plot 2: Evolution of processing time for F vs NF
     plt.figure(figsize=(10, 6))
@@ -315,9 +340,10 @@ def generate_result_sub_motifs_F_vs_NF_plots(csv_file_path: Path) -> None:
     plt.title('Evolution of Processing Time')
     plt.legend()
     plt.grid(True)
-    plt.savefig('results/evolution_of_processing_time.png')
+    output_path_time = get_output_path('evolution_of_processing_time.png', 'plots')
+    plt.savefig(output_path_time)
     plt.close()
-    print("Plot saved as results/evolution_of_processing_time.png")
+    print(f"Plot saved as {output_path_time}")
 
 
 # -------------------------------------------
@@ -500,10 +526,11 @@ def run_single_experiment(dataset_size: int = 500,
         print(f"\nRunning classification with model: {model}")
 
         # Define output CSV for classification results
-        classification_output_csv = os.path.join(
-            "results",
-            f"classification_results_{model}_dataset_{dataset_size}_min{min_length}_max{max_length}.csv"
+        classification_output_csv_path = get_output_path(
+            f"classification_results_{model}_dataset_{dataset_size}_min{min_length}_max{max_length}.csv",
+            'tables'
         )
+        classification_output_csv = str(classification_output_csv_path)
 
         #print('classification_output_csv: ', classification_output_csv)
         #print('befor run classification ...')
@@ -619,10 +646,11 @@ def run_single_experiment_models_choices(dataset_size: int = 500,
     print(f"\nRunning classification with models choices...")
 
     # Define output CSV for classification results
-    classification_output_csv = os.path.join(
-        "results",
-        f"classification_results_models_choices_dataset_{dataset_size}_min{min_length}_max{max_length}.csv"
+    classification_output_csv_path = get_output_path(
+        f"classification_results_models_choices_dataset_{dataset_size}_min{min_length}_max{max_length}.csv",
+        'tables'
     )
+    classification_output_csv = str(classification_output_csv_path)
 
     # Run classification experiment
     classification_output = run_classification_experiment_models_choices(
@@ -716,8 +744,10 @@ def plot_growth_nb_motifs_fixed_len(results, save_as_file=True, filename='Growth
     
     # Save or display the plot
     if save_as_file:
-        plt.savefig(filename)
+        output_path = get_output_path(filename, 'plots')
+        plt.savefig(output_path)
         plt.close()  # Close the plot to avoid display when saving
+        print(f"Plot saved as {output_path}")
     else:
         plt.show()  # Display the plot if not saving
 
@@ -765,8 +795,10 @@ def plot_growth_nb_motifs_combined_len(results, save_as_file=True, filename='Gro
     
     # Save or display the plot
     if save_as_file:
-        plt.savefig(filename)
+        output_path = get_output_path(filename, 'plots')
+        plt.savefig(output_path)
         plt.close()  # Close the plot to avoid display when saving
+        print(f"Plot saved as {output_path}")
     else:
         plt.show()  # Display the plot if not saving
 
@@ -819,8 +851,10 @@ def plot_accuracy_fixed_len(results, save_as_file=True):
         # Save or display the plot
         filename = f'accuracy_fixed_len_{model}.png'
         if save_as_file:
-            plt.savefig(filename)
+            output_path = get_output_path(filename, 'plots')
+            plt.savefig(output_path)
             plt.close()
+            print(f"Plot saved as {output_path}")
         else:
             plt.show()
 
@@ -882,8 +916,10 @@ def plot_accuracy_combined_len(results, save_as_file=True, filename='Accuracy_co
     
     # Save or display the plot
     if save_as_file:
-        plt.savefig(filename)
+        output_path = get_output_path(filename, 'plots')
+        plt.savefig(output_path)
         plt.close()  # Close the plot to avoid display when saving
+        print(f"Plot saved as {output_path}")
     else:
         plt.show()  # Display the plot if not saving
 
@@ -964,8 +1000,10 @@ def plot_total_time_combined_len(results, save_as_file=True, filename='Total_tim
     
     # Save or display the plot
     if save_as_file:
-        plt.savefig(filename)
+        output_path = get_output_path(filename, 'plots')
+        plt.savefig(output_path)
         plt.close()  # Close the plot to avoid display when saving
+        print(f"Plot saved as {output_path}")
     else:
         plt.show()  # Display the plot if not saving
 
@@ -1076,9 +1114,10 @@ def save_results_to_file(results: dict, filename: str) -> None:
     :param filename: The name of the file to save the results to
     """
     import json
-    with open(filename, 'w') as f:
+    output_path = get_output_path(filename, 'tables')
+    with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
-    print(f"Results saved to {filename}")
+    print(f"Results saved to {output_path}")
 
 
 # Example of combined results dictionary
@@ -1150,8 +1189,9 @@ def plot_accuracy_beta_gamma(results, output_filename='accuracy_plot.png'):
     ax.set_ylim(0, 1)
     
     plt.tight_layout()
-    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
-    print(f"Plot saved as {output_filename}")
+    output_path = get_output_path(output_filename, 'plots')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_path}")
 
 def plot_motifs_beta_gamma(results, output_filename='motifs_plot.png'):
     betas = list(results.keys())
@@ -1177,8 +1217,9 @@ def plot_motifs_beta_gamma(results, output_filename='motifs_plot.png'):
     
     ax.set_ylim(bottom=0)
     plt.tight_layout()
-    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
-    print(f"Plot saved as {output_filename}")
+    output_path = get_output_path(output_filename, 'plots')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_path}")
 
 
 # -------------------------------------------
@@ -1270,8 +1311,9 @@ def plot_accuracy_beta_alpha(results, output_filename='accuracy_plot.png'):
     ax.set_ylim(0, 1)
     
     plt.tight_layout()
-    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
-    print(f"Plot saved as {output_filename}")
+    output_path = get_output_path(output_filename, 'plots')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_path}")
 
 def plot_motifs_beta_alpha(results, output_filename='motifs_plot.png'):
     betas = list(results.keys())
@@ -1298,8 +1340,9 @@ def plot_motifs_beta_alpha(results, output_filename='motifs_plot.png'):
     
     ax.set_ylim(bottom=0)
     plt.tight_layout()
-    plt.savefig(output_filename, dpi=300, bbox_inches='tight')
-    print(f"Plot saved as {output_filename}")
+    output_path = get_output_path(output_filename, 'plots')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Plot saved as {output_path}")
 
 # -------------------------------------------
 # -------------------------------------------
@@ -1602,7 +1645,7 @@ def run_classification_experiment(
     
     # Define default output_csv if not provided
     if output_csv is None:
-        output_csv = str(Path("results") / f"classification_results_{model}_{os.getpid()}.csv")
+        output_csv = str(get_output_path(f"classification_results_{model}_{os.getpid()}.csv", 'tables'))
     
     # Ensure output directory exists
     output_csv_path = Path(output_csv)
@@ -1706,7 +1749,7 @@ def run_classification_experiment_models_choices(
     
     # Define default output_csv if not provided
     if output_csv is None:
-        output_csv = str(Path("results") / f"classification_results_models_choices_{os.getpid()}.csv")
+        output_csv = str(get_output_path(f"classification_results_models_choices_{os.getpid()}.csv", 'tables'))
     
     # Ensure output directory exists
     output_csv_path = Path(output_csv)
@@ -1783,14 +1826,16 @@ def write_results_to_csv(results: Dict[str, Any], csv_filename: str) -> None:
     Raises:
     IOError: If there's an issue writing to the file.
     """
+    output_path = get_output_path(csv_filename, 'tables')
     try:
-        with open(csv_filename, mode='w', newline='') as file:
+        with open(output_path, mode='w', newline='') as file:
             writer = csv.writer(file)
             write_header(writer)
             write_fixed_length_results(writer, results.get('fixed_length', {}))
             write_combined_length_results(writer, results.get('combined_length', {}))
+        print(f"Results saved to {output_path}")
     except IOError as e:
-        print(f"Error writing to file {csv_filename}: {e}")
+        print(f"Error writing to file {output_path}: {e}")
 
 def write_header(writer) -> None:
     writer.writerow([
@@ -1888,9 +1933,7 @@ def debug_cpp_fixed_len():
                     f"Processed dataset size {size} with submotif deletion {'enabled' if is_delete_submotifs else 'disabled'}")
 
                 # Step 9: Save results to a CSV file
-                results_dir: Path = Path("results")
-                os.makedirs(results_dir, exist_ok=True)  # Create the directory if it doesn't exist
-                csv_path: Path = results_dir / "deletion_sub_motifs_results.csv"
+                csv_path: Path = get_output_path("deletion_sub_motifs_results.csv", 'tables')
 
                 with open(csv_path, "w", newline="") as csvfile:
                     fieldnames: list[str] = ["dataset_size", "is_delete_submotifs", "execution_time", "file_size_gb"]
