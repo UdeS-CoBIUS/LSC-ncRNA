@@ -2335,10 +2335,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    #main()
-    
-    # for quick testing of a single experiment step
-    is_debug_datasets_global_var = True  # keep the small datasets
-    print("Running algs-choice experiment step only for quick testing...")
-    run_algs_choice_experiments(is_debug_datasets_global_var)
-    
+    main()

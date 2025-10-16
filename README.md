@@ -73,9 +73,10 @@ Run the lightweight “debug” preset to make sure your environment is ready. T
 3. Build the C++ motif extractor, or let the pipeline compile it automatically (details in [Section 4](#4-build-the-c-motif-extractor)).
 
 4. Run the pipeline in debug mode (ensure your working directory is the repository root).
-    ```bash
+  ```bash
   python experiments/scripts/paper_exeperiments.py
-    ```
+  ```
+   Add `--list` to inspect the available steps or `--mode full` to mirror the paper-scale datasets when your hardware allows it.
 
 5. Inspect the outputs.
   - Plots saved under `experiments/outputs/debug_small_dataset/plots/`
@@ -85,18 +86,26 @@ Run the lightweight “debug” preset to make sure your environment is ready. T
 
 ## 2. Full reproduction: paper experiments
 
-Running the full Rfam-scale experiments requires a machine with substantial memory (tens of GB RAM recommended). All experiment entry points live in `experiments/scripts/paper_exeperiments.py`. Enable experiments by editing the `main()` function (uncomment the calls you need) or by importing the module and calling the helpers from a Python session:
+Running the full Rfam-scale experiments requires a machine with substantial memory (tens of GB RAM recommended). All experiment entry points live in `experiments/scripts/paper_exeperiments.py`, which now exposes a command-line interface so you can queue, skip, or list steps without editing the source file.
 
-```python
-from experminents_results.paper_exeperiments import (
-    run_same_family_threshold_experiments,
-    run_occurrence_variation_experiments,
-)
+- Inspect the curated execution order:
+  ```bash
+  python experiments/scripts/paper_exeperiments.py --list
+  ```
+- Run only a subset (order follows the command line):
+  ```bash
+  python experiments/scripts/paper_exeperiments.py --experiments motif-length same-family-threshold --mode full
+  ```
+- Skip an expensive stage while keeping defaults:
+  ```bash
+  python experiments/scripts/paper_exeperiments.py --skip compile-cpp
+  ```
+- Execute the whole pipeline:
+  ```bash
+  python experiments/scripts/paper_exeperiments.py --experiments all --mode full
+  ```
 
-run_same_family_threshold_experiments(
-    is_debug_datasets = False
-)
-```
+By default the script compiles the C++ binary and launches the deletion/no-deletion experiment in debug mode, mirroring the previous behaviour. Toggle to the full datasets with `--mode full` or override the dataset choice per step with the `--mode` flag. Advanced users can still import individual helpers from a Python session, but the CLI covers the standard workflows.
 
 ### Key experiments and helper names
 - **Submotif deletion impact**: `deletion_sub_motifs()`
@@ -331,11 +340,15 @@ run_classification_experiment(...)
 plot_*(...)
 ```
 
+
 ### Common workflow
-1. **Compile the extractor** once per session using `compile_code_MotifsExtractionSelection()`.
-2. **Generate motif matrices** with `run_cpp_motif_extraction_and_selection(...)`.
-3. **Train and evaluate models** by calling `run_classification_experiment(...)` or `run_classification_experiment_models_choices(...)`.
-4. **Visualise and export results** via the plotting helpers (`plot_accuracy_*`, `plot_motifs_*`, etc.).
+1. **Discover the available steps** with `python experiments/scripts/paper_exeperiments.py --list`.
+2. **Launch the desired experiments** using `--experiments`, optionally chaining multiple names or the special `all` sentinel.
+3. **Control datasets** with `--mode debug` (default) or `--mode full` to mirror the paper runs.
+4. **Optionally skip stages** (for example `--skip compile-cpp`) when reusing previously generated artifacts.
+5. Inspect fresh plots and tables under `experiments/outputs/<mode>/`.
+
+The CLI orchestrates the full compile → extract → classify → plot cycle automatically. You can still call the helpers below from an interactive session for bespoke analyses.
 
 ### Experiment helpers
 Use these from the `main()` function or from an interactive Python session.
@@ -344,15 +357,9 @@ Use these from the `main()` function or from an interactive Python session.
 - **Parameter sweeps** — `run_same_family_threshold_experiments()` and `run_occurrence_variation_experiments()` chart accuracy and motif counts across grids.
 - **Algorithm choices** — `run_algs_choice_experiments()` compares EXT vs MLP timing and accuracy.
 
+
 ### Debug vs full datasets
-The module-level variable `is_debug_datasets_global_var` (near the top of `paper_exeperiments.py`) controls dataset size.
-
-```python
-is_debug_datasets_global_var = True  # change to False for full Rfam runs
-```
-
-- `True` (default) runs a curated mini sample suitable for laptops.
-- `False` switches to the full datasets—ensure the archives from [Section 5](#5-datasets-prepared-and-from-scratch-options) are extracted and that your machine has sufficient RAM.
+Use the CLI `--mode` flag to switch between the small debug sample and the full paper configuration. Internally the script still honours the module-level `is_debug_datasets_global_var` default, so advanced users can override it programmatically if needed.
 
 
 ## 7. Standalone classification CLI
